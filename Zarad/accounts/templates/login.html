@@ -1,0 +1,43 @@
+{% extends "header_footer.html" %}
+
+{% load staticfiles%}
+
+{%block title%}
+Login
+{%endblock%}
+
+{%block staticfiles%}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="{% static 'css/Login-screen.css' %}">
+{%endblock%}
+
+{% block content %}
+
+<div id="login-one" class="login-one d-flex justify-content-center">
+  <form class="login-one-form" method="POST">
+    {% csrf_token %}
+    {% if error %}
+      <p class="mb-3 font-weight-bold" style="color:red">
+        Wrong Email & Password
+      </p>
+    {% endif %}
+    <div class="col">
+      <div class="login-one-ico"><i class="fa fa-unlock-alt" id="lockico"></i></div>
+      <div class="form-group">
+        <div>
+            <h3 id="heading">Log in:</h3>
+        </div>
+        <input name="Email" class="form-control" type="email" id="Email" placeholder="Email" required="">
+        <input name="Password" class="form-control" type="password" id="Password" placeholder="Password" required="">
+        <button class="btn btn-primary" id="button" style="background-color:#5cb85c;" type="submit">Log in</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

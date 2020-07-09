@@ -15,6 +15,7 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_DIR = os.path.join(BASE_DIR,'templates')
+MEDIA_DIR = os.path.join(BASE_DIR,'media')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -25,7 +26,7 @@ SECRET_KEY = '#0f&-x6r^qsn2-a_m@e0+y_8uh+=bhy#+s1&#cz$xju9+i5t09'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "192.168.0.103",]
+ALLOWED_HOSTS = ["127.0.0.1", "192.168.0.104",]
 
 
 # Application definition
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core_website.apps.CoreWebsiteConfig',
+    'accounts.apps.AccountsConfig',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +72,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Zarad.wsgi.application'
 
+AUTHENTICATION_BACKENDS = ['auth.custom_authentification_backend.my_user_backend']
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -77,7 +80,15 @@ WSGI_APPLICATION = 'Zarad.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'auth/db.sqlite3'),
+    },
+    'oracle': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': 'orcl',
+        'USER': 'Zarad',
+        'PASSWORD': '93103',
+        'HOST': 'localhost',
+        'PORT': '1521'
     }
 }
 
@@ -119,4 +130,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'accounts/static'),
+    ]
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.BCryptPasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+]
+
+# MEDIA INFORMATION:
+MEDIA_ROOT = MEDIA_DIR
+MEDIA_URL = '/media/'
