@@ -23,12 +23,15 @@ def signup_page(request):
             fname = request.POST.get("customerFirstName","empty")
             lname = request.POST.get("customerLastName","empty")
             dob = request.POST.get("customerDOB","empty")
+            dob = dob[8:10]+'-'+dob[5:7]+'-'+dob[0:4]
             phno = request.POST.get("customerPhNo","empty")
             apart = request.POST.get("customerApartment","")
             area = request.POST.get("customerArea","empty")
             building = request.POST.get("customerBuilding","")
             road = request.POST.get("customerRoad","")
             city = request.POST.get("customerCity","empty")
+            latitude = request.POST.get("customerLatitude","empty")
+            longitude = request.POST.get("customerLongitude","empty")
 
             if 'customerImage' in request.FILES:
                 img = request.FILES['customerImage']
@@ -53,6 +56,7 @@ def signup_page(request):
             fname = request.POST.get("employeeFirstName","empty")
             lname = request.POST.get("employeeLastName","empty")
             dob = request.POST.get("employeeDOB","empty")
+            dob = dob[8:10]+'-'+dob[5:7]+'-'+dob[0:4]
             phno = request.POST.get("employeePhNo","empty")
             apart = request.POST.get("employeeApartment","")
             area = request.POST.get("employeeArea","empty")
@@ -61,7 +65,9 @@ def signup_page(request):
             city = request.POST.get("employeeCity","empty")
             type = request.POST.get("employeeType","empty")
             salary = request.POST.get("employeeSalary","empty")
-
+            latitude = request.POST.get("employeeLatitude","empty")
+            longitude = request.POST.get("employeeLongitude","empty")
+            
             if 'employeeImage' in request.FILES:
                 img = request.FILES['employeeImage']
                 imgBLOB = img.read()
@@ -72,22 +78,35 @@ def signup_page(request):
             else:
                 query = """INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                            BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                           SALARY) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area,
+                           SALARY) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area,
                            city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary) )"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
                 return HttpResponseRedirect(reverse('login'))
 
         elif request.POST.get("radioButton", "empty") == 'Seller':
-            email = request.POST.get("sellerEmail","empty")
-            password = request.POST.get("sellerPassword","empty")
-            name = request.POST.get("sellerName","empty")
-            website = request.POST.get("sellerWebsite","empty")
-            phno = request.POST.get("sellerPhNo","empty")
-            area = request.POST.get("sellerArea","empty")
+            email = request.POST.get("sellerEmail","")
+            password = request.POST.get("sellerPassword","")
+            name = request.POST.get("sellerName","")
+            website = request.POST.get("sellerWebsite","")
+            phno1 = request.POST.get("sellerPhNo","")
+            phno2 = request.POST.get("sellerPhNo2","")
+            phno3 = request.POST.get("sellerPhNo3","")
+            phno4 = request.POST.get("sellerPhNo4","")
+            area = request.POST.get("sellerArea","")
             building = request.POST.get("sellerBuilding","")
             road = request.POST.get("sellerRoad","")
-            city = request.POST.get("sellerCity","empty")
+            city = request.POST.get("sellerCity","")
+            latitude = request.POST.get("sellerLatitude","empty")
+            longitude = request.POST.get("sellerLongitude","empty")
+
+            phno = [phno1]
+            if phno2 != "":
+                phno.append(phno2)
+            if phno3 != "":
+                phno.append(phno3)
+            if phno4 != "":
+                phno.append(phno4)
 
             if 'sellerImage' in request.FILES:
                 img = request.FILES['sellerImage']

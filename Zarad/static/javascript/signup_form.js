@@ -23,6 +23,8 @@ window.onload=function(){
   document.getElementsByName("customerPassword2")[0].required = true;
   document.getElementsByName("customerArea")[0].required = true;
   document.getElementsByName("customerCity")[0].required = true;
+  document.getElementsByName("customerLatitude")[0].required = true;
+  document.getElementsByName("customerLongitude")[0].required = true;
   document.getElementsByName("customerPhNo")[0].required = true;
   document.getElementsByName("customerDOB")[0].required = true;
 
@@ -30,6 +32,8 @@ window.onload=function(){
   document.getElementsByName("sellerEmail")[0].required = false;
   document.getElementsByName("sellerArea")[0].required = false;
   document.getElementsByName("sellerCity")[0].required = false;
+  document.getElementsByName("sellerLatitude")[0].required = false;
+  document.getElementsByName("sellerLongitude")[0].required = false;
   document.getElementsByName("sellerPhNo")[0].required = false;
   document.getElementsByName("sellerPassword")[0].required = false;
   document.getElementsByName("sellerPassword2")[0].required = false;
@@ -38,13 +42,19 @@ window.onload=function(){
   document.getElementsByName("employeeFirstName")[0].required = false;
   document.getElementsByName("employeeLastName")[0].required = false;
   document.getElementsByName("employeeSalary")[0].required = false;
-  document.getElementsByName("employeeType")[0].required = false;
   document.getElementsByName("employeePhNo")[0].required = false;
   document.getElementsByName("employeeDOB")[0].required = false;
   document.getElementsByName("employeeArea")[0].required = false;
   document.getElementsByName("employeeCity")[0].required = false;
+  document.getElementsByName("employeeLatitude")[0].required = false;
+  document.getElementsByName("employeeLongitude")[0].required = false;
   document.getElementsByName("employeePassword")[0].required = false;
   document.getElementsByName("employeePassword2")[0].required = false;
+
+  document.getElementById('sellerPhNo2').style.display = 'none'
+  document.getElementById('sellerPhNo3').style.display = 'none'
+  document.getElementById('sellerPhNo4').style.display = 'none'
+  document.getElementById('phoneLimit').style.display = 'none'
 
   customerButton.addEventListener('click', () => {
     customerForm.style.display = 'block'
@@ -58,6 +68,8 @@ window.onload=function(){
     document.getElementsByName("customerPassword2")[0].required = true;
     document.getElementsByName("customerArea")[0].required = true;
     document.getElementsByName("customerCity")[0].required = true;
+    document.getElementsByName("customerLatitude")[0].required = true;
+    document.getElementsByName("customerLongitude")[0].required = true;
     document.getElementsByName("customerPhNo")[0].required = true;
     document.getElementsByName("customerDOB")[0].required = true;
 
@@ -65,6 +77,8 @@ window.onload=function(){
     document.getElementsByName("sellerEmail")[0].required = false;
     document.getElementsByName("sellerArea")[0].required = false;
     document.getElementsByName("sellerCity")[0].required = false;
+    document.getElementsByName("sellerLatitude")[0].required = false;
+    document.getElementsByName("sellerLongitude")[0].required = false;
     document.getElementsByName("sellerPhNo")[0].required = false;
     document.getElementsByName("sellerPassword")[0].required = false;
     document.getElementsByName("sellerPassword2")[0].required = false;
@@ -73,11 +87,12 @@ window.onload=function(){
     document.getElementsByName("employeeFirstName")[0].required = false;
     document.getElementsByName("employeeLastName")[0].required = false;
     document.getElementsByName("employeeSalary")[0].required = false;
-    document.getElementsByName("employeeType")[0].required = false;
     document.getElementsByName("employeePhNo")[0].required = false;
     document.getElementsByName("employeeDOB")[0].required = false;
     document.getElementsByName("employeeArea")[0].required = false;
     document.getElementsByName("employeeCity")[0].required = false;
+    document.getElementsByName("employeeLatitude")[0].required = false;
+    document.getElementsByName("employeeLongitude")[0].required = false;
     document.getElementsByName("employeePassword")[0].required = false;
     document.getElementsByName("employeePassword2")[0].required = false;
   })
@@ -94,6 +109,8 @@ window.onload=function(){
     document.getElementsByName("customerPassword2")[0].required = false;
     document.getElementsByName("customerArea")[0].required = false;
     document.getElementsByName("customerCity")[0].required = false;
+    document.getElementsByName("customerLatitude")[0].required = false;
+    document.getElementsByName("customerLongitude")[0].required = false;
     document.getElementsByName("customerPhNo")[0].required = false;
     document.getElementsByName("customerDOB")[0].required = false;
 
@@ -101,6 +118,8 @@ window.onload=function(){
     document.getElementsByName("sellerEmail")[0].required = true;
     document.getElementsByName("sellerArea")[0].required = true;
     document.getElementsByName("sellerCity")[0].required = true;
+    document.getElementsByName("sellerLatitude")[0].required = true;
+    document.getElementsByName("sellerLongitude")[0].required = true;
     document.getElementsByName("sellerPhNo")[0].required = true;
     document.getElementsByName("sellerPassword")[0].required = true;
     document.getElementsByName("sellerPassword2")[0].required = true;
@@ -109,11 +128,12 @@ window.onload=function(){
     document.getElementsByName("employeeFirstName")[0].required = false;
     document.getElementsByName("employeeLastName")[0].required = false;
     document.getElementsByName("employeeSalary")[0].required = false;
-    document.getElementsByName("employeeType")[0].required = false;
     document.getElementsByName("employeePhNo")[0].required = false;
     document.getElementsByName("employeeDOB")[0].required = false;
     document.getElementsByName("employeeArea")[0].required = false;
     document.getElementsByName("employeeCity")[0].required = false;
+    document.getElementsByName("employeeLatitude")[0].required = false;
+    document.getElementsByName("employeeLongitude")[0].required = false;
     document.getElementsByName("employeePassword")[0].required = false;
     document.getElementsByName("employeePassword2")[0].required = false;
 
@@ -131,6 +151,8 @@ window.onload=function(){
     document.getElementsByName("customerPassword2")[0].required = false;
     document.getElementsByName("customerArea")[0].required = false;
     document.getElementsByName("customerCity")[0].required = false;
+    document.getElementsByName("customerLatitude")[0].required = false;
+    document.getElementsByName("customerLongitude")[0].required = false;
     document.getElementsByName("customerPhNo")[0].required = false;
     document.getElementsByName("customerDOB")[0].required = false;
 
@@ -138,6 +160,8 @@ window.onload=function(){
     document.getElementsByName("sellerEmail")[0].required = false;
     document.getElementsByName("sellerArea")[0].required = false;
     document.getElementsByName("sellerCity")[0].required = false;
+    document.getElementsByName("sellerLatitude")[0].required = false;
+    document.getElementsByName("sellerLongitude")[0].required = false;
     document.getElementsByName("sellerPhNo")[0].required = false;
     document.getElementsByName("sellerPassword")[0].required = false;
     document.getElementsByName("sellerPassword2")[0].required = false;
@@ -146,14 +170,17 @@ window.onload=function(){
     document.getElementsByName("employeeFirstName")[0].required = true;
     document.getElementsByName("employeeLastName")[0].required = true;
     document.getElementsByName("employeeSalary")[0].required = true;
-    document.getElementsByName("employeeType")[0].required = true;
     document.getElementsByName("employeePhNo")[0].required = true;
     document.getElementsByName("employeeDOB")[0].required = true;
     document.getElementsByName("employeeArea")[0].required = true;
     document.getElementsByName("employeeCity")[0].required = true;
+    document.getElementsByName("employeeLatitude")[0].required = true;
+    document.getElementsByName("employeeLongitude")[0].required = true;
     document.getElementsByName("employeePassword")[0].required = true;
     document.getElementsByName("employeePassword2")[0].required = true;
   })
+
+  employeeTypeSelection()
 }
 
 var checkPassword = function() {
@@ -253,5 +280,42 @@ function uploadPicture(event) {
   		image.src = "#"
   		document.getElementById('eImg').style.display = 'none'
   	}
+  }
+}
+
+var addPhone = function() {
+  if( document.getElementById('sellerPhNo2').style.display == 'none' ) {
+    document.getElementById('sellerPhNo2').style.display = 'block'
+  }
+  else if( document.getElementById('sellerPhNo3').style.display == 'none' ) {
+    document.getElementById('sellerPhNo3').style.display = 'block'
+  }
+  else if( document.getElementById('sellerPhNo4').style.display == 'none' ) {
+    document.getElementById('sellerPhNo4').style.display = 'block'
+    document.getElementById('phoneLimit').style.display = 'block'
+    document.getElementById('addPhoneButton').style.display = 'none'
+  }
+}
+
+var employeeTypeSelection = function() {
+  if( document.getElementById('customerCare').checked ) {
+    document.getElementsByName('employeeLatitude')[0].required = false
+    document.getElementsByName('employeeLongitude')[0].required = false
+
+    document.getElementsByName('employeeLatitude')[0].value = ""
+    document.getElementsByName('employeeLongitude')[0].value = ""
+
+    document.getElementById('employeeLatitudeDiv').style.display = 'none'
+    document.getElementById('employeeLongitudeDiv').style.display = 'none'
+  }
+  else if( document.getElementById('deliveryGuy').checked ) {
+    document.getElementsByName('employeeLatitude')[0].required = true
+    document.getElementsByName('employeeLongitude')[0].required = true
+
+    document.getElementsByName('employeeLatitude')[0].value = ""
+    document.getElementsByName('employeeLongitude')[0].value = ""
+
+    document.getElementById('employeeLatitudeDiv').style.display = 'block'
+    document.getElementById('employeeLongitudeDiv').style.display = 'block'
   }
 }

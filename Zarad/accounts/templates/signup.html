@@ -76,7 +76,7 @@ Signup
         		  </div>
       			  <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                  <input name="customerDOB" class="form-control" type="date" placeholder="*Date of Birth" required="">
                 </div>
               </div>
               <div class="col-lg-6">
@@ -107,10 +107,22 @@ Signup
                    <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
                  </div>
                </div>
-               <div class="col-lg-12">
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="customerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
+                 </div>
+               </div>
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="customerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
+                 </div>
+               </div>
+               <div class="col-lg-6">
                  <div class="form-group">
                    <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
                  </div>
+               </div>
+               <div class="col-lg-6">
                </div>
                <div class="col-lg-12">
        		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
@@ -153,7 +165,7 @@ Signup
               <div class="col-lg-12">
     			     <h6 class="mb-3 font-weight-bold">Company Details: </h6>
         		  </div>
-              <div class="col-lg-12">
+              <div class="col-lg-6">
                 <div class="form-group">
                   <input name="sellerName" class="form-control" type="text" placeholder="*Company Name" required="">
                 </div>
@@ -168,6 +180,27 @@ Signup
                   <input name="sellerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
                 </div>
       			  </div>
+              <div id='sellerPhNo2' class="col-lg-6">
+      			    <div class="form-group">
+                  <input name="sellerPhNo2" class="form-control" type="text" placeholder="Additional Phone Number">
+                </div>
+      			  </div>
+              <div id='sellerPhNo3' class="col-lg-6">
+      			    <div class="form-group">
+                  <input name="sellerPhNo3" class="form-control" type="text" placeholder="Additional Phone Number">
+                </div>
+      			  </div>
+              <div id='sellerPhNo4' class="col-lg-6">
+      			    <div class="form-group">
+                  <input name="sellerPhNo4" class="form-control" type="text" placeholder="Additional Phone Number">
+                </div>
+      			  </div>
+              <div id='addPhoneButton' class="col-lg-6">
+      			    <div class="form-group">
+                  <button onclick='addPhone();' type="button" class="btn btn-dark">Add Another Phone Number</button>
+                </div>
+      			  </div>
+              <p class="mb-3 font-weight-bold" style="color:#0275d8" id="phoneLimit">Maximum 4 Phone Numbers</p>
       			  <div class="col-lg-12">
       		      <h6 class="mb-3 font-weight-bold">Address: </h6>
       			  </div>
@@ -189,6 +222,16 @@ Signup
                <div class="col-lg-6">
                  <div class="form-group">
                    <input name="sellerCity" class="form-control" type="text" placeholder="*City" required="">
+                 </div>
+               </div>
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="sellerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
+                 </div>
+               </div>
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="sellerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
                  </div>
                </div>
                <div class="col-lg-12">
@@ -244,7 +287,7 @@ Signup
         		  </div>
       			  <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="employeeDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                  <input name="employeeDOB" class="form-control" type="date" placeholder="*Date of Birth" required="">
                 </div>
               </div>
               <div class="col-lg-6">
@@ -254,13 +297,19 @@ Signup
       			  </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="employeeType" class="form-control" type="text" placeholder="*Employee Type" required="">
+                  <input name="employeeSalary" class="form-control" type="text" placeholder="*Salary" required="">
                 </div>
               </div>
               <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="employeeSalary" class="form-control" type="text" placeholder="*Salary" required="">
-                </div>
+              </div>
+              <div class="col-lg-12">
+               <h6 class="mb-3 font-weight-bold">Employee Type: </h6>
+              </div>
+              <div class="col-lg-12">
+                <input onclick='employeeTypeSelection();' type="radio" id="customerCare" name="employeeType" value="customerCare" checked>
+                <label for="customerCare"> Customer Care</label>
+                <input onclick='employeeTypeSelection();' type="radio" id="deliveryGuy" name="employeeType" value="deliveryGuy">
+                <label for="deliveryGuy"> Delivery Guy</label>
               </div>
       			  <div class="col-lg-12">
       		      <h6 class="mb-3 font-weight-bold">Address: </h6>
@@ -285,10 +334,22 @@ Signup
                    <input name="employeeArea" class="form-control" type="text" placeholder="*Area" required="">
                  </div>
                </div>
-               <div class="col-lg-12">
+               <div id='employeeLatitudeDiv' class="col-lg-6">
+                 <div class="form-group">
+                   <input name="employeeLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
+                 </div>
+               </div>
+               <div id='employeeLongitudeDiv' class="col-lg-6">
+                 <div class="form-group">
+                   <input name="employeeLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
+                 </div>
+               </div>
+               <div class="col-lg-6">
                  <div class="form-group">
                    <input name="employeeCity" class="form-control" type="text" placeholder="*City" required="">
                  </div>
+               </div>
+               <div class="col-lg-6">
                </div>
                <div class="col-lg-12">
        		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
