@@ -22,7 +22,7 @@
 <body style='background-color: rgba(220, 220, 220)'>
   <div style="background-color: #083b16; height: 60px; padding: 10px">
     <a class="btn btn-light action-button pull-left" role="button" href="{% url 'home_page' %}" style="margin-right: 2px; background-color: #083b16; color: white;"><strong>Home</strong></a>
-    {% if user.is_authenticated %}
+    {% if isloggedin %}
       <a class="btn btn-light action-button pull-right" role="button" href="{% url 'accounts:logout' %}" style="margin-right: 2px; background-color: #083b16; color: white;"><strong>Log Out</strong></a>
       <a class="btn btn-light action-button pull-right" role="button" href="{% url 'accounts:myaccount' %}" style="margin-right: 2px; background-color: #083b16; color: white;"><strong>My Account</strong></a>
     {% else %}

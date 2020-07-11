@@ -2,18 +2,19 @@ from django.shortcuts import render
 from django.db import connections
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import reverse
-import os
-from Zarad import settings
 
 # Create your views here.
 def signup_page(request):
     adminLogin = False
+    isloggedin = False
+    accountType = 'none'
     if request.session.has_key('useremail'):
-        if request.user['useremail'] == 'nazmultakbir98@gmail.com' or request.user['useremail'] == 'fatimanawmi@gmail.com':
+        isloggedin = True
+        if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
             adminLogin = True
+            accountType = 'admin'
         else:
             return HttpResponseRedirect(reverse('home_page'))
-
 
     if request.method == 'POST':
         if request.POST.get("radioButton", "empty") == 'Customer':
@@ -34,17 +35,17 @@ def signup_page(request):
                 imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            # if User.objects.filter(email=email).exists():
-            #     return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
-            # else:
-            #     pass
-                # user = User.objects.create_user(username=email, email=email, password=password)
-                # user.save()
-                query = "INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER , BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD, LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,'23.726627, 90.388727')"
+            if 'check if email is already taken':
+                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
+            else:
+                query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
+                           BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
+                           LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road,
+                           area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,'23.726627,
+                           90.388727')"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
-
-                # return HttpResponseRedirect(reverse('accounts:login'))
+                return HttpResponseRedirect(reverse('accounts:login'))
 
         elif request.POST.get("radioButton", "empty") == 'Employee':
             email = request.POST.get("employeeEmail","empty")
@@ -66,16 +67,16 @@ def signup_page(request):
                 imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            # if User.objects.filter(email=email).exists():
-            #     return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
-            # else:
-            #     pass
-                # user = User.objects.create_user(username=email, email=email, password=password)
-                # user.save()
-                query = "INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER , BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD, SALARY) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary) )"
+            if 'check if email is already taken':
+                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
+            else:
+                query = """INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
+                           BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
+                           SALARY) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area,
+                           city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary) )"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
-                # return HttpResponseRedirect(reverse('login'))
+                return HttpResponseRedirect(reverse('login'))
 
         elif request.POST.get("radioButton", "empty") == 'Seller':
             email = request.POST.get("sellerEmail","empty")
@@ -93,37 +94,39 @@ def signup_page(request):
                 imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            if User.objects.filter(email=email).exists():
-                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
+            if 'check if email is already taken':
+                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
-                pass
-                # user = User.objects.create_user(username=email, email=email, password=password)
-                # user.save()
-                query = "INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID , PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road, area, city, email , password,website , '23.726627, 90.388727' )"
+                query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
+                           PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road,
+                           area, city, email , password,website , '23.726627, 90.388727' )"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
                 for i in range(len(phno)):
-                    query = "INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT MAX(SELLER_ID) FROM SELLER), phno[i] )"
+                    query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT MAX(SELLER_ID) FROM SELLER),
+                               phno[i] )"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
-                # return HttpResponseRedirect(reverse('login'))
+                return HttpResponseRedirect(reverse('login'))
 
-    return render(request, 'signup.html', {'emailExists': False, 'adminLogin': adminLogin})
+    return render(request, 'signup.html', {'emailExists': False, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
 
 def login_page(request):
+    isloggedin = False
+    accountType = 'none'
+    if request.session.has_key('useremail'):
+        return HttpResponseRedirect(reverse('home_page'))
     if request.method == 'GET':
-        return render(request, 'login.html', {'error': False})
+        return render(request, 'login.html', {'error': False, 'isloggedin': isloggedin, 'accountType': accountType})
     elif request.method == 'POST':
         email = request.POST.get("Email", "empty")
         password = request.POST.get("Password", "empty")
-        request.session['useremail'] = email
-        # user = authenticate(username=email, password=password)
-        # if user is not None:
-        #     login(request, user)
-        #     return HttpResponseRedirect(reverse('home_page'))
-        # else:
-        #     return render(request, 'login.html', {'error': True})
-        return HttpResponseRedirect(reverse('home_page'))
+
+        if 'check if email and password match':
+            request.session['useremail'] = email
+            return HttpResponseRedirect(reverse('home_page'))
+        else:
+            return render(request, 'login.html', {'error': True, 'isloggedin': isloggedin, 'accountType': accountType})
 
 def logout_page(request):
     if request.session.has_key('useremail'):
@@ -133,14 +136,25 @@ def logout_page(request):
         return HttpResponseRedirect(reverse('home_page'))
 
 def myaccount(request):
-    accountType = 'customerCare'
-    if accountType == 'customer':
-        return render(request, 'customerAccount.html')
-    elif accountType == 'seller':
-        return render(request, 'sellerAccount.html')
-    elif accountType == 'deliveryGuy':
-        return render(request, 'deliveryGuy.html')
-    elif accountType == 'customerCare':
-        return render(request, 'customerCare.html')
-    elif accountType == 'admin':
-        pass
+    isloggedin = False
+    accountType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
+            ### accountType = 'admin'
+            accountType = 'customer'
+        else:
+            " check accountType from database using request.session['useremail'] "
+            accountType = 'customer'
+        if accountType == 'customer':
+            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': accountType})
+        elif accountType == 'seller':
+            return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': accountType})
+        elif accountType == 'deliveryGuy':
+            return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': accountType})
+        elif accountType == 'customerCare':
+            return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': accountType})
+        elif accountType == 'admin':
+            pass
+    else:
+        return HttpResponseRedirect(reverse('home_page'))

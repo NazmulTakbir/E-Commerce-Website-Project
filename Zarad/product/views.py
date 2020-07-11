@@ -27,4 +27,14 @@ def search_result(request, search_string):
     if returnToHome:
         return HttpResponseRedirect(reverse('home_page'))
 
-    return render(request, 'search_result.html')
+    isloggedin = False
+    accountType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
+            accountType = 'admin'
+        else:
+            " check accountType from database using request.session['useremail'] "
+            accountType = 'customer'
+
+    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': accountType})
