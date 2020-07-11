@@ -1,19 +1,15 @@
 from django.shortcuts import render
 from django.db import connections
 from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import reverse
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
 import os
 from Zarad import settings
 
+# Create your views here.
 def signup_page(request):
     adminLogin = False
-    if request.user.is_authenticated:
-        if request.user.email == 'nazmultakbir98@gmail.com':
+    if request.session.has_key('useremail'):
+        if request.user['useremail'] == 'nazmultakbir98@gmail.com' or request.user['useremail'] == 'fatimanawmi@gmail.com':
             adminLogin = True
         else:
             return HttpResponseRedirect(reverse('home_page'))
@@ -38,10 +34,10 @@ def signup_page(request):
                 imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            if User.objects.filter(email=email).exists():
-                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
-            else:
-                pass
+            # if User.objects.filter(email=email).exists():
+            #     return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
+            # else:
+            #     pass
                 # user = User.objects.create_user(username=email, email=email, password=password)
                 # user.save()
                 # return HttpResponseRedirect(reverse('accounts:login'))
@@ -66,10 +62,10 @@ def signup_page(request):
                 imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            if User.objects.filter(email=email).exists():
-                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
-            else:
-                pass
+            # if User.objects.filter(email=email).exists():
+            #     return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin})
+            # else:
+            #     pass
                 # user = User.objects.create_user(username=email, email=email, password=password)
                 # user.save()
                 # return HttpResponseRedirect(reverse('login'))
@@ -106,16 +102,31 @@ def login_page(request):
     elif request.method == 'POST':
         email = request.POST.get("Email", "empty")
         password = request.POST.get("Password", "empty")
-        user = authenticate(username=email, password=password)
-        if user is not None:
-            login(request, user)
-            return HttpResponseRedirect(reverse('home_page'))
-        else:
-            return render(request, 'login.html', {'error': True})
+        request.session['useremail'] = email
+        # user = authenticate(username=email, password=password)
+        # if user is not None:
+        #     login(request, user)
+        #     return HttpResponseRedirect(reverse('home_page'))
+        # else:
+        #     return render(request, 'login.html', {'error': True})
+        return HttpResponseRedirect(reverse('home_page'))
 
-@login_required
 def logout_page(request):
-    # Log out the user.
-    logout(request)
-    # Return to homepage.
-    return HttpResponseRedirect(reverse('home_page'))
+    if request.session.has_key('useremail'):
+        del request.session['useremail']
+        return HttpResponseRedirect(reverse('home_page'))
+    else:
+        return HttpResponseRedirect(reverse('home_page'))
+
+def myaccount(request):
+    accountType = 'customerCare'
+    if accountType == 'customer':
+        return render(request, 'customerAccount.html')
+    elif accountType == 'seller':
+        return render(request, 'sellerAccount.html')
+    elif accountType == 'deliveryGuy':
+        return render(request, 'deliveryGuy.html')
+    elif accountType == 'customerCare':
+        return render(request, 'customerCare.html')
+    elif accountType == 'admin':
+        pass

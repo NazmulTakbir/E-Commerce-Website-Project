@@ -81,10 +81,12 @@
       </ul>
       <form class="search-form" style="position: absolute; right: 0px; width: 320px;">
         <div class="input-group">
-          <input class="form-control" type="text" placeholder="Search Zarad" style="border-color:#18cc48;">
+          <input id="searchText" class="form-control" type="text" placeholder="Search Zarad" style="border-color:#18cc48;">
           <div class="input-group-prepend">
             <span class="input-group-text" style="background-color:white; border-color: white">
-              <i class="fa fa-search" style="color: #18cc48;"></i>
+              <a id='searchButton' href="{% url 'product:search_result' search_string='searchValue' %}">
+                <i onclick='searchClick();' class="fa fa-search" style="color: #18cc48;"></i>
+              </a>
             </span>
           </div>
         </div>

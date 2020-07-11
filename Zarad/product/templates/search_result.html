@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% load staticfiles%}
+
+{%block title%}
+Search Result
+{%endblock%}
+
+{%block staticfiles%}
+<link rel="stylesheet" href="{% static 'css/Shopping-Grid.css' %}">
+{%endblock%}
+
+{% block content2 %}
+<div class="container">
+  <div class="row" style="padding-top: 20px; padding-bottom: 50px;">
+    <div class="col-md-4 col-lg-2" style="border-right: solid 2px rgba(0,0,0,0.2);">
+      <h4>Filters: </h4>
+      <br />
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Sort By
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <a class="dropdown-item" href="#">Price: Low to High</a>
+          <a class="dropdown-item" href="#">Price: High to Low</a>
+          <a class="dropdown-item" href="#">Rating: High to Low</a>
+        </div>
+      </div>
+      <br />
+      <br />
+      <h6>Sellers: </h6>
+      <input type="checkbox" id="allSellers" name="allSellers" value="Bike">
+      <label for="allSellers"> All Sellers</label><br>
+      <input type="checkbox" id="seller1" name="seller1" value="Bike">
+      <label for="seller1"> Seller 1</label><br>
+      <input type="checkbox" id="seller2" name="seller2" value="Car">
+      <label for="seller2"> Seller 2</label><br>
+      <input type="checkbox" id="seller3" name="seller3" value="Boat">
+      <label for="seller3"> Seller 3</label><br>
+      <input type="checkbox" id="seller4" name="seller4" value="Car">
+      <label for="seller4"> Seller 4</label><br>
+      <input type="checkbox" id="seller5" name="seller5" value="Boat">
+      <label for="seller5"> Seller 5</label>
+      <br />
+      <br />
+      <h6>Offers Only: </h6>
+      <input type="radio" id="offersYes" name="offers" value="male">
+      <label for="offersYes"> Yes</label><br>
+      <input type="radio" id="offersNo" name="offers" value="female">
+      <label for="offersNo"> No</label><br>
+      <br />
+      <br />
+    </div>
+    <div class="col-md-8 col-lg-10">
+      <h6>Search Result For: searchString</h6>
+      <div class="row">
+        <div class="shopping-grid">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-grid7">
+                  <div class="product-image7">
+                    <a href="#">
+                      <img class="pic-1" src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_dcYhJ37yKHyO0ffLOMCYXMvR4DGgRikul7eOehCoRDDVdo1C&usqp=CAU">
+                      <img class="pic-2" src="https://images.all-free-download.com/images/graphicthumb/electric_home_appliances_product_vector_519052.jpg">
+                    </a>
+                    <ul class="social">
+                      <li><a href="" class="fa fa-search"></a></li>
+                      <li><a href="" class="fa fa-shopping-bag"></a></li>
+                      <li><a href="" class="fa fa-shopping-cart"></a></li>
+                    </ul>
+                    <span class="product-new-label">New</span>
+                  </div>
+                  <div class="product-content">
+                    <h3 class="title"><a href="#">Men's Blazer</a></h3>
+                    <ul class="rating">
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                      <li class="fa fa-star"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-8 d-flex justify-content-end" style="margin-top:15px">
+          <strong>Page 1 of 5</strong>
+        </div>
+        <div class="col-lg-4 d-flex justify-content-end" style="margin-top:10px;">
+          <ul class="pagination">
+            <li class="page-item"><a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">4</a></li>
+            <li class="page-item"><a class="page-link" href="#">5</a></li>
+            <li class="page-item"><a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{% block script %}
+{%endblock%}
