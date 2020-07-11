@@ -27,10 +27,10 @@ def signup_page(request):
             lname = request.POST.get("customerLastName","empty")
             dob = request.POST.get("customerDOB","empty")
             phno = request.POST.get("customerPhNo","empty")
-            apart = request.POST.get("customerApartment","empty")
+            apart = request.POST.get("customerApartment","")
             area = request.POST.get("customerArea","empty")
-            building = request.POST.get("customerBuilding","empty")
-            road = request.POST.get("customerRoad","empty")
+            building = request.POST.get("customerBuilding","")
+            road = request.POST.get("customerRoad","")
             city = request.POST.get("customerCity","empty")
 
             if 'customerImage' in request.FILES:
@@ -44,6 +44,10 @@ def signup_page(request):
                 pass
                 # user = User.objects.create_user(username=email, email=email, password=password)
                 # user.save()
+                query = "INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER , BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD, LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,'23.726627, 90.388727')"
+                with connections['oracle'].cursor() as cursor:
+                    cursor.execute(query)
+
                 # return HttpResponseRedirect(reverse('accounts:login'))
 
         elif request.POST.get("radioButton", "empty") == 'Employee':
@@ -53,10 +57,10 @@ def signup_page(request):
             lname = request.POST.get("employeeLastName","empty")
             dob = request.POST.get("employeeDOB","empty")
             phno = request.POST.get("employeePhNo","empty")
-            apart = request.POST.get("employeeApartment","empty")
+            apart = request.POST.get("employeeApartment","")
             area = request.POST.get("employeeArea","empty")
-            building = request.POST.get("employeeBuilding","empty")
-            road = request.POST.get("employeeRoad","empty")
+            building = request.POST.get("employeeBuilding","")
+            road = request.POST.get("employeeRoad","")
             city = request.POST.get("employeeCity","empty")
             type = request.POST.get("employeeType","empty")
             salary = request.POST.get("employeeSalary","empty")
@@ -72,6 +76,9 @@ def signup_page(request):
                 pass
                 # user = User.objects.create_user(username=email, email=email, password=password)
                 # user.save()
+                query = "INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER , BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD, SALARY) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary) )"
+                with connections['oracle'].cursor() as cursor:
+                    cursor.execute(query)
                 # return HttpResponseRedirect(reverse('login'))
 
         elif request.POST.get("radioButton", "empty") == 'Seller':
@@ -81,8 +88,8 @@ def signup_page(request):
             website = request.POST.get("sellerWebsite","empty")
             phno = request.POST.get("sellerPhNo","empty")
             area = request.POST.get("sellerArea","empty")
-            building = request.POST.get("sellerBuilding","empty")
-            road = request.POST.get("sellerRoad","empty")
+            building = request.POST.get("sellerBuilding","")
+            road = request.POST.get("sellerRoad","")
             city = request.POST.get("sellerCity","empty")
 
             if 'sellerImage' in request.FILES:
@@ -96,6 +103,13 @@ def signup_page(request):
                 pass
                 # user = User.objects.create_user(username=email, email=email, password=password)
                 # user.save()
+                query = "INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID , PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road, area, city, email , password,website , '23.726627, 90.388727' )"
+                with connections['oracle'].cursor() as cursor:
+                    cursor.execute(query)
+                for i in range(len(phno)):
+                    query = "INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT MAX(SELLER_ID) FROM SELLER), phno[i] )"
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query)
                 # return HttpResponseRedirect(reverse('login'))
 
     return render(request, 'signup.html', {'emailExists': False, 'adminLogin': adminLogin})
