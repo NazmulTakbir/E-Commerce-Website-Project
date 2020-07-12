@@ -53,35 +53,37 @@
           <div class="dropdown show" style="padding-right: 18px;padding-left: 18px; padding-top: 8px;"><a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" href="#" style="color: black">
             <strong>Categories</strong></a>
             <div class="dropdown-menu" role="menu">
-              <a class="dropdown-item" role="presentation" href="#">Electronic Appliances</a>
-              <a class="dropdown-item" role="presentation" href="#">Electronic Accessories</a>
-              <a class="dropdown-item" role="presentation" href="#">Electrical Appliances</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Health & Beauty</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Babies & Toys</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Groceries</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Home Items</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Women's Fashion</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Men's Fashion</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Watches & Accessories</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Sports & Outdoor</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Automotive & Motorbike</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Gym Items</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Pet Items</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Kitchen Items</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Tools</a>
-        		  <a class="dropdown-item" role="presentation" href="#">Other</a>
+              <div class="overflow-auto" style='height: 350px;'>
+              <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Electronic_Appliances' %}">Electronic Appliances</a>
+              <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Electronic_Accessories' %}">Electronic Accessories</a>
+              <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Electrical_Appliances' %}">Electrical Appliances</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Health_and_Beauty' %}">Health & Beauty</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Babies_and_Toys' %}">Babies & Toys</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Groceries' %}">Groceries</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Home_Items' %}">Home Items</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Womens_Fashion' %}">Women's Fashion</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Mens_Fashion' %}">Men's Fashion</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Watches_and_Accessories' %}">Watches & Accessories</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Sports_and_Outdoor' %}">Sports & Outdoor</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Automotive_and_Motorbike' %}">Automotive & Motorbike</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Gym_Items' %}">Gym Items</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Pet_Items' %}">Pet Items</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Kitchen_Items' %}">Kitchen Items</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Tools' %}">Tools</a>
+        		  <a class="dropdown-item" role="presentation" href="{% url 'product:search_result' search_string='category_Other' %}">Other</a>
+            </div>
             </div>
           </div>
         </li>
         <li class="nav-item" role="presentation" style="padding-right: 18px">
-          <a class="nav-link" href="#" style="color: black">
+          <a class="nav-link" href="{% url 'product:search_result' search_string='Offers_Only' %}" style="color: black">
             <strong>Offers</strong>
           </a>
         </li>
       </ul>
       <form class="search-form" style="position: absolute; right: 0px; width: 320px;">
         <div class="input-group">
-          <input id="searchText" class="form-control" type="text" placeholder="Search Zarad" style="border-color:#18cc48;">
+          <input id="searchText" class="form-control" type="text" placeholder="Search Zarad" style="border-color:#18cc48;" maxlength="100">
           <div class="input-group-prepend">
             <span class="input-group-text" style="background-color:white; border-color: white">
               <a id='searchButton' href="{% url 'product:search_result' search_string='searchValue' %}">

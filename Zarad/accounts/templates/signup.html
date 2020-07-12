@@ -47,17 +47,17 @@ Signup
       			  </div>
               <div class="col-lg-12">
                 <div class="form-group">
-                  <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                  <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="" maxlength="40">
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input id="customerPassword" onkeyup='checkPassword();' name="customerPassword" class="form-control" type="password" placeholder="*Password" required="">
+                  <input maxlength="50" id="customerPassword" onkeyup='checkPassword();' name="customerPassword" class="form-control" type="password" placeholder="*Password" required="">
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                  <input maxlength="50" id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
                 </div>
               </div>
               <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
@@ -66,12 +66,12 @@ Signup
         		  </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                  <input maxlength="20" name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
                 </div>
               </div>
               <div class="col-lg-6">
         		    <div class="form-group">
-                  <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                  <input maxlength="20" name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
                 </div>
         		  </div>
       			  <div class="col-lg-6">
@@ -81,7 +81,7 @@ Signup
               </div>
               <div class="col-lg-6">
       			    <div class="form-group">
-                  <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                  <input maxlength="14" name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
                 </div>
       			  </div>
       			  <div class="col-lg-12">
@@ -89,37 +89,37 @@ Signup
       			  </div>
               <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                   <input maxlength="10" name="customerApartment" class="form-control" type="text" placeholder="Apartment">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
+                   <input maxlength="10" name="customerBuilding" class="form-control" type="text" placeholder="Building">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerRoad" class="form-control" type="text" placeholder="Road">
+                   <input maxlength="30" name="customerRoad" class="form-control" type="text" placeholder="Road">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
+                   <input maxlength="30" name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
+                   <input maxlength="25" name="customerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
+                   <input maxlength="25" name="customerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
+                   <input maxlength="30" name="customerCity" class="form-control" type="text" placeholder="*City" required="">
                  </div>
                </div>
                <div class="col-lg-6">
@@ -148,17 +148,17 @@ Signup
       			  </div>
               <div class="col-lg-12">
                 <div class="form-group">
-                  <input name="sellerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                  <input maxlength="40" name="sellerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input id="sellerPassword" onkeyup='checkPassword();' name="sellerPassword" class="form-control" type="password" placeholder="*Password" required="">
+                  <input maxlength="50" id="sellerPassword" onkeyup='checkPassword();' name="sellerPassword" class="form-control" type="password" placeholder="*Password" required="">
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input id="sellerPassword2" onkeyup='checkPassword();' name="sellerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                  <input maxlength="50" id="sellerPassword2" onkeyup='checkPassword();' name="sellerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
                 </div>
               </div>
               <p class="mb-3 font-weight-bold" style="color:red" id="sPassCheck">Passwords Did Not Match</p>
@@ -167,32 +167,32 @@ Signup
         		  </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="sellerName" class="form-control" type="text" placeholder="*Company Name" required="">
+                  <input maxlength="30" name="sellerName" class="form-control" type="text" placeholder="*Company Name" required="">
                 </div>
               </div>
       			  <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="sellerWebsite" class="form-control" type="text" placeholder="Website">
+                  <input maxlength="50" name="sellerWebsite" class="form-control" type="text" placeholder="Website">
                 </div>
               </div>
               <div class="col-lg-6">
       			    <div class="form-group">
-                  <input name="sellerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                  <input maxlength="14" name="sellerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
                 </div>
       			  </div>
               <div id='sellerPhNo2' class="col-lg-6">
       			    <div class="form-group">
-                  <input name="sellerPhNo2" class="form-control" type="text" placeholder="Additional Phone Number">
+                  <input maxlength="14" name="sellerPhNo2" class="form-control" type="text" placeholder="Additional Phone Number">
                 </div>
       			  </div>
               <div id='sellerPhNo3' class="col-lg-6">
       			    <div class="form-group">
-                  <input name="sellerPhNo3" class="form-control" type="text" placeholder="Additional Phone Number">
+                  <input maxlength="14" name="sellerPhNo3" class="form-control" type="text" placeholder="Additional Phone Number">
                 </div>
       			  </div>
               <div id='sellerPhNo4' class="col-lg-6">
       			    <div class="form-group">
-                  <input name="sellerPhNo4" class="form-control" type="text" placeholder="Additional Phone Number">
+                  <input maxlength="14" name="sellerPhNo4" class="form-control" type="text" placeholder="Additional Phone Number">
                 </div>
       			  </div>
               <div id='addPhoneButton' class="col-lg-6">
@@ -206,32 +206,32 @@ Signup
       			  </div>
               <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="sellerBuilding" class="form-control" type="text" placeholder="Building">
+                   <input maxlength="10" name="sellerBuilding" class="form-control" type="text" placeholder="Building">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="sellerRoad" class="form-control" type="text" placeholder="Road">
+                   <input maxlength="30" name="sellerRoad" class="form-control" type="text" placeholder="Road">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="sellerArea" class="form-control" type="text" placeholder="*Area" required="">
+                   <input maxlength="30" name="sellerArea" class="form-control" type="text" placeholder="*Area" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="sellerCity" class="form-control" type="text" placeholder="*City" required="">
+                   <input maxlength="30" name="sellerCity" class="form-control" type="text" placeholder="*City" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="sellerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
+                   <input maxlength="25" name="sellerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="sellerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
+                   <input maxlength="25" name="sellerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
                  </div>
                </div>
                <div class="col-lg-12">
@@ -258,17 +258,17 @@ Signup
       			  </div>
               <div class="col-lg-12">
                 <div class="form-group">
-                  <input name="employeeEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                  <input maxlength="40" name="employeeEmail" class="form-control" type="email" placeholder="*Email Address" required="">
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input id="employeePassword" onkeyup='checkPassword();' name="employeePassword" class="form-control" type="password" placeholder="*Password" required="">
+                  <input maxlength="50" id="employeePassword" onkeyup='checkPassword();' name="employeePassword" class="form-control" type="password" placeholder="*Password" required="">
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input id="employeePassword2" onkeyup='checkPassword();' name="employeePassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                  <input maxlength="50" id="employeePassword2" onkeyup='checkPassword();' name="employeePassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
                 </div>
               </div>
               <p class="mb-3 font-weight-bold" style="color:red" id="ePassCheck">Passwords Did Not Match</p>
@@ -277,12 +277,12 @@ Signup
         		  </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="employeeFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                  <input maxlength="20" name="employeeFirstName" class="form-control" type="text" placeholder="*First Name" required="">
                 </div>
               </div>
               <div class="col-lg-6">
         		    <div class="form-group">
-                  <input name="employeeLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                  <input maxlength="20" name="employeeLastName" class="form-control" type="text" placeholder="*Last Name" required="">
                 </div>
         		  </div>
       			  <div class="col-lg-6">
@@ -292,12 +292,12 @@ Signup
               </div>
               <div class="col-lg-6">
       			    <div class="form-group">
-                  <input name="employeePhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                  <input maxlength="14" name="employeePhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
                 </div>
       			  </div>
               <div class="col-lg-6">
                 <div class="form-group">
-                  <input name="employeeSalary" class="form-control" type="text" placeholder="*Salary" required="">
+                  <input name="employeeSalary" class="form-control" type="number" placeholder="*Salary" required="">
                 </div>
               </div>
               <div class="col-lg-6">
@@ -316,37 +316,37 @@ Signup
       			  </div>
               <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeApartment" class="form-control" type="text" placeholder="Apartment">
+                   <input maxlength="10" name="employeeApartment" class="form-control" type="text" placeholder="Apartment">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeBuilding" class="form-control" type="text" placeholder="Building">
+                   <input maxlength="10" name="employeeBuilding" class="form-control" type="text" placeholder="Building">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeRoad" class="form-control" type="text" placeholder="Road">
+                   <input maxlength="30" name="employeeRoad" class="form-control" type="text" placeholder="Road">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeArea" class="form-control" type="text" placeholder="*Area" required="">
+                   <input maxlength="30" name="employeeArea" class="form-control" type="text" placeholder="*Area" required="">
                  </div>
                </div>
                <div id='employeeLatitudeDiv' class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
+                   <input maxlength="25" name="employeeLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
                  </div>
                </div>
                <div id='employeeLongitudeDiv' class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
+                   <input maxlength="25" name="employeeLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
                  </div>
                </div>
                <div class="col-lg-6">
                  <div class="form-group">
-                   <input name="employeeCity" class="form-control" type="text" placeholder="*City" required="">
+                   <input maxlength="30" name="employeeCity" class="form-control" type="text" placeholder="*City" required="">
                  </div>
                </div>
                <div class="col-lg-6">
