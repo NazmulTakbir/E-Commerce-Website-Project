@@ -4,6 +4,97 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import reverse
 
 # Create your views here.
+def email_taken(email):
+    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email")
+    results = cursor.fetchall()
+    if(len(results) == 0):
+        cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = email")
+        results = cursor.fetchall()
+        if(len(results) == 0):
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = email")
+            results = cursor.fetchall()
+    if(len(results)== 0):
+        return False
+    else:
+        return True
+
+def email_pass_match(email , password):
+    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = email")
+    results = cursor.fetchall()
+    if(len(results) == 0):
+        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = email")
+        results = cursor.fetchall()
+        if(len(results) == 0):
+            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
+            results = cursor.fetchall()
+            if(len(results) == 0):
+                return False
+            else:
+                if( results == password):
+                    return True
+                else:
+                    return False
+        else:
+            if( results == password):
+                return True
+            else:
+                return False
+    else:
+        if( results == password):
+            return True
+        else:
+            return False
+def email_pass_match(email , password):
+    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = email")
+    results = cursor.fetchall()
+    if(len(results) == 0):
+        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = email")
+        results = cursor.fetchall()
+        if(len(results) == 0):
+            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
+            results = cursor.fetchall()
+            if(len(results) == 0):
+                return False
+            else:
+                if( results == password):
+                    return True
+                else:
+                    return False
+        else:
+            if( results == password):
+                return True
+            else:
+                return False
+    else:
+        if( results == password):
+            return True
+        else:
+            return False
+def accountType(email):
+    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email")
+    results = cursor.fetchall()
+    if(len(results) == 0):
+        cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID = email")
+        results = cursor.fetchall()
+        if(len(results) == 0):
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = email")
+            results = cursor.fetchall()
+            if(len(results) == 0):
+                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID = email")
+                  results = cursor.fetchall()
+                  if(len(results) == 0):
+                      cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID = email")
+                      results = cursor.fetchall()
+                      if(len(results) != 0):
+                          return 'admin'
+                  else :
+                      return 'customerCare'
+            else:
+                return 'customer'
+        else:
+            return 'deliveryGuy'
+    else:
+        return 'seller'
 def signup_page(request):
     adminLogin = False
     isloggedin = False
@@ -32,22 +123,29 @@ def signup_page(request):
             city = request.POST.get("customerCity","empty")
             latitude = request.POST.get("customerLatitude","empty")
             longitude = request.POST.get("customerLongitude","empty")
+            location = latitude+ ','+ longitude
 
-            if 'customerImage' in request.FILES:
-                img = request.FILES['customerImage']
-                imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            if 'check if email is already taken':
+            if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
-                query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
-                           BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                           LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road,
-                           area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,'23.726627,
-                           90.388727')"""
-                with connections['oracle'].cursor() as cursor:
-                    cursor.execute(query)
+                if 'customerImage' in request.FILES:
+                    img = request.FILES['customerImage']
+                    imgBLOB = img.read()
+                    query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
+                               BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
+                               LOCATION, PICTURE ) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road,
+                               area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,location , imgBLOB )"""
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query)
+                else:
+                    query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
+                               BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
+                               LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road,
+                               area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,location )"""
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query)
                 return HttpResponseRedirect(reverse('accounts:login'))
 
         elif request.POST.get("radioButton", "empty") == 'Employee':
@@ -63,25 +161,34 @@ def signup_page(request):
             building = request.POST.get("employeeBuilding","")
             road = request.POST.get("employeeRoad","")
             city = request.POST.get("employeeCity","empty")
-            type = request.POST.get("employeeType","empty")
+            type = request.POST.get("employeeType","empty") # customerCare # deliveryGuy
             salary = request.POST.get("employeeSalary","empty")
             latitude = request.POST.get("employeeLatitude","empty")
             longitude = request.POST.get("employeeLongitude","empty")
-            
+            location = latitude+ ','+ longitude
+
             if 'employeeImage' in request.FILES:
                 img = request.FILES['employeeImage']
                 imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            if 'check if email is already taken':
+            if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
                 query = """INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                            BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                           SALARY) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area,
-                           city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary) )"""
+                           SALARY, PICTURE) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area,
+                           city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary), imgBLOB )"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
+                if type == 'customerCare':
+                    query = """INSERT INTO CUSTOMER_CARE_EMPLOYEE VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = email) )"""
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query)
+                elif type == 'deliveryGuy':
+                     query = """INSERT INTO DELIVERY_GUY VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = email), location )"""
+                     with connections['oracle'].cursor() as cursor:
+                         cursor.execute(query)
                 return HttpResponseRedirect(reverse('login'))
 
         elif request.POST.get("radioButton", "empty") == 'Seller':
@@ -99,6 +206,7 @@ def signup_page(request):
             city = request.POST.get("sellerCity","")
             latitude = request.POST.get("sellerLatitude","empty")
             longitude = request.POST.get("sellerLongitude","empty")
+            location = latitude+ ','+ longitude
 
             phno = [phno1]
             if phno2 != "":
@@ -108,24 +216,35 @@ def signup_page(request):
             if phno4 != "":
                 phno.append(phno4)
 
-            if 'sellerImage' in request.FILES:
-                img = request.FILES['sellerImage']
-                imgBLOB = img.read()
                 # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
 
-            if 'check if email is already taken':
+            if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
-                query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                           PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road,
-                           area, city, email , password,website , '23.726627, 90.388727' )"""
-                with connections['oracle'].cursor() as cursor:
-                    cursor.execute(query)
-                for i in range(len(phno)):
-                    query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT MAX(SELLER_ID) FROM SELLER),
-                               phno[i] )"""
+                if 'sellerImage' in request.FILES:
+                    img = request.FILES['sellerImage']
+                    imgBLOB = img.read()
+                    query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
+                               PASSWORD, WEBSITE, LOCATION, PICTURE ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road,
+                               area, city, email , password,website , location , imgBLOB)"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
+                    for i in range(len(phno)):
+                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email),
+                                   phno[i] )"""
+                        with connections['oracle'].cursor() as cursor:
+                            cursor.execute(query)
+                else:
+                    query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
+                               PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road,
+                               area, city, email , password,website , location )"""
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query)
+                    for i in range(len(phno)):
+                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email),
+                                   phno[i] )"""
+                        with connections['oracle'].cursor() as cursor:
+                            cursor.execute(query)
                 return HttpResponseRedirect(reverse('login'))
 
     return render(request, 'signup.html', {'emailExists': False, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
@@ -141,7 +260,7 @@ def login_page(request):
         email = request.POST.get("Email", "empty")
         password = request.POST.get("Password", "empty")
 
-        if 'check if email and password match':
+        if email_pass_match(email , password) == True:
             request.session['useremail'] = email
             return HttpResponseRedirect(reverse('home_page'))
         else:
@@ -163,8 +282,7 @@ def myaccount(request):
             ### accountType = 'admin'
             accountType = 'customer'
         else:
-            " check accountType from database using request.session['useremail'] "
-            accountType = 'customer'
+            accountType = accountType(request.session['useremail'])
         if accountType == 'customer':
             return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': accountType})
         elif accountType == 'seller':
