@@ -1,0 +1,50 @@
+SQL> CREATE TABLESPACE ZaradTableSpace
+  2  DATAFILE 'ZaradTableSpace.dat'
+  3  SIZE 200M AUTOEXTEND ON;
+
+Tablespace created.
+
+SQL> CREATE TEMPORARY TABLESPACE ZaradTableSpaceTemporary
+  2  TEMPFILE 'ZaradTableSpaceTemporary.dat'
+  3  SIZE 100M AUTOEXTEND ON;
+
+Tablespace created.
+
+SQL> CREATE USER Zarad
+  2  IDENTIFIED BY 93103
+  3  DEFAULT TABLESPACE ZaradTableSpace
+  4  TEMPORARY TABLESPACE ZaradTableSpaceTemporary;
+
+User created.
+
+SQL> GRANT CREATE SESSION TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT CREATE TABLE TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT UNLIMITED TABLESPACE TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT CREATE SEQUENCE TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT CREATE PROCEDURE TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT CREATE TRIGGER TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT CREATE VIEW TO Zarad;
+
+Grant succeeded.
+
+SQL> GRANT CREATE TYPE TO Zarad;
+
+Grant succeeded.
