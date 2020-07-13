@@ -5,13 +5,13 @@ from django.shortcuts import reverse
 
 # Create your views here.
 def email_taken(email):
-    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email")
+    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = "+ email)
     results = cursor.fetchall()
     if(len(results) == 0):
-        cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = email")
+        cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID "+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = email")
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
             results = cursor.fetchall()
     if(len(results)== 0):
         return False
@@ -19,13 +19,13 @@ def email_taken(email):
         return True
 
 def email_pass_match(email , password):
-    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = email")
+    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID "+ email)
     results = cursor.fetchall()
     if(len(results) == 0):
-        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = email")
+        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID"+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
+            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID "+ email)
             results = cursor.fetchall()
             if(len(results) == 0):
                 return False
@@ -44,46 +44,21 @@ def email_pass_match(email , password):
             return True
         else:
             return False
-def email_pass_match(email , password):
-    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = email")
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = email")
-        results = cursor.fetchall()
-        if(len(results) == 0):
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
-            results = cursor.fetchall()
-            if(len(results) == 0):
-                return False
-            else:
-                if( results == password):
-                    return True
-                else:
-                    return False
-        else:
-            if( results == password):
-                return True
-            else:
-                return False
-    else:
-        if( results == password):
-            return True
-        else:
-            return False
+
 def accountType(email):
-    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email")
+    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID "+ email)
     results = cursor.fetchall()
     if(len(results) == 0):
-        cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID = email")
+        cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID "+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = email")
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
             results = cursor.fetchall()
             if(len(results) == 0):
-                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID = email")
+                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID "+ email)
                   results = cursor.fetchall()
                   if(len(results) == 0):
-                      cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID = email")
+                      cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID "+ email)
                       results = cursor.fetchall()
                       if(len(results) != 0):
                           return 'admin'
@@ -135,15 +110,19 @@ def signup_page(request):
                     imgBLOB = img.read()
                     query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                                BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                               LOCATION, PICTURE ) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road,
-                               area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,location , imgBLOB )"""
+                               LOCATION, PICTURE ) VALUES(CUSTOMER_ID_SEQ.NEXTVAL,""" + fname + """,
+                               """+lname+ """, """+  apart+ """, """+ building+ """, """+  road+ """,
+                               """+area+ """, """+ city+ """, """+  phno+ """, """+ """TO_DATE("""+ dob +""", 'DD-MM-YYYY'),
+                               """+ email+ """, """+  password + """, """+ location+ """, """+  imgBLOB +""")"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
                 else:
-                    query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
+                    query ="""INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                                BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                               LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, fname, lname , apart, building, road,
-                               area, city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password ,location )"""
+                               LOCATION ) VALUES(CUSTOMER_ID_SEQ.NEXTVAL,""" + fname + """,
+                                """+lname+ """, """+  apart+ """, """+ building+ """, """+  road+ """,
+                               """+area+ """, """+ city+ """, """+  phno+ """, """+ """TO_DATE("""+ dob +""", 'DD-MM-YYYY'),
+                                """+email+ """, """+  password + """, """+ location+ """)"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
                 return HttpResponseRedirect(reverse('accounts:login'))
@@ -177,16 +156,18 @@ def signup_page(request):
             else:
                 query = """INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                            BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                           SALARY, PICTURE) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, fname, lname , apart, building, road, area,
-                           city, phno,TO_DATE(dob , 'DD-MM-YYYY'), email , password,TO_NUMBER(salary), imgBLOB )"""
+                           SALARY, PICTURE) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL,"""+ fname +""","""+ lname +"""
+                            ,"""+apart+""","""+ building+""","""+ road+""","""+ area+""","""+ city+""",
+                            """+ phno+""", TO_DATE("""+ dob+""" , 'DD-MM-YYYY'),"""+ email +""",
+                            """+password+""","""+ """TO_NUMBER( """+ salary +"""),"""+ imgBLOB+""" )"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
                 if type == 'customerCare':
-                    query = """INSERT INTO CUSTOMER_CARE_EMPLOYEE VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = email) )"""
+                    query = """INSERT INTO CUSTOMER_CARE_EMPLOYEE VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="""+ email+ """))"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
                 elif type == 'deliveryGuy':
-                     query = """INSERT INTO DELIVERY_GUY VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = email), location )"""
+                     query = """INSERT INTO DELIVERY_GUY VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="""+ email+ """),"""+ location+""" )"""
                      with connections['oracle'].cursor() as cursor:
                          cursor.execute(query)
                 return HttpResponseRedirect(reverse('login'))
@@ -225,24 +206,25 @@ def signup_page(request):
                     img = request.FILES['sellerImage']
                     imgBLOB = img.read()
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                               PASSWORD, WEBSITE, LOCATION, PICTURE ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road,
-                               area, city, email , password,website , location , imgBLOB)"""
+                               PASSWORD, WEBSITE, LOCATION, PICTURE ) VALUES( SELLER_ID_SEQ.NEXTVAL, """+ name+"""
+                               building+""","""+ road+""","""+ area+""","""+ city+""","""+ email +""","""+
+                               ,"""+password+""","""+website +""","""+ location +""","""+ imgBLOB+""")"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
                     for i in range(len(phno)):
-                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email),
-                                   phno[i] )"""
+                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID =
+                        """+ email+ """),"""+ phno[i]+""" )"""
                         with connections['oracle'].cursor() as cursor:
                             cursor.execute(query)
                 else:
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                               PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, name, building, road,
-                               area, city, email , password,website , location )"""
+                               PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL,"""+  name + """,""" + building + ""","""+ road + """
+                               ,"""+area+ ""","""+ city+ ""","""+ email + ""","""+ password + ""","""+ website+ ""","""+ location +""")"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
                     for i in range(len(phno)):
-                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email),
-                                   phno[i] )"""
+                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = """+ email +""")
+                                   ,"""+phno[i] + """)"""
                         with connections['oracle'].cursor() as cursor:
                             cursor.execute(query)
                 return HttpResponseRedirect(reverse('login'))
