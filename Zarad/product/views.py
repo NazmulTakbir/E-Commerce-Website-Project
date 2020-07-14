@@ -5,6 +5,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import reverse
 from django.contrib.auth.decorators import login_required
+from PIL import Image
+from django.conf import settings
+import threading
+import math
 
 # Create your views here.
 def item_page(request, product_id, seller_id):
@@ -29,49 +33,150 @@ def search_result(request, search_string):
 
     isloggedin = False
     accountType = 'none'
-    if request.session.has_key('useremail'):
-        isloggedin = True
-        if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
-            accountType = 'admin'
-        else:
-            " check accountType from database using request.session['useremail'] "
-            accountType = 'customer'
+    # if request.session.has_key('useremail'):
+    #     isloggedin = True
+    #     if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
+    #         accountType = 'admin'
+    #     else:
+    #         " check accountType from database using request.session['useremail'] "
+    #         accountType = 'customer'
+    #
+    # if search_string.startswith('category_') and len(search_string)>len('category_'):
+    #     category = search_string[len('category_'):]
+    #     temp = ''
+    #     for i in category.split('_'):
+    #         if len(i)>0:
+    #             temp += i + ' '
+    #     category = temp[:-1]
+    #     category = category.replace('and', '&')
+    #     category = category.replace('Mens Fashion', 'Men\'s Fashion')
+    #     category = category.replace('Womens Fashion', 'Women\'s Fashion')
+    #
+    #     if ' check if category is one of the categories from the category table ':
+    #         ' check the product table and extract all products with the given category '
+    # elif search_string == 'Offers_Only':
+    #     ' check the offer table and extract all offers that have not expired yet '
+    #
+    # words = []
+    # for i in search_string.split('_'):
+    #     if len(i)>0:
+    #         words.append(i)
+    # search_string = ' '.join(words)
 
-    if search_string.startswith('category_') and len(search_string)>len('category_'):
-        category = search_string[len('category_'):]
-        temp = ''
-        for i in category.split('_'):
-            if len(i)>0:
-                temp += i + ' '
-        category = temp[:-1]
-        category = category.replace('and', '&')
-        category = category.replace('Mens Fashion', 'Men\'s Fashion')
-        category = category.replace('Womens Fashion', 'Women\'s Fashion')
+    img1 = Image.open("F:\\Academic Main\\GitHub Repos\\E-Commerce Website Project - CSE 216\\Zarad\static\\images\\temp\\test.jpg")
+    img2 = Image.open("F:\\Academic Main\\GitHub Repos\\E-Commerce Website Project - CSE 216\\Zarad\static\\images\\temp\\test2.jpg")
 
-        if ' check if category is one of the categories from the category table ':
-            ' check the product table and extract all products with the given category '
-    elif search_string == 'Offers_Only':
-        ' check the offer table and extract all offers that have not expired yet '
+    products = [ [1, 2, "Trimmer", 4.5, img1, img2],
+                 [3, 4, "Razor", 3.5, img1, img2],
+                 [5, 6, "Earphone", 4.1, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2],
+                 [7, 8, "Airpod", 4.9, img1, img2] ]
 
-    words = []
-    for i in search_string.split('_'):
-        if len(i)>0:
-            words.append(i)
-    search_string = ' '.join(words)
+    productHTML = loadProductData(request, products)
 
-    """
-        create the following view for each product item:
-            product id, product name, category_name, description, seller id, seller name
-        ' check if search_string completely matches product_id '
-        ' check if search_string completely matches product_name '
-        ' check if search_string completely matches a category name '
-        ' check if search_string completely mathces a seller name '
-        ' check for products whose name has EDS > 50 when compared to search_string. select the top 15 '
-        ' check for products whose name has EDS > 50 when compared to first quarter of search_string. select the top 15 '
-        ' check for products whose name has EDS > 50 when compared to second quarter of search_string. select the top 5 '
-        ' check for products whose name has EDS > 50 when compared to third quarter of search_string. select the top 5 '
-        ' check for products whose name has EDS > 50 when compared to fourth quarter of search_string. select the top 5 '
-    """
-    "features"
+    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': accountType, "productHTML": productHTML, "searchString": search_string} )
 
-    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': accountType})
+def loadProductData(request, products):
+    total = len(products)
+    productHTML = ""
+    for i in range(0, total):
+        productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
+        productName = products[i][2]
+        ratingHTML = ""
+        for j in range(1, math.floor(products[i][3])):
+            ratingHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
+        for j in range(math.ceil(products[i][3]), 6):
+            ratingHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
+        image1Path = "http://{}/static/images/productImages/{}_1.png".format(request.META['HTTP_HOST'], products[i][0])
+        image2Path = "http://{}/static/images/productImages/{}_2.png".format(request.META['HTTP_HOST'], products[i][0])
+        print(image1Path)
+        print(image2Path)
+        productHTML += htmlGenerator(i, productURL, productName, ratingHTML, image1Path, image2Path)
+
+        # products[i][4].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_1.png")
+        # products[i][5].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_2.png")
+
+    return productHTML
+
+def htmlGenerator(i, productURL, productName, ratingHTML, image1Path, image2Path):
+    return """<div class="productItems col-lg-3 col-md-4 col-sm-6" id="product{}" style="display: none">
+        <div class="product-grid7">
+          <div class="product-image7">
+            <a href="{}">
+              <img class="pic-1" src="{}">
+              <img class="pic-2" src="{}">
+            </a>
+          </div>
+          <div class="product-content">
+            <h3 class="title"><a href="{}">{}</a></h3>
+            <ul class="rating">
+              <h5>
+                  {}
+              </h5>
+            </ul>
+          </div>
+        </div>
+      </div>""".format(i, productURL, image1Path, image2Path, productURL, productName, ratingHTML) + "\n"

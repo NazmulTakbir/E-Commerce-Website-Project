@@ -31,6 +31,7 @@ def accountType(email):
             return 'deliveryGuy'
     else:
         return 'seller'
+        
 # Create your views here.
 def home_page(request):
     isloggedin = False

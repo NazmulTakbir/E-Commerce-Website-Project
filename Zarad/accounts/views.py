@@ -44,32 +44,7 @@ def email_pass_match(email , password):
             return True
         else:
             return False
-def email_pass_match(email , password):
-    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = email")
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = email")
-        results = cursor.fetchall()
-        if(len(results) == 0):
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
-            results = cursor.fetchall()
-            if(len(results) == 0):
-                return False
-            else:
-                if( results == password):
-                    return True
-                else:
-                    return False
-        else:
-            if( results == password):
-                return True
-            else:
-                return False
-    else:
-        if( results == password):
-            return True
-        else:
-            return False
+
 def accountType(email):
     cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = email")
     results = cursor.fetchall()
@@ -95,6 +70,7 @@ def accountType(email):
             return 'deliveryGuy'
     else:
         return 'seller'
+        
 def signup_page(request):
     adminLogin = False
     isloggedin = False
