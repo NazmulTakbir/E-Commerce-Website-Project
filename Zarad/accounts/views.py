@@ -5,76 +5,88 @@ from django.shortcuts import reverse
 
 # Create your views here.
 def email_taken(email):
-    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = "+ email)
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID "+ email)
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = "+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
-            results = cursor.fetchall()
-    if(len(results)== 0):
-        return False
-    else:
-        return True
+            with connections['oracle'].cursor() as cursor:
+                cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID "+ email)
+                results = cursor.fetchall()
+                if(len(results) == 0):
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
+                        results = cursor.fetchall()
+                if(len(results)== 0):
+                    return False
+                else:
+                    return True
+
+        if(len(results)== 0):
+            return False
+        else:
+            return True
 
 def email_pass_match(email , password):
-    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID "+ email)
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID"+ email)
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID "+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-<<<<<<< HEAD
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
-=======
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID "+ email)
->>>>>>> 05026b38b1bc0123b4d37a1af840fea469b7c5a6
-            results = cursor.fetchall()
-            if(len(results) == 0):
-                return False
-            else:
-                if( results == password):
-                    return True
+            with connections['oracle'].cursor() as cursor:
+                cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID"+ email)
+                results = cursor.fetchall()
+                if(len(results) == 0):
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID"+ email)
+                        results = cursor.fetchall()
+                        if(len(results) == 0):
+                            return False
+                        else:
+                            if( results == password):
+                                return True
+                            else:
+                                return False
                 else:
-                    return False
+                    if( results == password):
+                        return True
+                    else:
+                        return False
         else:
             if( results == password):
                 return True
             else:
                 return False
-    else:
-        if( results == password):
-            return True
-        else:
-            return False
 
 def accountType(email):
-    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID "+ email)
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID "+ email)
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID "+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
-            results = cursor.fetchall()
-            if(len(results) == 0):
-                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID "+ email)
-                  results = cursor.fetchall()
-                  if(len(results) == 0):
-                      cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID "+ email)
-                      results = cursor.fetchall()
-                      if(len(results) != 0):
-                          return 'admin'
-                  else :
-                      return 'customerCare'
-            else:
-                return 'customer'
+            with connections['oracle'].cursor() as cursor:
+                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID "+ email)
+                results = cursor.fetchall()
+                if(len(results) == 0):
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
+                        results = cursor.fetchall()
+                        if(len(results) == 0):
+                              with connections['oracle'].cursor() as cursor:
+                                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID "+ email)
+                                  results = cursor.fetchall()
+                                  if(len(results) == 0):
+                                      with connections['oracle'].cursor() as cursor:
+                                          cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID "+ email)
+                                          results = cursor.fetchall()
+                                          if(len(results) != 0):
+                                              return 'admin'
+                                  else :
+                                      return 'customerCare'
+                        else:
+                            return 'customer'
+                else:
+                    return 'deliveryGuy'
         else:
-            return 'deliveryGuy'
-    else:
-        return 'seller'
-        
+            return 'seller'
+
 def signup_page(request):
     adminLogin = False
     isloggedin = False
