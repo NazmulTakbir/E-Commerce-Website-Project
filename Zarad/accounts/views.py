@@ -8,71 +8,81 @@ import io
 
 # Create your views here.
 def email_taken(email):
-    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = "+ email)
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID "+ email)
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {"email": email})
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
-            results = cursor.fetchall()
-    if(len(results)== 0):
-        return False
-    else:
-        return True
-
-def email_pass_match(email , password):
-    cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID "+ email)
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID"+ email)
-        results = cursor.fetchall()
-        if(len(results) == 0):
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID "+ email)
+            cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email", {"email": email})
             results = cursor.fetchall()
             if(len(results) == 0):
+                cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email", {"email": email})
+                results = cursor.fetchall()
+            if(len(results)== 0):
                 return False
             else:
-                if( results == password):
+                return True
+
+        if(len(results)== 0):
+            return False
+        else:
+            return True
+
+def email_pass_match(email , password):
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID ="+ email)
+        results = cursor.fetchall()
+        if(len(results) == 0):
+            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID ="+ email)
+            results = cursor.fetchall()
+            if(len(results) == 0):
+                cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID ="+ email)
+                results = cursor.fetchall()
+                if( len(result) == 0 ):
+                    return False
+                else:
+                    if( results[0] == password ):
+                        return True
+                    else:
+                        return False
+            else:
+                if( results[0] == password):
                     return True
                 else:
                     return False
         else:
-            if( results == password):
+            if( results[0] == password ):
                 return True
             else:
                 return False
-    else:
-        if( results == password):
-            return True
-        else:
-            return False
 
 def accountType(email):
-    cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID "+ email)
-    results = cursor.fetchall()
-    if(len(results) == 0):
-        cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID "+ email)
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID ="+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID ="+ email)
             results = cursor.fetchall()
             if(len(results) == 0):
-                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID "+ email)
-                  results = cursor.fetchall()
-                  if(len(results) == 0):
-                      cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID "+ email)
-                      results = cursor.fetchall()
-                      if(len(results) != 0):
-                          return 'admin'
-                  else :
-                      return 'customerCare'
+                cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="+ email)
+                empID = cursor.fetchall()[0]
+                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMPLOYEE_ID ="+ empID)
+                results = cursor.fetchall()
+                if(len(results) == 0):
+                     cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMPLOYEE_ID ="+ empID)
+                     results = cursor.fetchall()
+                     if(len(results) == 0):
+                         cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMPLOYEE_ID ="+ empID)
+                         results = cursor.fetchall()
+                         if(len(results) != 0):
+                             return 'admin'
+                     else :
+                         return 'customerCare'
+                else:
+                    return 'deliveryGuy'
             else:
-                return 'customer'
+                    return 'customer'
         else:
-            return 'deliveryGuy'
-    else:
-        return 'seller'
+            return 'seller'
 
 def make_image_square(img):
     width, height = img.size
@@ -100,6 +110,7 @@ def signup_page(request):
             fname = request.POST.get("customerFirstName")
             lname = request.POST.get("customerLastName")
             dob = request.POST.get("customerDOB")
+            dob = dob[0:4] + "-" + dob[-5:-3] + "-" + dob[-2:]
             phno = request.POST.get("customerPhNo")
             apart = request.POST.get("customerApartment")
             area = request.POST.get("customerArea")
@@ -110,8 +121,7 @@ def signup_page(request):
             longitude = request.POST.get("customerLongitude")
             location = latitude+ ','+ longitude
 
-            # if email_taken(email) == True :
-            if False :
+            if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
                 if 'customerImage' in request.FILES:
