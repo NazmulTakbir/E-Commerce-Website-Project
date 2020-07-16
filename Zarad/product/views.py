@@ -66,74 +66,15 @@ def search_result(request, search_string):
     img1 = Image.open("F:\\Academic Main\\GitHub Repos\\E-Commerce Website Project - CSE 216\\Zarad\static\\images\\temp\\test.jpg")
     img2 = Image.open("F:\\Academic Main\\GitHub Repos\\E-Commerce Website Project - CSE 216\\Zarad\static\\images\\temp\\test2.jpg")
 
-    products = [ [1, 2, "Trimmer", 4.5, img1, img2],
-                 [3, 4, "Razor", 3.5, img1, img2],
-                 [5, 6, "Earphone", 4.1, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2],
-                 [7, 8, "Airpod", 4.9, img1, img2] ]
+    products = [ [1, 2, "Electric 3 in 1 Trimmer", 4.5, img1, img2, 1500, "Philips"] ]
+                 # [3, 4, "Razor", 3.5, img1, img2, 500, "Gilette"],
+                 # [5, 6, "Earphone", 4.1, img1, img2, 750, "Samsung"],
+                 # [3, 4, "Razor", 3.5, img1, img2, 500, "Dollar Shave"],
+                 # [5, 6, "Earphone", 4.1, img1, img2, 750, "XYZ"],
+                 # [3, 4, "Razor", 3.5, img1, img2, 500, "ABC"],
+                 # [5, 6, "Earphone", 4.1, img1, img2, 750, "MNO"],
+                 # [7, 8, "Airpod", 4.9, img1, img2, 4000, "Apple"] ]
+
 
     productHTML = loadProductData(request, products)
 
@@ -145,6 +86,13 @@ def loadProductData(request, products):
     for i in range(0, total):
         productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
         productName = products[i][2]
+        print(len(productName))
+        if len(productName) >= 25:
+            productName = productName[:22] + "..."
+        productPrice = products[i][6]
+        sellerName = products[i][7]
+        if len(sellerName) >= 20:
+            sellerName = sellerName[:18] + "..."
         ratingHTML = ""
         for j in range(1, math.floor(products[i][3])):
             ratingHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
@@ -154,15 +102,15 @@ def loadProductData(request, products):
         image2Path = "http://{}/static/images/productImages/{}_2.png".format(request.META['HTTP_HOST'], products[i][0])
         print(image1Path)
         print(image2Path)
-        productHTML += htmlGenerator(i, productURL, productName, ratingHTML, image1Path, image2Path)
+        productHTML += htmlGenerator(i, productURL, productName, productPrice, sellerName, ratingHTML, image1Path, image2Path)
 
-        # products[i][4].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_1.png")
-        # products[i][5].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_2.png")
+        products[i][4].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_1.png")
+        products[i][5].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_2.png")
 
     return productHTML
 
-def htmlGenerator(i, productURL, productName, ratingHTML, image1Path, image2Path):
-    return """<div class="productItems col-lg-3 col-md-4 col-sm-6" id="product{}" style="display: none">
+def htmlGenerator(i, productURL, productName, productPrice, sellerName, ratingHTML, image1Path, image2Path):
+    return """<div class="productItems col-lg-3 col-md-4 col-sm-6" id="product{}" style="display: none; margin-bottom: 20px">
         <div class="product-grid7">
           <div class="product-image7">
             <a href="{}">
@@ -170,8 +118,10 @@ def htmlGenerator(i, productURL, productName, ratingHTML, image1Path, image2Path
               <img class="pic-2" src="{}">
             </a>
           </div>
-          <div class="product-content">
-            <h3 class="title"><a href="{}">{}</a></h3>
+          <div class="caption">
+            <p class="group inner list-group-item-heading" style="margin-bottom: 0px"><strong> <a href="{}">{}</a> </strong> </p>
+            <p class="group inner list-group-item-text" style="margin-bottom: 0px; color: black">  Seller -- {}  </p>
+            <p class="lead" style="margin-bottom: 0px;">{} Tk <br /></p>
             <ul class="rating">
               <h5>
                   {}
@@ -179,4 +129,4 @@ def htmlGenerator(i, productURL, productName, ratingHTML, image1Path, image2Path
             </ul>
           </div>
         </div>
-      </div>""".format(i, productURL, image1Path, image2Path, productURL, productName, ratingHTML) + "\n"
+      </div>""".format(i, productURL, image1Path, image2Path, productURL, productName, sellerName, productPrice, ratingHTML) + "\n"

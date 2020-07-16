@@ -2,6 +2,9 @@ from django.shortcuts import render
 from django.db import connections
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import reverse
+from PIL import Image
+from django.conf import settings
+import io
 
 # Create your views here.
 def email_taken(email):
@@ -25,11 +28,7 @@ def email_pass_match(email , password):
         cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID"+ email)
         results = cursor.fetchall()
         if(len(results) == 0):
-<<<<<<< HEAD
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = email")
-=======
             cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID "+ email)
->>>>>>> 05026b38b1bc0123b4d37a1af840fea469b7c5a6
             results = cursor.fetchall()
             if(len(results) == 0):
                 return False
@@ -74,7 +73,14 @@ def accountType(email):
             return 'deliveryGuy'
     else:
         return 'seller'
-        
+
+def make_image_square(img):
+    width, height = img.size
+    size = max(width, height)
+    new_img = Image.new('RGB', (size, size), (255, 255, 255))
+    new_img.paste(img, (int((size - width) / 2), int((size - height) / 2)))
+    return new_img
+
 def signup_page(request):
     adminLogin = False
     isloggedin = False
@@ -89,38 +95,44 @@ def signup_page(request):
 
     if request.method == 'POST':
         if request.POST.get("radioButton", "empty") == 'Customer':
-            email = request.POST.get("customerEmail","empty")
-            password = request.POST.get("customerPassword","empty")
-            fname = request.POST.get("customerFirstName","empty")
-            lname = request.POST.get("customerLastName","empty")
-            dob = request.POST.get("customerDOB","empty")
-            dob = dob[8:10]+'-'+dob[5:7]+'-'+dob[0:4]
-            phno = request.POST.get("customerPhNo","empty")
-            apart = request.POST.get("customerApartment","")
-            area = request.POST.get("customerArea","empty")
-            building = request.POST.get("customerBuilding","")
-            road = request.POST.get("customerRoad","")
-            city = request.POST.get("customerCity","empty")
-            latitude = request.POST.get("customerLatitude","empty")
-            longitude = request.POST.get("customerLongitude","empty")
+            email = request.POST.get("customerEmail")
+            password = request.POST.get("customerPassword")
+            fname = request.POST.get("customerFirstName")
+            lname = request.POST.get("customerLastName")
+            dob = request.POST.get("customerDOB")
+            phno = request.POST.get("customerPhNo")
+            apart = request.POST.get("customerApartment")
+            area = request.POST.get("customerArea")
+            building = request.POST.get("customerBuilding")
+            road = request.POST.get("customerRoad")
+            city = request.POST.get("customerCity","NULL")
+            latitude = request.POST.get("customerLatitude")
+            longitude = request.POST.get("customerLongitude")
             location = latitude+ ','+ longitude
 
-                # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
-
-            if email_taken(email) == True :
+            # if email_taken(email) == True :
+            if False :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
                 if 'customerImage' in request.FILES:
-                    img = request.FILES['customerImage']
-                    imgBLOB = img.read()
-                    query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
-                               BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                               LOCATION, PICTURE ) VALUES(CUSTOMER_ID_SEQ.NEXTVAL,""" + fname + """,
-                               """+lname+ """, """+  apart+ """, """+ building+ """, """+  road+ """,
-                               """+area+ """, """+ city+ """, """+  phno+ """, """+ """TO_DATE("""+ dob +""", 'DD-MM-YYYY'),
-                               """+ email+ """, """+  password + """, """+ location+ """, """+  imgBLOB +""")"""
+                    imgFile = request.FILES['customerImage']
+                    img = Image.open(imgFile)
+                    squareImg = make_image_square(img)
+                    blob = io.BytesIO()
+                    squareImg.save(blob, 'jpeg')
+                    blob.seek(0)
+
+                    query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME, LAST_NAME, APARTMENT_NUMBER,
+                                BUILDING_NUMBER, ROAD, AREA, CITY, PHONE_NUMBER, DOB, EMAIL_ID , PASSWORD,
+                                LOCATION, PICTURE) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
+                                :building, :road, :area, :city, :phno, TO_DATE(:dob, 'yyyy-mm-dd'), :email, :password, :location,
+                                :picture)"""
                     with connections['oracle'].cursor() as cursor:
-                        cursor.execute(query)
+                        data = { 'email': email, 'password': password, 'fname': fname, 'lname': lname, 'dob': dob,
+                                 'phno': phno, 'apart': apart, 'area': area, 'building': building, 'road': road,
+                                 'city': city, 'location': location, 'picture': blob.getvalue() }
+                        cursor.execute(query, data)
+                        cursor.execute("commit")
                 else:
                     query ="""INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                                BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
@@ -145,7 +157,7 @@ def signup_page(request):
             building = request.POST.get("employeeBuilding","")
             road = request.POST.get("employeeRoad","")
             city = request.POST.get("employeeCity","empty")
-            type = request.POST.get("employeeType","empty") # customerCare # deliveryGuy
+            employeeType = request.POST.get("employeeType","empty") # customerCare # deliveryGuy
             salary = request.POST.get("employeeSalary","empty")
             latitude = request.POST.get("employeeLatitude","empty")
             longitude = request.POST.get("employeeLongitude","empty")
@@ -167,11 +179,11 @@ def signup_page(request):
                             """+password+""","""+ """TO_NUMBER( """+ salary +"""),"""+ imgBLOB+""" )"""
                 with connections['oracle'].cursor() as cursor:
                     cursor.execute(query)
-                if type == 'customerCare':
+                if employeeType == 'customerCare':
                     query = """INSERT INTO CUSTOMER_CARE_EMPLOYEE VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="""+ email+ """))"""
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query)
-                elif type == 'deliveryGuy':
+                elif employeeType == 'deliveryGuy':
                      query = """INSERT INTO DELIVERY_GUY VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="""+ email+ """),"""+ location+""" )"""
                      with connections['oracle'].cursor() as cursor:
                          cursor.execute(query)
