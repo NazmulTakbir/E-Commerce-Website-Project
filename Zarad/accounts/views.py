@@ -29,49 +29,49 @@ def email_taken(email):
 
 def email_pass_match(email , password):
     with connections['oracle'].cursor() as cursor:
-        cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID ="+ email)
+        cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = :email", {"email": email})
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID ="+ email)
+            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = :email", {"email": email})
             results = cursor.fetchall()
             if(len(results) == 0):
-                cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID ="+ email)
+                cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = :email", {"email": email})
                 results = cursor.fetchall()
-                if( len(result) == 0 ):
+                if( len(results) == 0 ):
                     return False
                 else:
-                    if( results[0] == password ):
+                    if( results[0][0] == password ):
                         return True
                     else:
                         return False
             else:
-                if( results[0] == password):
+                if( results[0][0]  == password):
                     return True
                 else:
                     return False
         else:
-            if( results[0] == password ):
+            if( results[0][0]  == password ):
                 return True
             else:
                 return False
 
 def accountType(email):
     with connections['oracle'].cursor() as cursor:
-        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID ="+ email)
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID =:email", {"email": email})
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID ="+ email)
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID =:email", {"email": email})
             results = cursor.fetchall()
             if(len(results) == 0):
-                cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="+ email)
-                empID = cursor.fetchall()[0]
-                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMPLOYEE_ID ="+ empID)
+                cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID =:email", {"email": email})
+                empID = cursor.fetchall()[0].EMPLOYEE_ID
+                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
                 results = cursor.fetchall()
                 if(len(results) == 0):
-                     cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMPLOYEE_ID ="+ empID)
+                     cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
                      results = cursor.fetchall()
                      if(len(results) == 0):
-                         cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMPLOYEE_ID ="+ empID)
+                         cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
                          results = cursor.fetchall()
                          if(len(results) != 0):
                              return 'admin'
@@ -135,23 +135,25 @@ def signup_page(request):
                     query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME, LAST_NAME, APARTMENT_NUMBER,
                                 BUILDING_NUMBER, ROAD, AREA, CITY, PHONE_NUMBER, DOB, EMAIL_ID , PASSWORD,
                                 LOCATION, PICTURE) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
-                                :building, :road, :area, :city, :phno, TO_DATE(:dob, 'yyyy-mm-dd'), :email, :password, :location,
+                                :building, :road, :area, :city, :phno, TO_DATE(:dob, 'YYYY-MM-DD'), :email, :password, :location,
                                 :picture)"""
                     with connections['oracle'].cursor() as cursor:
                         data = { 'email': email, 'password': password, 'fname': fname, 'lname': lname, 'dob': dob,
                                  'phno': phno, 'apart': apart, 'area': area, 'building': building, 'road': road,
                                  'city': city, 'location': location, 'picture': blob.getvalue() }
                         cursor.execute(query, data)
-                        cursor.execute("commit")
+                        cursor.execute("COMMIT")
                 else:
-                    query ="""INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
-                               BUILDING_NUMBER , ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                               LOCATION ) VALUES(CUSTOMER_ID_SEQ.NEXTVAL,""" + fname + """,
-                                """+lname+ """, """+  apart+ """, """+ building+ """, """+  road+ """,
-                               """+area+ """, """+ city+ """, """+  phno+ """, """+ """TO_DATE("""+ dob +""", 'DD-MM-YYYY'),
-                                """+email+ """, """+  password + """, """+ location+ """)"""
+                    query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME, LAST_NAME, APARTMENT_NUMBER,
+                               BUILDING_NUMBER, ROAD, AREA, CITY, PHONE_NUMBER, DOB, EMAIL_ID , PASSWORD,
+                               LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
+                               :building, :road, :area, :city, :phno, TO_DATE(:dob, 'YYYY-MM-DD'), :email, :password, :location)"""
                     with connections['oracle'].cursor() as cursor:
-                        cursor.execute(query)
+                        data = { 'email': email, 'password': password, 'fname': fname, 'lname': lname, 'dob': dob,
+                                 'phno': phno, 'apart': apart, 'area': area, 'building': building, 'road': road,
+                                 'city': city, 'location': location}
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
                 return HttpResponseRedirect(reverse('accounts:login'))
 
         elif request.POST.get("radioButton", "empty") == 'Employee':
@@ -160,44 +162,51 @@ def signup_page(request):
             fname = request.POST.get("employeeFirstName","empty")
             lname = request.POST.get("employeeLastName","empty")
             dob = request.POST.get("employeeDOB","empty")
-            dob = dob[8:10]+'-'+dob[5:7]+'-'+dob[0:4]
+            dob = dob[0:4] + "-" + dob[-5:-3] + "-" + dob[-2:]
             phno = request.POST.get("employeePhNo","empty")
             apart = request.POST.get("employeeApartment","")
             area = request.POST.get("employeeArea","empty")
             building = request.POST.get("employeeBuilding","")
             road = request.POST.get("employeeRoad","")
             city = request.POST.get("employeeCity","empty")
-            employeeType = request.POST.get("employeeType","empty") # customerCare # deliveryGuy
+            employeeType = request.POST.get("employeeType","empty")
             salary = request.POST.get("employeeSalary","empty")
             latitude = request.POST.get("employeeLatitude","empty")
             longitude = request.POST.get("employeeLongitude","empty")
             location = latitude+ ','+ longitude
 
+            blob = io.BytesIO()
             if 'employeeImage' in request.FILES:
-                img = request.FILES['employeeImage']
-                imgBLOB = img.read()
-                # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
+                imgFile = request.FILES['employeeImage']
+                img = Image.open(imgFile)
+                squareImg = make_image_square(img)
+                squareImg.save(blob, 'jpeg')
+                blob.seek(0)
 
             if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
                 query = """INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                            BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                           SALARY, PICTURE) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL,"""+ fname +""","""+ lname +"""
-                            ,"""+apart+""","""+ building+""","""+ road+""","""+ area+""","""+ city+""",
-                            """+ phno+""", TO_DATE("""+ dob+""" , 'DD-MM-YYYY'),"""+ email +""",
-                            """+password+""","""+ """TO_NUMBER( """+ salary +"""),"""+ imgBLOB+""" )"""
+                           SALARY, PICTURE) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, :fname, :lname ,:apart, :building, :road, :area, :city ,:phno,
+                           TO_DATE(:dob, 'YYYY-MM-DD'), :email ,:password ,TO_NUMBER(:salary), :picture )"""
+
                 with connections['oracle'].cursor() as cursor:
-                    cursor.execute(query)
+                    data = {'fname' : fname, 'lname': lname, 'apart': apart, 'building':building ,'road' : road , 'area' :area , 'city':city,
+                            'phno' :phno , 'email' :email , 'password':password , 'dob' :dob, 'salary':salary, 'picture':blob.getvalue()}
+                    cursor.execute(query, data)
+                    cursor.execute("COMMIT")
                 if employeeType == 'customerCare':
-                    query = """INSERT INTO CUSTOMER_CARE_EMPLOYEE VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="""+ email+ """))"""
+                    query = """INSERT INTO CUSTOMER_CARE_EMPLOYEE VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email))"""
                     with connections['oracle'].cursor() as cursor:
-                        cursor.execute(query)
+                        cursor.execute(query, {'email':email})
+                        cursor.execute("COMMIT")
                 elif employeeType == 'deliveryGuy':
-                     query = """INSERT INTO DELIVERY_GUY VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID ="""+ email+ """),"""+ location+""" )"""
+                     query = """INSERT INTO DELIVERY_GUY VALUES(( SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email) , :location)"""
                      with connections['oracle'].cursor() as cursor:
-                         cursor.execute(query)
-                return HttpResponseRedirect(reverse('login'))
+                         cursor.execute(query, {'email': email, 'location':location})
+                         cursor.execute("COMMIT")
+                return HttpResponseRedirect(reverse('accounts:login'))
 
         elif request.POST.get("radioButton", "empty") == 'Seller':
             email = request.POST.get("sellerEmail","")
@@ -230,31 +239,41 @@ def signup_page(request):
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
                 if 'sellerImage' in request.FILES:
-                    img = request.FILES['sellerImage']
-                    imgBLOB = img.read()
+                    imgFile = request.FILES['sellerImage']
+                    img = Image.open(imgFile)
+                    squareImg = make_image_square(img)
+                    blob = io.BytesIO()
+                    squareImg.save(blob, 'jpeg')
+                    blob.seek(0)
+
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                               PASSWORD, WEBSITE, LOCATION, PICTURE ) VALUES( SELLER_ID_SEQ.NEXTVAL, """+ name+"""
-                               building+""","""+ road+""","""+ area+""","""+ city+""","""+ email +""","""+
-                               ,"""+password+""","""+website +""","""+ location +""","""+ imgBLOB+""")"""
+                               PASSWORD, WEBSITE, LOCATION, LOGO ) VALUES( SELLER_ID_SEQ.NEXTVAL, :name, :building,
+                               :road, :area, :city, :email, :password, :website , :location , :imgBLOB)"""
                     with connections['oracle'].cursor() as cursor:
-                        cursor.execute(query)
+                        data = {'name' : name, 'building':building ,'road' : road , 'area' :area , 'city':city,
+                        'email' :email , 'password':password ,'imgBLOB':blob.getvalue(), 'location' :location , 'website':website}
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
                     for i in range(len(phno)):
-                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID =
-                        """+ email+ """),"""+ phno[i]+""" )"""
+                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),:phno)"""
                         with connections['oracle'].cursor() as cursor:
-                            cursor.execute(query)
+                            cursor.execute(query, {'email':email, 'phno':phno[i]})
+                            cursor.execute("COMMIT")
                 else:
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                               PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL,"""+  name + """,""" + building + ""","""+ road + """
-                               ,"""+area+ ""","""+ city+ ""","""+ email + ""","""+ password + ""","""+ website+ ""","""+ location +""")"""
+                               PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, :name, :building,
+                               :road, :area, :city, :email, :password, :website , :location )"""
                     with connections['oracle'].cursor() as cursor:
-                        cursor.execute(query)
+                        data = {'name' : name, 'building':building ,'road' : road , 'area' :area , 'city':city,
+                        'email' :email , 'password':password, 'location' :location , 'website':website}
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
                     for i in range(len(phno)):
-                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = """+ email +""")
-                                   ,"""+phno[i] + """)"""
+                        query = """INSERT INTO SELLER_PHONE_NUMBER VALUES((SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),:phno)"""
                         with connections['oracle'].cursor() as cursor:
-                            cursor.execute(query)
-                return HttpResponseRedirect(reverse('login'))
+                            cursor.execute(query, {'email':email, 'phno':phno[i]})
+                            cursor.execute("COMMIT")
+                return HttpResponseRedirect(reverse('accounts:login'))
 
     return render(request, 'signup.html', {'emailExists': False, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
 
