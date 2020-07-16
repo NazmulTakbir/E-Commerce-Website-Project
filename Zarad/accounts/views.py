@@ -155,28 +155,31 @@ def signup_page(request):
                 return HttpResponseRedirect(reverse('accounts:login'))
 
         elif request.POST.get("radioButton", "empty") == 'Employee':
-            email = request.POST.get("employeeEmail","empty")
-            password = request.POST.get("employeePassword","empty")
-            fname = request.POST.get("employeeFirstName","empty")
-            lname = request.POST.get("employeeLastName","empty")
-            dob = request.POST.get("employeeDOB","empty")
-            dob = dob[8:10]+'-'+dob[5:7]+'-'+dob[0:4]
-            phno = request.POST.get("employeePhNo","empty")
-            apart = request.POST.get("employeeApartment","")
-            area = request.POST.get("employeeArea","empty")
-            building = request.POST.get("employeeBuilding","")
-            road = request.POST.get("employeeRoad","")
-            city = request.POST.get("employeeCity","empty")
-            employeeType = request.POST.get("employeeType","empty") # customerCare # deliveryGuy
-            salary = request.POST.get("employeeSalary","empty")
-            latitude = request.POST.get("employeeLatitude","empty")
-            longitude = request.POST.get("employeeLongitude","empty")
+            email = request.POST.get("employeeEmail")
+            password = request.POST.get("employeePassword")
+            fname = request.POST.get("employeeFirstName")
+            lname = request.POST.get("employeeLastName")
+            dob = request.POST.get("employeeDOB")
+            dob = dob[0:4] + "-" + dob[-5:-3] + "-" + dob[-2:]
+            phno = request.POST.get("employeePhNo")
+            apart = request.POST.get("employeeApartment")
+            area = request.POST.get("employeeArea")
+            building = request.POST.get("employeeBuilding")
+            road = request.POST.get("employeeRoad")
+            city = request.POST.get("employeeCity")
+            employeeType = request.POST.get("employeeType")
+            salary = request.POST.get("employeeSalary")
+            latitude = request.POST.get("employeeLatitude")
+            longitude = request.POST.get("employeeLongitude")
             location = latitude+ ','+ longitude
 
             if 'employeeImage' in request.FILES:
-                img = request.FILES['employeeImage']
-                imgBLOB = img.read()
-                # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
+                imgFile = request.FILES['employeeImage']
+                img = Image.open(imgFile)
+                squareImg = make_image_square(img)
+                blob = io.BytesIO()
+                squareImg.save(blob, 'jpeg')
+                blob.seek(0)
 
             if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
@@ -200,20 +203,20 @@ def signup_page(request):
                 return HttpResponseRedirect(reverse('login'))
 
         elif request.POST.get("radioButton", "empty") == 'Seller':
-            email = request.POST.get("sellerEmail","")
-            password = request.POST.get("sellerPassword","")
-            name = request.POST.get("sellerName","")
-            website = request.POST.get("sellerWebsite","")
-            phno1 = request.POST.get("sellerPhNo","")
-            phno2 = request.POST.get("sellerPhNo2","")
-            phno3 = request.POST.get("sellerPhNo3","")
-            phno4 = request.POST.get("sellerPhNo4","")
-            area = request.POST.get("sellerArea","")
-            building = request.POST.get("sellerBuilding","")
-            road = request.POST.get("sellerRoad","")
-            city = request.POST.get("sellerCity","")
-            latitude = request.POST.get("sellerLatitude","empty")
-            longitude = request.POST.get("sellerLongitude","empty")
+            email = request.POST.get("sellerEmail")
+            password = request.POST.get("sellerPassword")
+            name = request.POST.get("sellerName")
+            website = request.POST.get("sellerWebsite")
+            phno1 = request.POST.get("sellerPhNo")
+            phno2 = request.POST.get("sellerPhNo2")
+            phno3 = request.POST.get("sellerPhNo3")
+            phno4 = request.POST.get("sellerPhNo4")
+            area = request.POST.get("sellerArea")
+            building = request.POST.get("sellerBuilding")
+            road = request.POST.get("sellerRoad")
+            city = request.POST.get("sellerCity")
+            latitude = request.POST.get("sellerLatitude")
+            longitude = request.POST.get("sellerLongitude")
             location = latitude+ ','+ longitude
 
             phno = [phno1]
@@ -224,14 +227,17 @@ def signup_page(request):
             if phno4 != "":
                 phno.append(phno4)
 
-                # https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html
-
             if email_taken(email) == True :
                 return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
             else:
                 if 'sellerImage' in request.FILES:
-                    img = request.FILES['sellerImage']
-                    imgBLOB = img.read()
+                    imgFile = request.FILES['sellerImage']
+                    img = Image.open(imgFile)
+                    squareImg = make_image_square(img)
+                    blob = io.BytesIO()
+                    squareImg.save(blob, 'jpeg')
+                    blob.seek(0)
+
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
                                PASSWORD, WEBSITE, LOCATION, PICTURE ) VALUES( SELLER_ID_SEQ.NEXTVAL, """+ name+"""
                                building+""","""+ road+""","""+ area+""","""+ city+""","""+ email +""","""+
