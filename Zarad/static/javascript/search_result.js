@@ -1,6 +1,14 @@
 window.onload=function(){
+
+  document.getElementById("searchText").addEventListener("keydown", function(event) {
+    if (event.keyCode == 13) {
+      event.preventDefault();
+      document.getElementById("searchIcon").click();
+    }
+  });
+  
   var productItems = document.getElementsByClassName('productItems')
-  console.log( document.getElementsByClassName('pic-1')[0].width )
+
   var i = 0;
   for( i=0; i<16 && i<productItems.length; i++ ) {
     productItems[i].style.display = 'block'
