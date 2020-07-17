@@ -1,0 +1,162 @@
+{% extends "header_footer.html" %}
+
+{% load staticfiles%}
+
+{%block title%}
+Add Item
+{%endblock%}
+
+{%block staticfiles%}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="{% static 'css/elegant_registration_form.css' %}">
+<script type="text/javascript" src="{% static 'javascript/newProduct.js' %}"></script>
+{%endblock%}
+
+{% block content %}
+<div class="banner6 py-5" style="padding: 10px">
+  <div class="row">
+    <div class="container d-flex justify-content-center">
+      <div class="col-lg-8 align-justify-center pr-4 pl-0 contact-form">
+        <form class="mt-3" method="POST" onsubmit="return formValidation()" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div id='errorMessageDiv' class="col-lg-12" style="display: none">
+              <h6 id='errorMessage' style="color: red" class="mb-3 font-weight-bold"></h6>
+            </div>
+            <div class="col-lg-12">
+              <h6 class="mb-3 font-weight-bold">Product ID ( If Product Already Available From Another Seller ) : </h6>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="20" name="productID" class="form-control" type="number" placeholder="Product ID">
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <h6 class="mb-3 font-weight-bold">Product Details : </h6>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="150" name="productName" class="form-control" type="text" placeholder="*Product Name" required="">
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="form-group">
+                <input max="1000000000" name="productPrice" class="form-control" type="number" placeholder="*Product Price" required="">
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="form-group">
+                <input max="365" name="deliveryTime" class="form-control" type="number" placeholder="*Expected Delivery Time" required="">
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Category</button>
+                  <div class="dropdown-menu">
+                    <div class="overflow-auto" style='height: 250px;'>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Electronic Appliances</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Electronic Accessories</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Electrical Appliances</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Health & Beauty</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Babies & Toys</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Groceries</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Home Items</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Women's Fashion</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Men's Fashion</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Watches & Accessories</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Sports & Outdoor</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Automotive & Motorbike</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Gym Items</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Pet Items</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Kitchen Items</h6>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Tools</h6>
+                      <div role="separator" class="dropdown-divider"></div>
+                      <h6 onclick="dropDownSelection(event)" class="dropdown-item">Other</h6>
+                    </div>
+                  </div>
+                </div>
+                <input name="chosenCategory" id="chosenCategory" type="text" class="form-control" aria-label="Text input with dropdown button" value="Select From Dropdown" disabled>
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <h6 class="mb-3 font-weight-bold">*Product Description : </h6>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <textarea maxlength="2000" class="form-control" rows="8" name="description" id="description" required=""></textarea>
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <h6 class="mb-3 font-weight-bold">Features : </h6>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature1" class="form-control" type="text" placeholder="Feature 1">
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature2" class="form-control" type="text" placeholder="Feature 2">
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature3" class="form-control" type="text" placeholder="Feature 3">
+              </div>
+            </div>
+            <div id="feature4" style="display: none" class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature4" class="form-control" type="text" placeholder="Feature 4">
+              </div>
+            </div>
+            <div id="feature5" style="display: none" class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature5" class="form-control" type="text" placeholder="Feature 5">
+              </div>
+            </div>
+            <div style="display: none" id="feature6" class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature6" class="form-control" type="text" placeholder="Feature 6">
+              </div>
+            </div>
+            <div id='featureButton' class="col-lg-6">
+              <div class="form-group">
+                  <button onclick='addFeature();' type="button" class="btn btn-dark">Add Another Feature</button>
+              </div>
+            </div>
+            <div id='featureLimit' class="col-lg-6" style="display: none">
+              <p class="mb-3 font-weight-bold" style="color:#0275d8;">Maximum 6 Features</p>
+            </div>
+            <div class="col-lg-12">
+              <h6 class="mb-3 font-weight-bold">Product Pictures - You Can Add Between 1 and 4 : </h6>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+               <input multiple="multiple" type='file' accept='image/*' name='productImage' id="pImgInput" onchange="uploadPicture(event)"/>
+               <br /> <br />
+               <table>
+                 <tr>
+                   <td> <img id="p1Img" src="#" alt="your image" style="display: none"/> </td>
+                   <td> <img id="p2Img" src="#" alt="your image" style="display: none"/> </td>
+                 </tr>
+                 <tr>
+                   <td> <img id="p3Img" src="#" alt="your image" style="display: none"/> </td>
+                   <td> <img id="p4Img" src="#" alt="your image" style="display: none"/> </td>
+                 </tr>
+               </table>
+             </div>
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <button type="submit" class="btn btn-md btn-block bg-success text-white border-0" enable-gradients><span> Add Product</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{% block script %}
+{%endblock%}

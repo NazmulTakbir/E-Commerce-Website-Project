@@ -17,7 +17,7 @@ Signup
   <div class="row">
     <div class="container d-flex justify-content-center">
       <div class="col-lg-8 align-justify-center pr-4 pl-0 contact-form">
-        <form class="mt-3" method="POST" onsubmit="formValidation()" enctype="multipart/form-data">
+        <form class="mt-3" method="POST" onsubmit="return formValidation()" enctype="multipart/form-data">
           {% csrf_token %}
           {% if emailExists %}
             <h5 class="mb-3 font-weight-bold" style="color:red">
@@ -132,7 +132,7 @@ Signup
                   <input type='file' accept='image/*' name='customerImage' id="cImgButton" onchange="uploadPicture(event)"/>
               	  <br /> <br />
               	  <img id="cImg" src="#" alt="your image" />
-               </div>
+                </div>
               </div>
               </div>
           </div>

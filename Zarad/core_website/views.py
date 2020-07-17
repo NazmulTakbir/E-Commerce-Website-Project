@@ -8,43 +8,37 @@ from django.contrib.auth.decorators import login_required
 
 def accountType(email):
     with connections['oracle'].cursor() as cursor:
-        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID "+ email)
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID =:email", {"email": email})
         results = cursor.fetchall()
         if(len(results) == 0):
-            with connections['oracle'].cursor() as cursor:
-                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMAIL_ID "+ email)
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID =:email", {"email": email})
+            results = cursor.fetchall()
+            if(len(results) == 0):
+                cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID =:email", {"email": email})
+                emID = cursor.fetchall()[0][0]
+                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
                 results = cursor.fetchall()
                 if(len(results) == 0):
-                    with connections['oracle'].cursor() as cursor:
-                        cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID "+ email)
-                        results = cursor.fetchall()
-                        if(len(results) == 0):
-                              with connections['oracle'].cursor() as cursor:
-                                  cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMAIL_ID "+ email)
-                                  results = cursor.fetchall()
-                                  if(len(results) == 0):
-                                      with connections['oracle'].cursor() as cursor:
-                                          cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMAIL_ID "+ email)
-                                          results = cursor.fetchall()
-                                          if(len(results) != 0):
-                                              return 'admin'
-                                  else :
-                                      return 'customerCare'
-                        else:
-                            return 'customer'
+                     cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
+                     results = cursor.fetchall()
+                     if(len(results) == 0):
+                         cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
+                         results = cursor.fetchall()
+                         if(len(results) != 0):
+                             return 'admin'
+                     else :
+                         return 'customerCare'
                 else:
                     return 'deliveryGuy'
+            else:
+                    return 'customer'
         else:
             return 'seller'
 
-# Create your views here.
 def home_page(request):
     isloggedin = False
-    accountType = 'none'
+    acType = 'none'
     if request.session.has_key('useremail'):
         isloggedin = True
-        if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
-            accountType = 'admin'
-        else:
-            accountType = accountType(request.session['useremail'])
-    return render(request, "home_page.html", {'isloggedin': isloggedin, 'accountType': accountType})
+        acType = accountType(request.session['useremail'])
+    return render(request, "home_page.html", {'isloggedin': isloggedin, 'accountType': acType})

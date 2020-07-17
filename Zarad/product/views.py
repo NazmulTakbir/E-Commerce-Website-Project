@@ -9,18 +9,106 @@ from PIL import Image
 from django.conf import settings
 import threading
 import math
+import io
 
-# Create your views here.
+def make_image_square(img):
+    width, height = img.size
+    size = max(width, height)
+    new_img = Image.new('RGB', (size, size), (255, 255, 255))
+    new_img.paste(img, (int((size - width) / 2), int((size - height) / 2)))
+    return new_img
+
+def accountType(email):
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID =:email", {"email": email})
+        results = cursor.fetchall()
+        if(len(results) == 0):
+            cursor.execute("SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID =:email", {"email": email})
+            results = cursor.fetchall()
+            if(len(results) == 0):
+                cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID =:email", {"email": email})
+                emID = cursor.fetchall()[0][0]
+                cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
+                results = cursor.fetchall()
+                if(len(results) == 0):
+                     cursor.execute("SELECT EMPLOYEE_ID FROM CUSTOMER_CARE_EMPLOYEE WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
+                     results = cursor.fetchall()
+                     if(len(results) == 0):
+                         cursor.execute("SELECT EMPLOYEE_ID FROM ADMIN WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
+                         results = cursor.fetchall()
+                         if(len(results) != 0):
+                             return 'admin'
+                     else :
+                         return 'customerCare'
+                else:
+                    return 'deliveryGuy'
+            else:
+                    return 'customer'
+        else:
+            return 'seller'
+
 def item_page(request, product_id, seller_id):
-    return render(request, 'item.html')
+    isloggedin = False
+    acType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        acType = accountType(request.session['useremail'])
+    return render(request, 'item.html', {'isloggedin': isloggedin, 'accountType': acType})
 
 def add_item_page(request):
-    pass
+    isloggedin = False
+    acType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        acType = accountType(request.session['useremail'])
+        if acType != 'seller':
+            return HttpResponseRedirect(reverse('home_page'))
+    else:
+        return HttpResponseRedirect(reverse('home_page'))
+
+    if request.method == 'POST':
+        id = request.POST.get("productID")
+        name = request.POST.get("productName")
+        price = request.POST.get("productPrice")
+        deliveryTime = request.POST.get("deliveryTime")
+        category = request.POST.get("chosenCategory")
+        description = request.POST.get("description")
+        feature1 = request.POST.get("feature1")
+        feature2 = request.POST.get("feature2")
+        feature3 = request.POST.get("feature3")
+        feature4 = request.POST.get("feature4")
+        feature5 = request.POST.get("feature5")
+        feature6 = request.POST.get("feature6")
+        features = [feature1, feature2, feature3, feature4, feature5, feature6]
+
+        pics = []
+        if 'productImage' in request.FILES:
+            for pic in request.FILES.getlist('productImage'):
+                img = Image.open(pic)
+                squareImg = make_image_square(img)
+                blob = io.BytesIO()
+                squareImg.save(blob, 'jpeg')
+                blob.seek(0)
+                pics.append(blob)
+
+        return HttpResponseRedirect(reverse('accounts:myaccount'))
+
+    return render(request, 'newProduct.html', {'isloggedin': isloggedin, 'accountType': acType})
 
 def add_advert_page(request):
+    isloggedin = False
+    acType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        acType = accountType(request.session['useremail'])
     pass
 
 def add_offer_page(request):
+    isloggedin = False
+    acType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        acType = accountType(request.session['useremail'])
     pass
 
 def search_result(request, search_string):
@@ -32,15 +120,11 @@ def search_result(request, search_string):
         return HttpResponseRedirect(reverse('home_page'))
 
     isloggedin = False
-    accountType = 'none'
-    # if request.session.has_key('useremail'):
-    #     isloggedin = True
-    #     if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
-    #         accountType = 'admin'
-    #     else:
-    #         " check accountType from database using request.session['useremail'] "
-    #         accountType = 'customer'
-    #
+    acType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        acType = accountType(request.session['useremail'])
+
     # if search_string.startswith('category_') and len(search_string)>len('category_'):
     #     category = search_string[len('category_'):]
     #     temp = ''
@@ -78,7 +162,7 @@ def search_result(request, search_string):
 
     productHTML = loadProductData(request, products)
 
-    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': accountType, "productHTML": productHTML, "searchString": search_string} )
+    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
 
 def loadProductData(request, products):
     total = len(products)

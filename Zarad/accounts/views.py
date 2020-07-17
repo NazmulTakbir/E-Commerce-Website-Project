@@ -64,7 +64,7 @@ def accountType(email):
             results = cursor.fetchall()
             if(len(results) == 0):
                 cursor.execute("SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID =:email", {"email": email})
-                empID = cursor.fetchall()[0].EMPLOYEE_ID
+                emID = cursor.fetchall()[0][0]
                 cursor.execute("SELECT EMPLOYEE_ID FROM DELIVERY_GUY WHERE EMPLOYEE_ID =:emID", {"emID" : emID})
                 results = cursor.fetchall()
                 if(len(results) == 0):
@@ -301,23 +301,20 @@ def logout_page(request):
 
 def myaccount(request):
     isloggedin = False
-    accountType = 'none'
+    acType = 'none'
     if request.session.has_key('useremail'):
         isloggedin = True
-        if request.session['useremail'] == 'nazmultakbir98@gmail.com' or request.session['useremail'] == 'fatimanawmi@gmail.com':
-            ### accountType = 'admin'
-            accountType = 'customer'
-        else:
-            accountType = accountType(request.session['useremail'])
-        if accountType == 'customer':
-            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': accountType})
-        elif accountType == 'seller':
-            return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': accountType})
-        elif accountType == 'deliveryGuy':
-            return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': accountType})
-        elif accountType == 'customerCare':
-            return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': accountType})
-        elif accountType == 'admin':
-            pass
+        acType = accountType(request.session['useremail'])
+        if acType == 'customer':
+            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType})
+        elif acType == 'seller':
+            return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType})
+        elif acType == 'deliveryGuy':
+            return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType})
+        elif acType == 'customerCare':
+            return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': acType})
+        elif acType == 'admin':
+            # Work To Be Done
+            return HttpResponseRedirect(reverse('home_page'))
     else:
         return HttpResponseRedirect(reverse('home_page'))
