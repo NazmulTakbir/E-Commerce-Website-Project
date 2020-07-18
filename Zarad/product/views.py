@@ -269,7 +269,18 @@ def search_result(request, search_string):
     ' choose <=80 products '
     ' design a list of lists according to the structure below '
     ' product id, seller_id, product_name, average rating, image1, image2, price, seller_name, discount '
-
+    query = """SELECT GREATEST(STRING_SIMILARITY(W.PRODUCT_NAME,'HELLO') , STRING_SIMILARITY(W.SELLER_NAME, 'HELLO'))AS MAX_SCORE,W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME, W.SELLER_NAME, W.PRICE, W.AVG_RATING, W.MAX_DISCOUNT, PP.PICTURE PIC1,
+                    PPP.PICTURE PIC2 FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
+                    FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
+                    FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
+                    LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
+                    GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
+                    LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
+                    WHERE Y.END_DATE >= SYSDATE
+                    GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
+                    LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
+                    LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
+                    WHERE ROWNUM <= 80;"""
     img1 = Image.open(settings.BASE_DIR+"\\static\\images\\temp\\test.jpg")
     img2 = Image.open(settings.BASE_DIR+"\\static\\images\\temp\\test2.jpg")
 
