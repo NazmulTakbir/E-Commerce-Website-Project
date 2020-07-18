@@ -32,6 +32,7 @@ var formValidation = function() {
   if( ok===false ) {
     $('html, body').animate({ scrollTop: 0 }, 'fast');
   }
+  document.getElementById('chosenCategory').disabled = false
   return ok
 }
 

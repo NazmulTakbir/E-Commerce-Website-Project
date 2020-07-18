@@ -1,0 +1,1 @@
+serviceChargePercentage = 0.05
