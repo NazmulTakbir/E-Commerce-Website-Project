@@ -87,6 +87,7 @@ def add_item_page(request):
         deliveryTime = request.POST.get("deliveryTime")
         category = request.POST.get("chosenCategory")
         description = request.POST.get("description")
+        quantityInStock = request.POST.get("quantityInStock")
         feature1 = request.POST.get("feature1")
         feature2 = request.POST.get("feature2")
         feature3 = request.POST.get("feature3")
@@ -94,7 +95,6 @@ def add_item_page(request):
         feature5 = request.POST.get("feature5")
         feature6 = request.POST.get("feature6")
         features = [feature1, feature2, feature3, feature4, feature5, feature6]
-
 
         if(check_productID(id)):#product id exits, inserting the extracted product id
             query = """INSERT INTO PRODUCT VALUES (TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
@@ -199,7 +199,7 @@ def check_category(category):
     with connections['oracle'].cursor() as cursor:
         cursor.execute(query , {'category' : category})
         if(len(cursor.fetchall()) != 0):
-            if((cursor.fetchall()[0][0] == category)
+            if(cursor.fetchall()[0][0] == category):
                 return True
         else:
             return False

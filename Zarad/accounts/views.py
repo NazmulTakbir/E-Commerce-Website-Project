@@ -5,6 +5,7 @@ from django.shortcuts import reverse
 from PIL import Image
 from django.conf import settings
 import io
+import info
 
 # Create your views here.
 def email_taken(email):
@@ -306,9 +307,21 @@ def myaccount(request):
         isloggedin = True
         acType = accountType(request.session['useremail'])
         if acType == 'customer':
-            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType})
+            cartTableHTML = generateCartTableHTML(request)
+            orderTableHTML = generateOrderTableHTML(request)
+            purchaseOrderHTML = orderTableHTML[0]
+            returnOrderHTML = orderTableHTML[1]
+            walletTableHTML = generateWalletTableHTML(request)
+            reviewTableHTML = genrateReviewTableHTML(request)
+            accountBalance = 12000
+            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML, 'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML, 'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML})
         elif acType == 'seller':
-            return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType})
+            productTableHTML = generateProductTableHTML(request)
+            offerTableHTML = generateOfferTableHTML(request)
+            advertTableHTML = generateAdvertTableHTML(request)
+            walletTableHTML = generateWalletTableHTML(request)
+            accountBalance = 12000
+            return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML, 'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML, 'walletTableHTML': walletTableHTML, 'accountBalance': accountBalance})
         elif acType == 'deliveryGuy':
             return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType})
         elif acType == 'customerCare':
@@ -318,3 +331,248 @@ def myaccount(request):
             return HttpResponseRedirect(reverse('home_page'))
     else:
         return HttpResponseRedirect(reverse('home_page'))
+
+def generateProductTableHTML(request):
+    sellerID = 1
+    products = [ [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
+                 [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
+                 [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
+                 [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100] ]
+
+    result = ""
+    if( len(products)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(products) ):
+            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], sellerID)
+            editButton = """<a href={}>
+                                <button type="button" class="btn btn-link">Edit</button>
+                            </a>
+                         """.format(productURL)
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( productURL, products[i][0], products[i][1], products[i][2], products[i][3], products[i][4], editButton)
+    return result
+
+def generateOfferTableHTML(request):
+    sellerID = 1
+    offers = [ [123451234512345, 'Sept 31 2019', 'Oct 03 2019', 12, 0, 0, 1],
+               [123451234512345, 'Oct 03 2019', 'Dec 03 2019', 32, 10, 100, 2] ]
+    result = ""
+    if( len(offers)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(offers) ):
+            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], offers[i][0], sellerID)
+            endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], offers[i][5], endOfferButton)
+    return result
+
+def generateAdvertTableHTML(request):
+    sellerID = 1
+    adverts = [ [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'],
+                [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'] ]
+    result = ""
+    if( len(adverts)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(adverts) ):
+            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], adverts[i][0], sellerID)
+            endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], adverts[i][4], adverts[i][5], endOfferButton)
+    return result
+
+def generateWalletTableHTML(request):
+    sellerID = 1
+    scp = info.serviceChargePercentage
+    transactions = [ [123451234512345, 'Aug 31 2019', 'Recharge', 2000, scp*2000],
+                [123451234512345, 'Aug 31 2019', 'Recharge', 1000, scp*1000] ]
+    result = ""
+    if( len(transactions)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(transactions) ):
+            result += """<tr>
+                            <th scope="row">{}</th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( transactions[i][0], transactions[i][1], transactions[i][2], transactions[i][3], transactions[i][4])
+    return result
+
+def generateCartTableHTML(request):
+    cartItems = [ [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05],
+                  [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05] ]
+    result = ""
+    if( len(cartItems)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(cartItems) ):
+            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
+            totalPrice = cartItems[i][5]*cartItems[i][4] * (1-cartItems[i][6])
+            orderButton = """<a href={}>
+                                <button type="button" class="btn btn-success" style="margin: 5px">Order</button>
+                            </a>
+                         """.format(productURL)
+            deleteButton = """<a href={}>
+                                <button type="button" class="btn btn-danger" style="margin: 5px">Delete</button>
+                            </a>
+                         """.format(productURL)
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{} {}</td>
+                        </tr>
+                     """.format( productURL, cartItems[i][2], cartItems[i][3], cartItems[i][5], cartItems[i][4], cartItems[i][6], totalPrice, orderButton, deleteButton)
+    return result
+
+def generateOrderTableHTML(request):
+    pHTML = rHTML = ""
+    purchaseOrder = [ ['123451234512345', 'Aug 31 2019', 'Wallet', 'Delivered', 'Sept 10 2019', '9 Sept 2019', '01722345467'],
+                      ['123451234512345', 'Aug 31 2019', 'Wallet', 'Not Delivered', 'Sept 10 2019', '', '01722345467'], ]
+    if( len(purchaseOrder)==0 ):
+        pHTML = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(purchaseOrder) ):
+            orderURL = "http://{}".format(request.META['HTTP_HOST'])
+            orderAlterButton = '<button type="button" class="btn btn-danger">{}</button>'
+            if( purchaseOrder[i][3] == 'Delivered' ):
+                orderAlterButton = orderAlterButton.format("Return")
+            elif( purchaseOrder[i][3] == 'Not Delivered' ):
+                orderAlterButton = orderAlterButton.format("Cancel")
+            pHTML += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
+
+
+    returnOrder = [ ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Approved', 'Oct 31 2019', '01844375468'],
+                    ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Not Approved', '', '01844375468'],]
+    if( len(returnOrder)==0 ):
+        rHTML = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(returnOrder) ):
+            orderURL = "http://{}".format(request.META['HTTP_HOST'])
+            orderAlterButton = '<button type="button" class="btn btn-danger" style="display: {}">Cancel</button>'
+            if( returnOrder[i][4] == 'Approved' ):
+                orderAlterButton = orderAlterButton.format('none')
+            else:
+                orderAlterButton = orderAlterButton.format('block')
+            rHTML += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( orderURL, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], returnOrder[i][6], orderAlterButton)
+
+
+    return [pHTML, rHTML]
+
+def generateWalletTableHTML(request):
+    pass
+
+def genrateReviewTableHTML(request):
+    pass
