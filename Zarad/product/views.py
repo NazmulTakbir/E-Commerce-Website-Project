@@ -18,6 +18,20 @@ def make_image_square(img):
     new_img.paste(img, (int((size - width) / 2), int((size - height) / 2)))
     return new_img
 
+def check_productID(id):
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute("SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_ID = :id", {'id' :id})
+        if(len(cursor.fetchall()) != 0):
+            if(cursor.fetchall()[0][0] == id):
+                return True
+        else :
+            return False
+
+# def get_sellerID(id):
+#     with connections['oracle'].cursor() as cursor:
+#         cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :id", {'id' :id})
+#         return execute.fetchall()[0][0];
+
 def accountType(email):
     with connections['oracle'].cursor() as cursor:
         cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID =:email", {"email": email})
@@ -43,7 +57,7 @@ def accountType(email):
                 else:
                     return 'deliveryGuy'
             else:
-                    return 'customer'
+                return 'customer'
         else:
             return 'seller'
 
@@ -81,16 +95,85 @@ def add_item_page(request):
         feature6 = request.POST.get("feature6")
         features = [feature1, feature2, feature3, feature4, feature5, feature6]
 
-        pics = []
-        if 'productImage' in request.FILES:
-            for pic in request.FILES.getlist('productImage'):
-                img = Image.open(pic)
-                squareImg = make_image_square(img)
-                blob = io.BytesIO()
-                squareImg.save(blob, 'jpeg')
-                blob.seek(0)
-                pics.append(blob)
 
+        if(check_productID(id)):#product id exits, inserting the extracted product id
+            query = """INSERT INTO PRODUCT VALUES (TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
+                    (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price))"""
+            with connections['oracle'].cursor() as cursor:
+                data = {'name' : name,  'email' :request.session['useremail'] ,'id': id , 'category' : category , 'description' : description,
+                        'deliveryTime' :deliveryTime, 'price' : price}
+                cursor.execute(query, data)
+                cursor.execute("COMMIT")
+
+            num = 0
+            for i in range(len(features)):
+                #if(features[i] != 'feature'+str(i)):
+                if(features[i] != ""):
+                    num = num + 1
+                    query = """INSERT INTO PRODUCT_FEATURE VALUES(TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
+                            TO_NUMBER(:num), :des) """
+                    with connections['oracle'].cursor() as cursor:
+                        data = {'email' :request.session['useremail'] , 'des' :features[i],'id': id, 'num' : num}
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
+            pics = []
+            if 'productImage' in request.FILES:
+                for pic in request.FILES.getlist('productImage'):
+                    img = Image.open(pic)
+                    squareImg = make_image_square(img)
+                    blob = io.BytesIO()
+                    squareImg.save(blob, 'jpeg')
+                    blob.seek(0)
+                    pics.append(blob)
+                for i in range(len(pics)):
+                    query = """INSERT INTO PRODUCT_PICTURE VALUES(TO_NUMBER(:id), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
+                            TO_NUMBER(:num) , :pic)"""
+                    with connections['oracle'].cursor() as cursor:
+                        data = {'email' :request.session['useremail'] ,'id': id, 'num' : i, 'pic' : pics[i].getvalue()}
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
+
+        else :
+            query = """INSERT INTO PRODUCT VALUES (PRODUCT_ID_SEQ.NEXTVAL, (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
+                    (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price))"""
+            with connections['oracle'].cursor() as cursor:
+                data = {'name' : name,  'email' :request.session['useremail'] , 'category' : 'Health & Beauty' , 'description' : description,
+                        'deliveryTime' :deliveryTime, 'price' : price}##### TODO: have to change category here
+                print(category)
+                cursor.execute(query, data)
+                cursor.execute("COMMIT")
+            num = 0
+            for i in range(len(features)):
+                #if(features[i] != 'feature'+str(i)):
+                if(features[i] != ""):
+                    num = num + 1
+                    query = """INSERT INTO PRODUCT_FEATURE VALUES((SELECT MAX(PRODUCT_ID) FROM PRODUCT) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
+                            TO_NUMBER(:num), :des) """
+                            ### TODO:: product id extraction better technique
+                    with connections['oracle'].cursor() as cursor:
+                        data = {'email' :request.session['useremail'] , 'des' :features[i], 'num' : num}
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
+            pics = []
+            num = 0
+            if 'productImage' in request.FILES:
+                for pic in request.FILES.getlist('productImage'):
+                    img = Image.open(pic)
+                    squareImg = make_image_square(img)
+                    blob = io.BytesIO()
+                    squareImg.save(blob, 'jpeg')
+                    blob.seek(0)
+                    pics.append(blob)
+                for i in range(len(pics)):
+                    num = num + 1
+                    query = """INSERT INTO PRODUCT_PICTURE VALUES((SELECT MAX(PRODUCT_ID) FROM PRODUCT), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
+                            TO_NUMBER(:num) , :pic)"""
+                            ### TODO:: product id extraction better technique
+                    with connections['oracle'].cursor() as cursor:
+                        data = {'email' :request.session['useremail'] , 'num' : num, 'pic' : pics[i].getvalue()}
+                        print(data)
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
         return HttpResponseRedirect(reverse('accounts:myaccount'))
 
     return render(request, 'newProduct.html', {'isloggedin': isloggedin, 'accountType': acType})
@@ -110,6 +193,16 @@ def add_offer_page(request):
         isloggedin = True
         acType = accountType(request.session['useremail'])
     pass
+
+def check_category(category):
+    query = "SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category"
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query , {'category' : category})
+        if(len(cursor.fetchall()) != 0):
+            if((cursor.fetchall()[0][0] == category)
+                return True
+        else:
+            return False
 
 def search_result(request, search_string):
     returnToHome = True
@@ -136,8 +229,14 @@ def search_result(request, search_string):
         category = category.replace('Mens Fashion', 'Men\'s Fashion')
         category = category.replace('Womens Fashion', 'Women\'s Fashion')
 
-        if ' check if category is one of the categories from the category table ':
+        if(check_category(category)): ##i'm assuming category is a string which might be one of the category names, cannot understand the code above
             ' check the product table and extract <=80 products with the given category '
+            query = """SELECT P.PRODUCT_ID ,P.PRODUCT_NAME, P.SELER_ID, S.SELLER_NAME , I1.PICTURE, I2.PICTURE, P.PRICE,
+                    MAX(O.PERCENTAGE_DISCOUNT), AVG(A.RATING) FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID) JOIN REVIEW A
+                    ON(P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID) JOIN OFFER O ON (P.PRODUCT_ID = O.PRODUCT_ID
+                    AND P.SELLER_ID = O.SELLER_ID) JOIN PRODUCT_PICTURE I1 ON (P.PRODUCT_ID = I1.PRODUCT_ID AND P.SELLER_ID = I1.SELLER_ID
+                    AND I1.PICTURE_NUMBER = 1)JOIN PRODUCT_PICTURE I2 ON (P.PRODUCT_ID = I2.PRODUCT_ID AND P.SELLER_ID = I2.SELLER_ID AND
+                    I2.PICTURE_NUMBER = 2)"""
 
             # productHTML = loadProductData(request, products)
             # return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
@@ -156,6 +255,9 @@ def search_result(request, search_string):
             words.append(i)
     words = ' '.join(words)
 
+    ' SELECT PRODUCT_ID, PRODUCT_ID+100 FROM PRODUCTS '
+    ' SELECT PRODUCT_ID, SELLER_ID, STRING_SIMILARITY(PRODUCT_NAME, words), STRING_SIMILARITY(SELLER_NAME, words) FROM PRODUCTS '
+    ' SELECT PRODUCT_ID, SELLER_ID, MAX_SIM FROM PRODUCTS '
     ' for each product calculate the following score = max( sim with product name, sim with seller name) '
     ' rank the products in descending order '
     ' choose <=80 products '

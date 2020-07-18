@@ -80,7 +80,7 @@ def accountType(email):
                 else:
                     return 'deliveryGuy'
             else:
-                    return 'customer'
+                return 'customer'
         else:
             return 'seller'
 
