@@ -199,7 +199,7 @@ def check_category(category):
     with connections['oracle'].cursor() as cursor:
         cursor.execute(query , {'category' : category})
         if(len(cursor.fetchall()) != 0):
-            if((cursor.fetchall()[0][0] == category)
+            if((cursor.fetchall()[0][0]) == category):
                 return True
         else:
             return False
@@ -231,12 +231,18 @@ def search_result(request, search_string):
 
         if(check_category(category)): ##i'm assuming category is a string which might be one of the category names, cannot understand the code above
             ' check the product table and extract <=80 products with the given category '
-            query = """SELECT P.PRODUCT_ID ,P.PRODUCT_NAME, P.SELER_ID, S.SELLER_NAME , I1.PICTURE, I2.PICTURE, P.PRICE,
-                    MAX(O.PERCENTAGE_DISCOUNT), AVG(A.RATING) FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID) JOIN REVIEW A
-                    ON(P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID) JOIN OFFER O ON (P.PRODUCT_ID = O.PRODUCT_ID
-                    AND P.SELLER_ID = O.SELLER_ID) JOIN PRODUCT_PICTURE I1 ON (P.PRODUCT_ID = I1.PRODUCT_ID AND P.SELLER_ID = I1.SELLER_ID
-                    AND I1.PICTURE_NUMBER = 1)JOIN PRODUCT_PICTURE I2 ON (P.PRODUCT_ID = I2.PRODUCT_ID AND P.SELLER_ID = I2.SELLER_ID AND
-                    I2.PICTURE_NUMBER = 2)"""
+            query="""SELECT W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME, W.SELLER_NAME, W.PRICE, W.AVG_RATING, W.MAX_DISCOUNT, PP.PICTURE PIC1,
+                    PPP.PICTURE PIC2 FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
+                    FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
+                    FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
+                    LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
+                    GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
+                    LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
+                    WHERE Y.END_DATE >= SYSDATE
+                    GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
+                    LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
+                    LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
+                    WHERE ROWNUM <= 80;"""
 
             # productHTML = loadProductData(request, products)
             # return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
