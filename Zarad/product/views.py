@@ -254,7 +254,6 @@ def search_result(request, search_string):
                 for j in range(len(table[i])):
                     if(table[i][j] != None):
                         temp.append(table[i][j])
-                    else:
                 products.append(temp)
         # productHTML = loadProductData(request, products)
         # return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
