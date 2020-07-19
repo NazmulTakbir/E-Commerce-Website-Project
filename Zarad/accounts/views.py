@@ -311,10 +311,10 @@ def myaccount(request):
             orderTableHTML = generateOrderTableHTML(request)
             purchaseOrderHTML = orderTableHTML[0]
             returnOrderHTML = orderTableHTML[1]
-            walletTableHTML = generateWalletTableHTML(request)
+            walletTableHTML = generateWalletTableHTMLCustomer(request)
             reviewTableHTML = genrateReviewTableHTML(request)
             accountBalance = 12000
-            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML, 'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML, 'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML})
+            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML, 'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML, 'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML, 'accountBalance': accountBalance})
         elif acType == 'seller':
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
@@ -323,9 +323,13 @@ def myaccount(request):
             accountBalance = 12000
             return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML, 'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML, 'walletTableHTML': walletTableHTML, 'accountBalance': accountBalance})
         elif acType == 'deliveryGuy':
-            return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType})
+            deliveredItemHTML = generateDeliveredItemHTML(request)
+            pendingDeliveryItemHTML = generatePendingDeliveryHTML(request)
+            return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType, 'deliveredItemHTML': deliveredItemHTML, 'pendingDeliveryItemHTML': pendingDeliveryItemHTML})
         elif acType == 'customerCare':
-            return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': acType})
+            managedComplaintsHTML = generateManagedComplaintsHTML(request)
+            pendingComplaintsHTML = generatePendingComplaintsHTML(request)
+            return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': acType, 'managedComplaintsHTML': managedComplaintsHTML, 'pendingComplaintsHTML': pendingComplaintsHTML})
         elif acType == 'admin':
             # Work To Be Done
             return HttpResponseRedirect(reverse('home_page'))
@@ -571,8 +575,195 @@ def generateOrderTableHTML(request):
 
     return [pHTML, rHTML]
 
-def generateWalletTableHTML(request):
-    pass
+def generateWalletTableHTMLCustomer(request):
+    scp = info.serviceChargePercentage
+    transactions = [ [123451234512345, 'Aug 31 2019', 'Recharge', 2000, scp*2000],
+                     [123451234512345, 'Aug 31 2019', 'Payment', -1000, 0] ]
+    result = ""
+    if( len(transactions)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(transactions) ):
+            result += """<tr>
+                            <th scope="row">{}</th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( transactions[i][0], transactions[i][1], transactions[i][2], transactions[i][3], transactions[i][4])
+    return result
 
 def genrateReviewTableHTML(request):
-    pass
+    reviews = [ [123451234512345, 123451234512345, 'Trimmer', 'Philips', 'Aug 31 2019', 4, 'Battery Does Not Last Long'],
+                     [123451234512345, 123451234512345, 'Trimmer', 'Philips',  'Aug 31 2019', 5, 'Perfect. Changed My Life'] ]
+    result = ""
+    if( len(reviews)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(reviews) ):
+            deleteReview = '<button type="button" class="btn btn-danger">Delete</button>'
+            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], reviews[i][0], reviews[i][1])
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( productURL, reviews[i][2], reviews[i][3], reviews[i][4], reviews[i][5], reviews[i][6], deleteReview)
+    return result
+
+def generateDeliveredItemHTML(request):
+    orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Oct 09 2020', 'Cash', 5000] ]
+    result = ""
+    if( len(orderedItems)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(orderedItems) ):
+            orderURL = "http://{}".format(request.META['HTTP_HOST'])
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
+    return result
+
+def generatePendingDeliveryHTML(request):
+    orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000] ]
+    result = ""
+    if( len(orderedItems)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(orderedItems) ):
+            markDelivered = '<button type="button" class="btn btn-info">Delivered</button>'
+            orderURL = "http://{}".format(request.META['HTTP_HOST'])
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
+    return result
+
+def generateManagedComplaintsHTML(request):
+    complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Approved', 'Oct 15 2019'],
+                   [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Rejected', 'Oct 15 2019'] ]
+    result = ""
+    if( len(complaints)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(complaints) ):
+            orderURL = "http://{}".format(request.META['HTTP_HOST'])
+            color = ""
+            if( complaints[i][7] == 'Approved' ):
+                color = '#5cb85c'
+            elif( complaints[i][7] == 'Rejected' ):
+                color = "#d9534f"
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td style="font-weight: bold; color: {}">{}</td>
+                            <td>{}</td>
+                        </tr>
+                     """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], color, complaints[i][7], complaints[i][8])
+    return result
+
+def generatePendingComplaintsHTML(request):
+    complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000] ]
+    result = ""
+    if( len(complaints)==0 ):
+        result = """<tr>
+                        <th scope="row"></th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                 """
+    else:
+        for i in range( len(complaints) ):
+            orderURL = "http://{}".format(request.META['HTTP_HOST'])
+            approve = """<a href={}>
+                            <i style="color: #5cb85c; margin-right: 10px; margin-left: 5px" class="fa fa-check-square fa-2x" aria-hidden="true"></i>
+                         </a>""".format(orderURL)
+            reject = """<a href={}>
+                            <i style="color: #d9534f" class="fa fa-window-close fa-2x" aria-hidden="true"></i>
+                        </a>""".format(orderURL)
+            result += """<tr>
+                            <th scope="row"><a href={}>{}</a></th>
+                            <td >{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{}</td>
+                            <td>{} {}</td>
+                        </tr>
+                     """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], approve, reject)
+    return result

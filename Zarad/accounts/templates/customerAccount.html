@@ -202,9 +202,33 @@ My Account
 
             <div id='walletForm'>
               <div class="container d-flex justify-content-center">
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                   <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Wallet : </h2>
+                    <h2 class="mb-3 font-weight-bold col-lg-12">Transactions : </h2>
+                    <br />
+                    <div class="col-lg-12 overflow-auto">
+                      <table class="table table-hover table-bordered">
+                        <thead class="thead-dark">
+                          <tr>
+                            <th style="width: 70px" scope="col">Transaction ID</th>
+                            <th style="width: 100px" scope="col">Date</th>
+                            <th style="width: 100px" scope="col">Type</th>
+                            <th style="width: 100px" scope="col">Amount</th>
+                            <th style="width: 100px" scope="col">Service Charge</th>
+                          </tr>
+                        </thead>
+                        <tbody style="background-color: white">
+                          {% autoescape off %}
+                            {{walletTableHTML}}
+                          {% endautoescape %}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="col-lg-12">
+                      <div class="d-flex justify-content-end">
+                        <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Balance : {{accountBalance}}</h5>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -212,9 +236,29 @@ My Account
 
             <div id='reviewsForm'>
               <div class="container d-flex justify-content-center">
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                   <div class="row">
                     <h2 class="mb-3 font-weight-bold col-lg-12">Reviews : </h2>
+                    <br />
+                    <div class="col-lg-12 overflow-auto">
+                      <table class="table table-hover table-bordered">
+                        <thead class="thead-dark">
+                          <tr>
+                            <th style="width: 50px" scope="col">Product Name</th>
+                            <th style="width: 50px" scope="col">Seller Name</th>
+                            <th style="width: 50px" scope="col">Date</th>
+                            <th style="width: 50px" scope="col">Rating</th>
+                            <th style="width: 50px" scope="col">Description</th>
+                            <th style="width: 50px" scope="col">Delete</th>
+                          </tr>
+                        </thead>
+                        <tbody style="background-color: white">
+                          {% autoescape off %}
+                            {{reviewTableHTML}}
+                          {% endautoescape %}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>

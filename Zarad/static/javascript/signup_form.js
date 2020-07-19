@@ -174,8 +174,6 @@ window.onload=function(){
     document.getElementsByName("employeeDOB")[0].required = true;
     document.getElementsByName("employeeArea")[0].required = true;
     document.getElementsByName("employeeCity")[0].required = true;
-    document.getElementsByName("employeeLatitude")[0].required = true;
-    document.getElementsByName("employeeLongitude")[0].required = true;
     document.getElementsByName("employeePassword")[0].required = true;
     document.getElementsByName("employeePassword2")[0].required = true;
   })
