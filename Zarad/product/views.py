@@ -98,7 +98,8 @@ def add_item_page(request):
 
         if(check_productID(id) == False):
             with connections['oracle'].cursor() as cursor:
-                result = cursor.execute("SELECT PRODUCT_ID_SEQ.NEXTVAL FROM DUAL")
+                cursor.execute("SELECT PRODUCT_ID_SEQ.NEXTVAL FROM DUAL")
+                result = cursor.fetchall()
                 id = result[0][0]
         query = """INSERT INTO PRODUCT VALUES (TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
                 (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price))"""
@@ -135,13 +136,14 @@ def add_item_page(request):
                     data = {'email' :request.session['useremail'] ,'id': id, 'num' : i+1, 'pic' : pics[i].getvalue()}
                     cursor.execute(query, data)
                     cursor.execute("COMMIT")
+        quantityInStock = int(quantityInStock)
         if quantityInStock > 0:
             for i in range(int(quantityInStock)):
                 query = """INSERT INTO PRODUCT_UNIT VALUES(TO_NUMBER(:id), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
                            TO_NUMBER(:num),:status )"""
 
                 with connections['oracle'].cursor() as cursor:
-                    cursor.execute(query, {'id':id, 'email':email, 'num':i+1, 'status':'Not Sold'})
+                    cursor.execute(query, {'id':id, 'email':request.session['useremail'], 'num':i+1, 'status':'Not Sold'})
                     cursor.execute("COMMIT")
 
         return HttpResponseRedirect(reverse('accounts:myaccount'))
@@ -252,8 +254,7 @@ def search_result(request, search_string):
             for i in range(len(table)):
                 temp= []
                 for j in range(len(table[i])):
-                    if(table[i][j] != None):
-                        temp.append(table[i][j])
+                    temp.append(table[i][j])
                 products.append(temp)
         # productHTML = loadProductData(request, products)
         # return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
@@ -272,7 +273,8 @@ def search_result(request, search_string):
     ' choose <=80 products '
     ' design a list of lists according to the structure below '
     ' product id, seller_id, product_name, average rating, image1, image2, price, seller_name, discount '
-    query =  """SELECT GREATEST(STRING_SIMILARITY(W.PRODUCT_NAME,:words) , STRING_SIMILARITY(W.SELLER_NAME, :words))AS MAX_SCORE,W.PRODUCT_ID,
+    query =  """SELECT * FROM
+                (SELECT GREATEST(STRING_SIMILARITY(W.PRODUCT_NAME,:words) , STRING_SIMILARITY(W.SELLER_NAME, :words))AS MAX_SCORE,W.PRODUCT_ID,
                 W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE, W.SELLER_NAME,  W.MAX_DISCOUNT
                 FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                 FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
@@ -280,10 +282,11 @@ def search_result(request, search_string):
                 LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
                 GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                 LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                WHERE Y.END_DATE >= SYSDATE
+                WHERE Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL
                 GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
                 LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                 LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
+                ORDER BY MAX_SCORE DESC)
                 WHERE ROWNUM <= 80"""
 
     with connections['oracle'].cursor() as cursor:
@@ -293,8 +296,9 @@ def search_result(request, search_string):
         for i in range(len(table)):
             temp= []
             for j in range(len(table[i])-1):
-                temp.append(table[i+1][j])
+                temp.append(table[i][j+1])
             products.append(temp)
+        print( products )
     img1 = Image.open(settings.BASE_DIR+"\\static\\images\\temp\\test.jpg")
     img2 = Image.open(settings.BASE_DIR+"\\static\\images\\temp\\test2.jpg")
 
