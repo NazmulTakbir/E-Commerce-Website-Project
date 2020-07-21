@@ -299,12 +299,12 @@ def logout_page(request):
         return HttpResponseRedirect(reverse('home_page'))
     else:
         return HttpResponseRedirect(reverse('home_page'))
-def accountBalance(email, type):
+def accountBalancee(email, type):
     with connections['oracle'].cursor() as cursor:
-        if type == customer:
+        if type == 'customer':
             cursor.execute("SELECT WALLET_BALANCE(CUSTOMER_ID , 'CUSTOMER') FROM CUSTOMER WHERE EMAIL_ID = :email", {'email':email})
             return cursor.fetchall()[0][0]
-        elif type == seller:
+        elif type == 'seller' :
             cursor.execute("SELECT WALLET_BALANCE(SELER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
             return cursor.fetchall()[0][0]
 
@@ -321,14 +321,14 @@ def myaccount(request):
             returnOrderHTML = orderTableHTML[1]
             walletTableHTML = generateWalletTableHTMLCustomer(request)
             reviewTableHTML = genrateReviewTableHTML(request)
-            accountBalance = accountBalance(request.session['useremail'], acType)
+            accountBalance = accountBalancee(request.session['useremail'], acType)
             return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML, 'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML, 'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML, 'accountBalance': accountBalance})
         elif acType == 'seller':
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
             advertTableHTML = generateAdvertTableHTML(request)
             walletTableHTML = generateWalletTableHTML(request)
-            accountBalance =accountBalance(request.session['useremail'], acType)
+            accountBalance =accountBalancee(request.session['useremail'], acType)
             return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML, 'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML, 'walletTableHTML': walletTableHTML, 'accountBalance': accountBalance})
         elif acType == 'deliveryGuy':
             deliveredItemHTML = generateDeliveredItemHTML(request)
