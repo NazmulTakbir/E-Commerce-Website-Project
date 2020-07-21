@@ -11,6 +11,14 @@ import threading
 import math
 import io
 
+def ratingUtility(num):
+    if num<=0:
+        return 0
+    elif num>=1:
+        return 1
+    else:
+        return num
+
 def make_image_square(img):
     width, height = img.size
     size = max(width, height)
@@ -26,11 +34,6 @@ def check_productID(id):
                 return True
         else :
             return False
-
-# def get_sellerID(id):
-#     with connections['oracle'].cursor() as cursor:
-#         cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :id", {'id' :id})
-#         return execute.fetchall()[0][0];
 
 def accountType(email):
     with connections['oracle'].cursor() as cursor:
@@ -64,10 +67,116 @@ def accountType(email):
 def item_page(request, product_id, seller_id):
     isloggedin = False
     acType = 'none'
+    iscustomerlogin = False
     if request.session.has_key('useremail'):
         isloggedin = True
         acType = accountType(request.session['useremail'])
-    return render(request, 'item.html', {'isloggedin': isloggedin, 'accountType': acType})
+        if acType == 'customer':
+            iscustomerlogin = True
+
+    if request.method == 'POST':
+        rating = int( request.POST.get("starRating") )
+        reviewDescription = request.POST.get("reviewDescription")
+        
+
+    # TODO FOR NAWMI
+    productName = 'trimmer'
+    productDescription = 'sth'
+    productCategory = 'sth'
+    features = ['sth', 'hoiun ew', 'iyu98ornu98wer 8 sdji f f oi']
+    offers = [ [3, "31 Oct 2020", 2], [15, "31 Oct 2020", 10] ]
+    rating = 4.7
+    sellerName = 'Philips'
+    inStock = 2
+    deliveryTime = 5
+    reviews = [ ['Fatima Nawmi', 4, 'Battery Does Not Last Long Enough', 'Sept 30 2020'],
+                ['Nazmul Takbir', 5, 'Perfect. Changed my life', 'Aug 30 2020'] ]
+    pictures = ['https://image.freepik.com/free-vector/coffee-advertisement-realistic-composition_1284-26172.jpg',
+                'https://www.designyourway.net/blog/wp-content/uploads/2010/11/Nike-Print-Ads-10.jpg',
+                'https://videohive.img.customer.envatousercontent.com/files/62074379/previewImage.jpg?auto=compress%2Cformat&fit=crop&crop=top&max-h=8000&max-w=590&s=386c05c2a5bf67524b74e2b7a5d8ada9',
+                'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAASFBMVEX///8AAADCwsLy8vJ7e3tSUlJZWVk3Nzf4+PiioqLW1tb8/PwEBATa2trz8/NPT09FRUWoqKjQ0NAoKCg8PDwyMjK9vb1ycnIbkZltAAABjElEQVR4nO3dW27UQBRFURsS8nAHJ4Ek858pIhLim6PyKYteawDl2rqy5b+7LAAAAAAAAAAAtG2zL3C4ExaOvdL2fd/320FGnLQ/vw4NXLav69m8jw1czlf4ZWjhonCCaygc+zG9nsLL1Krfj/9zg8NmODnx7/OPm+Hdt5n242e4vgw99189rUfPcF0fpv6jvlYKZ3pUGFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmLuewsv6stzPszVm+OPn3URvh28HvEzf8Hj8/sOzUKhQ4XxjdzpvJ9yt/v8Xjt0ev2z3Nyfz8TS4cOxbPcLYK32edrbIs90HAAAAAAAAAGD5BeMzNfuZXsmPAAAAAElFTkSuQmCC']
+
+    ratingHTML = "<span style='color: #d9534f'><strong> -- UNRATED</strong></span>"
+    if rating > 0:
+        r1 = ratingUtility(rating)
+        r2 = ratingUtility(rating-1)
+        r3 = ratingUtility(rating-2)
+        r4 = ratingUtility(rating-3)
+        r5 = ratingUtility(rating-4)
+        ratingHTML = """<h1>
+                            <span style='color: rgba(249, 146, 69, {})'>★ </span>
+                            <span style='color: rgba(249, 146, 69, {})'>★ </span>
+                            <span style='color: rgba(249, 146, 69, {})'>★ </span>
+                            <span style='color: rgba(249, 146, 69, {})'>★ </span>
+                            <span style='color: rgba(249, 146, 69, {})'>★ </span>
+                        </h1>
+                        <h6> {} out of 5 </h6>""".format(r1, r2, r3, r4, r5, rating)
+    featureListHTML = ""
+    for feature in features:
+        featureListHTML += "<li>"
+        featureListHTML += feature
+        featureListHTML += "</li>"
+
+    offerListHTML = ""
+    offerDisplay = 'block'
+    if len(offers) == 0:
+        offerDisplay = 'none'
+    else:
+        for offer in offers:
+            offerListHTML += "<li style='margin-bottom:8px'>"
+            offerListHTML += """<span style='color: #0275d8; font-size: 20px;'><strong>{}% discount till {}.</strong></span>
+                                <br />
+                                Conditions: <br />
+                                -- {} or more units bought""".format(offer[0], offer[1], offer[2])
+            offerListHTML += "</li>"
+
+    inStockHTML = '<h4 style="color: {}"><strong>{}</strong></h4>'
+    if inStock > 0:
+        inStockHTML = '<h4 style="color: {}"><strong>{}</strong></h4>'.format('#5cb85c', inStock)
+    else:
+        inStockHTML = '<h4 style="color: {}"><strong>{}</strong></h4>'.format('#d9534f', inStock)
+
+    reviewsHTML = ""
+    if len(reviews) == 0:
+        reviewsHTML = "<h4>Be the first one to review !!!</h4>"
+    else:
+        for review in reviews:
+            starHTML = ""
+            for j in range(1, review[1]+1):
+                starHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
+            for j in range(review[1]+1, 6):
+                starHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
+            reviewsHTML += """<li class="list-group-item">
+                                <h6 class="card-title" style="color: #0275d8">{}</h6>
+                                <p class="card-text" style="margin-bottom: 2px;">{}</p>
+                                <ul class="rating" style="padding-left: 0;">
+                                    {}
+                                </ul>
+                                <small class="text-muted">{}</small>
+                              </li>""".format(review[0], review[2], starHTML, review[3])
+
+    productImageHTML = ""
+    productImageHTML2 = ""
+    for i in range(0, len(pictures)):
+        if i == 0:
+            productImageHTML += """<div class="carousel-item active">
+                                        <img class="w-100 d-block" style="width: 100%; height: auto" src="{}" alt="Slide Image" style="width: auto; height: 350px">
+                                   </div>""".format(pictures[i])
+            productImageHTML2 += '<li data-target="#carousel-1" data-slide-to="{}" class="active"></li>'.format(i)
+        else:
+            productImageHTML += """<div class="carousel-item">
+                                        <img class="w-100 d-block" style="width: 100%; height: auto" src="{}" alt="Slide Image" style="width: auto; height: 350px">
+                                   </div>""".format(pictures[i])
+            productImageHTML2 += '<li data-target="#carousel-1" data-slide-to="{}"></li>'.format(i)
+
+    data = {'iscustomerlogin': iscustomerlogin, 'isloggedin': isloggedin, 'accountType': acType, 'productName': productName,
+            'productDescription': productDescription, 'productCategory': productCategory,
+            'featureListHTML': featureListHTML, 'offerListHTML': offerListHTML, 'ratingHTML': ratingHTML,
+            'sellerName': sellerName, 'inStockHTML': inStockHTML, 'deliveryTime': deliveryTime,
+            'offerDisplay': offerDisplay, 'reviewsHTML': reviewsHTML, 'productImageHTML': productImageHTML,
+            'productImageHTML2': productImageHTML2}
+
+    return render(request, 'item.html', data)
 
 def add_item_page(request):
     isloggedin = False
@@ -98,8 +207,10 @@ def add_item_page(request):
 
         if(check_productID(id) == False):
             with connections['oracle'].cursor() as cursor:
-                result = cursor.execute("SELECT PRODUCT_ID_SEQ.NEXTVAL FROM DUAL")
+                cursor.execute("SELECT PRODUCT_ID_SEQ.NEXTVAL FROM DUAL")
+                result = cursor.fetchall()
                 id = result[0][0]
+
         query = """INSERT INTO PRODUCT VALUES (TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
                 (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price))"""
         with connections['oracle'].cursor() as cursor:
@@ -113,7 +224,7 @@ def add_item_page(request):
             if(features[i] != ""):
                 num = num + 1
                 query = """INSERT INTO PRODUCT_FEATURE VALUES(TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
-                        TO_NUMBER(:num), :des) """
+                        TO_NUMBER(:num), :des)"""
                 with connections['oracle'].cursor() as cursor:
                     data = {'email' :request.session['useremail'] , 'des' :features[i],'id': id, 'num' : num}
                     cursor.execute(query, data)
@@ -128,6 +239,9 @@ def add_item_page(request):
                 blob.seek(0)
                 pics.append(blob)
 
+            if len(pics)>4:
+                pics = pics[:4]
+
             for i in range(len(pics)):
                 query = """INSERT INTO PRODUCT_PICTURE VALUES(TO_NUMBER(:id), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
                         TO_NUMBER(:num) , :pic)"""
@@ -135,13 +249,16 @@ def add_item_page(request):
                     data = {'email' :request.session['useremail'] ,'id': id, 'num' : i+1, 'pic' : pics[i].getvalue()}
                     cursor.execute(query, data)
                     cursor.execute("COMMIT")
+
+        quantityInStock = int(quantityInStock)
         if quantityInStock > 0:
+            quantityInStock = min(quantityInStock, 1000000)
             for i in range(int(quantityInStock)):
                 query = """INSERT INTO PRODUCT_UNIT VALUES(TO_NUMBER(:id), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
                            TO_NUMBER(:num),:status )"""
 
                 with connections['oracle'].cursor() as cursor:
-                    cursor.execute(query, {'id':id, 'email':email, 'num':i+1, 'status':'Not Sold'})
+                    cursor.execute(query, {'id':id, 'email':request.session['useremail'], 'num':i+1, 'status':'Not Sold'})
                     cursor.execute("COMMIT")
 
         return HttpResponseRedirect(reverse('accounts:myaccount'))
@@ -168,9 +285,9 @@ def check_category(category):
     query = "SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category"
     with connections['oracle'].cursor() as cursor:
         cursor.execute(query , {'category' : category})
-        if(len(cursor.fetchall()) != 0):
-            if((cursor.fetchall()[0][0]) == category):
-                return True
+        result = cursor.fetchall()
+        if(len(result) != 0):
+            return True
         else:
             return False
 
@@ -199,8 +316,7 @@ def search_result(request, search_string):
         category = category.replace('Mens Fashion', 'Men\'s Fashion')
         category = category.replace('Womens Fashion', 'Women\'s Fashion')
 
-        if(check_category(category)): ##i'm assuming category is a string which might be one of the category names, cannot understand the code above
-            ' check the product table and extract <=80 products with the given category '
+        if(check_category(category)):
             query="""SELECT W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE,
                     W.SELLER_NAME,  W.MAX_DISCOUNT
                     FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
@@ -210,28 +326,37 @@ def search_result(request, search_string):
 					WHERE CATEGORY_ID = (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category)
                     GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                     LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                    WHERE Y.END_DATE >= SYSDATE
+                    WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
                     GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
                     LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                     LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
                     WHERE ROWNUM <= 80;"""
+            products = []
             with connections['oracle'].cursor() as cursor:
                 cursor.execute(query, {'category':category})
                 table = cursor.fetchall()
-                products = []
                 for i in range(len(table)):
                     temp= []
                     for j in range(len(table[i])):
                         temp.append(table[i][j])
+                    if( temp[3] == None ):
+                        temp[3] = 0
+                    if( temp[8] == None ):
+                        temp[8] = 0
+                    if( temp[5] == None ):
+                        temp[5] = temp[4]
                     products.append(temp)
 
-            # productHTML = loadProductData(request, products)
-            # return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
+            words = []
+            for i in search_string.split('_'):
+                if len(i)>0:
+                    words.append(i)
+            words = ' '.join(words)
+
+            productHTML = loadProductData(request, products)
+            return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": words} )
+
     elif search_string == 'Offers_Only':
-        ' check the offer table for offers that have not expired yet '
-        ' if a product has multiple offers extract the best one'
-        ' get the data with the latest offer first '
-        ' extract <=80 products '
         query =  """SELECT W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE,
                     W.SELLER_NAME,  W.MAX_DISCOUNT
                     FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
@@ -240,7 +365,7 @@ def search_result(request, search_string):
                     LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
                     GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                     LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                    WHERE Y.END_DATE >= SYSDATE
+                    WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
                     GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
                     LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                     LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
@@ -255,8 +380,8 @@ def search_result(request, search_string):
                     if(table[i][j] != None):
                         temp.append(table[i][j])
                 products.append(temp)
-        # productHTML = loadProductData(request, products)
-        # return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
+        productHTML = loadProductData(request, products)
+        return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
 
     words = []
     for i in search_string.split('_'):
@@ -264,15 +389,8 @@ def search_result(request, search_string):
             words.append(i)
     words = ' '.join(words)
 
-    ' SELECT PRODUCT_ID, PRODUCT_ID+100 FROM PRODUCTS '
-    ' SELECT PRODUCT_ID, SELLER_ID, STRING_SIMILARITY(PRODUCT_NAME, words), STRING_SIMILARITY(SELLER_NAME, words) FROM PRODUCTS '
-    ' SELECT PRODUCT_ID, SELLER_ID, MAX_SIM FROM PRODUCTS '
-    ' for each product calculate the following score = max( sim with product name, sim with seller name) '
-    ' rank the products in descending order '
-    ' choose <=80 products '
-    ' design a list of lists according to the structure below '
-    ' product id, seller_id, product_name, average rating, image1, image2, price, seller_name, discount '
-    query =  """SELECT GREATEST(STRING_SIMILARITY(W.PRODUCT_NAME,:words) , STRING_SIMILARITY(W.SELLER_NAME, :words))AS MAX_SCORE,W.PRODUCT_ID,
+    query =  """SELECT * FROM
+                (SELECT GREATEST(STRING_SIMILARITY(W.PRODUCT_NAME,:words) , STRING_SIMILARITY(W.SELLER_NAME, :words))AS MAX_SCORE,W.PRODUCT_ID,
                 W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE, W.SELLER_NAME,  W.MAX_DISCOUNT
                 FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                 FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
@@ -280,36 +398,31 @@ def search_result(request, search_string):
                 LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
                 GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                 LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                WHERE Y.END_DATE >= SYSDATE
+                WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
                 GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
                 LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                 LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
-                WHERE ROWNUM <= 80"""
+                ORDER BY MAX_SCORE DESC)
+                WHERE ROWNUM <= 80 AND MAX_SCORE > 0"""
 
+    products = []
     with connections['oracle'].cursor() as cursor:
         cursor.execute(query, {'words':words})
         table = cursor.fetchall()
-        products = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])-1):
-                temp.append(table[i+1][j])
+                temp.append(table[i][j+1])
+            if( temp[3] == None ):
+                temp[3] = 0
+            if( temp[8] == None ):
+                temp[8] = 0
+            if( temp[5] == None ):
+                temp[5] = temp[4]
             products.append(temp)
-    img1 = Image.open(settings.BASE_DIR+"\\static\\images\\temp\\test.jpg")
-    img2 = Image.open(settings.BASE_DIR+"\\static\\images\\temp\\test2.jpg")
-
-    products = [ [1, 2, "Electric 3 in 1 Trimmer", 0, img1, img2, 1500, "Philips", 20],
-                 [3, 4, "Razor", 3.5, img1, img2, 500, "Gilette", 10],
-                 [5, 6, "Earphone", 4.1, img1, img2, 750, "Samsung", 0],
-                 [3, 4, "Razor", 3.5, img1, img2, 500, "Dollar Shave", 5],
-                 [5, 6, "Earphone", 4.1, img1, img2, 750, "XYZ", 0],
-                 [3, 4, "Razor", 3.5, img1, img2, 500, "ABC", 0],
-                 [5, 6, "Earphone", 4, img1, img2, 750, "MNO", 25],
-                 [7, 8, "Airpod", 4.9, img1, img2, 4000, "Apple", 0] ]
-
 
     productHTML = loadProductData(request, products)
-    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
+    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": words} )
 
 def loadProductData(request, products):
     total = len(products)
@@ -317,7 +430,6 @@ def loadProductData(request, products):
     for i in range(0, total):
         productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
         productName = products[i][2]
-        print(len(productName))
         if len(productName) >= 25:
             productName = productName[:22] + "..."
         productPrice = products[i][6]
@@ -331,14 +443,20 @@ def loadProductData(request, products):
             ratingHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
         for j in range(starCount+1, 6):
             ratingHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
-        image1Path = "http://{}/static/images/productImages/{}_1.png".format(request.META['HTTP_HOST'], products[i][0])
-        image2Path = "http://{}/static/images/productImages/{}_2.png".format(request.META['HTTP_HOST'], products[i][0])
-        print(image1Path)
-        print(image2Path)
+
+        image1Path = "http://{}/static/images/productImages/{}_1.jpg".format(request.META['HTTP_HOST'], products[i][0])
+        image2Path = "http://{}/static/images/productImages/{}_2.jpg".format(request.META['HTTP_HOST'], products[i][0])
+
         productHTML += htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount)
 
-        products[i][4].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_1.png")
-        products[i][5].save(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_2.png")
+        imageFile1 = open(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_1.jpg",'wb')
+        imageFile2 = open(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_2.jpg",'wb')
+
+        imageFile1.write( products[i][4].read() )
+        imageFile2.write( products[i][5].read() )
+
+        imageFile1.close()
+        imageFile2.close()
 
     return productHTML
 
@@ -359,9 +477,9 @@ def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sel
           </div>
           <div class="caption">
             <p class="group inner list-group-item-heading" style="margin-bottom: 0px;"><strong> <a href="{}" style="color:black">{}</a> </strong> </p>
-            <p class="group inner list-group-item-text" style="margin-bottom: 0px; color: black">  Seller -- {}  </p>
+            <p class="group inner list-group-item-text" style="margin-bottom: 0px; color: black">  Seller -- <span class="sellerName">{}</span>  </p>
             <p class="lead" style="margin-bottom: 0px;">
-                {} Tk
+                <span class="productPrices">{}</span> Tk
                 <span style="font-size: 80%; color: red; display: {}"> - - upto {}% off !!! </span>
             </p>
             <ul class="rating" style="visibility: {}">

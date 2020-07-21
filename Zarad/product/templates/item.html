@@ -10,30 +10,25 @@ Item
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="{% static 'css/Community-ChatComments.css' %}">
 <link rel="stylesheet" href="{% static 'css/elegant_registration_form.css' %}">
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
 {%endblock%}
 
 {% block content %}
 <div class="container" style="padding-top: 20px;">
   <div class="jumbotron jumbotron-fluid" style="margin-bottom: 10px; padding-bottom: 10px; padding-top: 10px">
     <div class="container">
-      <h1 class="display-4"><strong>Product Name</strong></h1>
-      <p class="lead"><strong>Product Description: Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip est laborum. </strong> </p>
-      <p class="lead"><strong>Category</strong></p>
+      <h1><strong>{{productName}}</strong></h1>
+      <p class="lead"><strong>{{productDescription}} </strong> </p>
+      <p class="lead"><strong>{{productCategory}}</strong></p>
     </div>
   </div>
   <div class="row" style="padding-top: 20px; padding-bottom: 50px;">
-    <div class="col-md-6 col-lg-6">
+    <div class="col-md-5 col-lg-5" style="margin-bottom: 20px">
       <div class="carousel slide" data-ride="carousel" id="carousel-1" data-interval="5000">
         <div class="carousel-inner" role="listbox">
-          <div class="carousel-item active">
-            <img class="w-100 d-block" src="https://image.freepik.com/free-vector/coffee-advertisement-realistic-composition_1284-26172.jpg" alt="Slide Image" style="width: auto; height: 350px">
-          </div>
-          <div class="carousel-item">
-            <img class="w-100 d-block" src="https://www.designyourway.net/blog/wp-content/uploads/2010/11/Nike-Print-Ads-10.jpg" alt="Slide Image" style="width: auto; height: 350px">
-          </div>
-          <div class="carousel-item">
-            <img class="w-100 d-block" src="https://videohive.img.customer.envatousercontent.com/files/62074379/previewImage.jpg?auto=compress%2Cformat&fit=crop&crop=top&max-h=8000&max-w=590&s=386c05c2a5bf67524b74e2b7a5d8ada9" alt="Slide Image" style="width: auto; height: 350px">
-          </div>
+          {% autoescape off %}
+            {{productImageHTML}}
+          {% endautoescape %}
         </div>
         <div>
           <a class="carousel-control-prev" href="#carousel-1" role="button" data-slide="prev">
@@ -45,86 +40,73 @@ Item
           </a>
         </div>
         <ol class="carousel-indicators">
-          <li data-target="#carousel-1" data-slide-to="0" class="active"></li>
-          <li data-target="#carousel-1" data-slide-to="1"></li>
-          <li data-target="#carousel-1" data-slide-to="2"></li>
+          {% autoescape off %}
+            {{productImageHTML2}}
+          {% endautoescape %}
         </ol>
       </div>
     </div>
-    <div class="col-md-6 col-lg-6 d-flex justify-content-start align-items-start">
-      <div class="overflow-auto" style='height: 350px;'>
-        <div class="card">
-          <div class="card-body">
-            <ul class="list-group">
-              <li class="list-group-item">
-                <h5> Features: </h5>
-                <ul>
-                  <li>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore .</li>
-                  <li>magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco </li>
-                  <li>laboris nisi ut aliquip ex ea commodo consequat. sed do eiusmod tempor incididunt ut labore. </li>
-                  <li>laboris nisi ut aliquip ex ea commodo consequat. sed do eiusmod tempor incididunt ut labore. </li>
-                  <li>laboris nisi ut aliquip ex ea commodo consequat. sed do eiusmod tempor incididunt ut labore. </li>
-                  <li>laboris nisi ut aliquip ex ea commodo consequat. sed do eiusmod tempor incididunt ut labore. </li>
-                  <li>laboris nisi ut aliquip ex ea commodo consequat. sed do eiusmod tempor incididunt ut labore. </li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-6 col-lg-6">
+    <div class="col-md-7 col-lg-7">
       <div class="card">
         <div class="card-body">
           <ul class="list-group">
             <li class="list-group-item">
               <h5> Rating: </h5>
-              <h1>
-                <span style='color: rgba(249, 146, 69, 1)'>★ </span>
-                <span style='color: rgba(249, 146, 69, 1)'>★ </span>
-                <span style='color: rgba(249, 146, 69, 1)'>★ </span>
-                <span style='color: rgba(249, 146, 69, 1)'>★ </span>
-                <span style='color: rgba(249, 146, 69, 0.3)'>★ </span>
-              </h1>
-              <h6> 4.3 out of 5 </h6>
+              {% autoescape off %}
+                {{ratingHTML}}
+              {% endautoescape %}
             </li>
             <li class="list-group-item">
               <h5>Seller Name</h5>
+              <h4 style="color: #0275d8"><strong>{{sellerName}}</strong></h4>
             </li>
             <li class="list-group-item">
               <h5>Approximate Delivery Time</h5>
+              <h4 style="color: #5cb85c"><strong>{{deliveryTime}} days</strong></h4>
             </li>
             <li class="list-group-item">
               <h5>In Stock</h5>
+              {% autoescape off %}
+                {{inStockHTML}}
+              {% endautoescape %}
             </li>
           </ul>
         </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-6">
-      <div class="overflow-auto" style='height: 352px;'>
-        <div class="card">
-          <div class="card-body">
-            <ul class="list-group">
-              <li class="list-group-item">
-                <h5> Offers: </h5>
-                  <ul>
-                    <li>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore .</li>
-                    <li>magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco </li>
-                    <li>laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
-                    <li>laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
-                    <li>laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
-                    <li>laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
-                    <li>laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
-                    <li>laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
-                  </ul>
-              </li>
-            </ul>
-          </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 col-lg-12 justify-content-start align-items-start" style="margin-bottom: 40px">
+      <div class="card">
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item">
+              <h5> Features: </h5>
+              <ul>
+                {% autoescape off %}
+                  {{featureListHTML}}
+                {% endautoescape %}
+              </ul>
+            </li>
+          </ul>
         </div>
       </div>
+    </div>
+    <div style="display: {{offerDisplay}}" class="col-md-6 col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item">
+              <h5> Offers: </h5>
+                <ul>
+                  {% autoescape off %}
+                    {{offerListHTML}}
+                  {% endautoescape %}
+                </ul>
+            </li>
+          </ul>
+        </div>
+      </div>`
     </div>
   </div>
   <br />
@@ -138,34 +120,67 @@ Item
         </div>
         <div class="card-body">
           <ul class="list-group">
-            <li class="list-group-item">
-              <h6 class="card-title">Customer Name 1</h6>
-              <p class="card-text">Lorem ipsum dol.</p>
-              <small class="text-muted">August 6, 2016 @ 10:35am </small>
-            </li>
-            <li class="list-group-item">
-              <h6 class="card-title">Customer Name 2</h6>
-              <p class="card-text">Loreserunt mollit anim id est laborum.</p>
-              <small class="text-muted">August 6, 2016 @ 10:35am </small>
-            </li>
-            <li class="list-group-item">
-              <h6 class="card-title">Customer Name 3</h5>
-              <p class="card-text">Loe magna aliq cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-              <small class="text-muted">August 6, 2016 @ 10:35am </small>
-            </li>
-            <li class="list-group-item">
-              <h6 class="card-title">Customer Name 3</h5>
-              <p class="card-text"> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Loe magna aliq cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-              <small class="text-muted">August 6, 2016 @ 10:35am </small>
-            </li>
+            {% autoescape off %}
+              {{reviewsHTML}}
+            {% endautoescape %}
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <div class="row" style="margin-top:25px; margin-bottom:100px;">
-    <div class="col-md-12 col-lg-12 d-flex justify-content-end">
-      <button class="btn btn-light" style="border-color: #114f25; background-color: #114f25; color:white; font-weight: bold;" type="button">Add Review</button>
+  {% if iscustomerlogin %}
+    <div class="row" style="margin-top:25px;">
+      <div class="col-md-12 col-lg-12 d-flex justify-content-end">
+        <button data-toggle="modal" data-target="#exampleModal" class="btn btn-light" style="border-color: #114f25; background-color: #114f25; color:white; font-weight: bold;" type="button">Add Review</button>
+      </div>
+    </div>
+  {% endif %}
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #114f25">
+        <h4 class="modal-title" id="exampleModalLabel" style="color: white"><strong>Review</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form class="mt-3" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-lg-12">
+              <h6 style="margin-bottom: 0px" class="mb-3 font-weight-bold">Comment : </h6>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <textarea maxlength="1200" class="form-control" rows="4" name="reviewDescription" id="reviewDescription"></textarea>
+              </div>
+            </div>
+              <div class="col-lg-12">
+                <h6 style="margin-bottom: 0px" class="mb-3 font-weight-bold">Rating : </h6>
+              </div>
+            <div class="col-lg-12">
+              <fieldset class="rating">
+                <input type="radio" id="star5" name="starRating" value="5" />
+                <label for="star5">5 stars</label>
+                <input type="radio" id="star4" name="starRating" value="4" />
+                <label for="star4">4 stars</label>
+                <input type="radio" id="star3" name="starRating" value="3" checked/>
+                <label for="star3">3 stars</label>
+                <input type="radio" id="star2" name="starRating" value="2" />
+                <label for="star2">2 stars</label>
+                <input type="radio" id="star1" name="starRating" value="1" />
+                <label for="star1">1 star</label>
+            </fieldset>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Submit</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
