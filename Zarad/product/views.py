@@ -77,7 +77,7 @@ def item_page(request, product_id, seller_id):
     if request.method == 'POST':
         rating = int( request.POST.get("starRating") )
         reviewDescription = request.POST.get("reviewDescription")
-        
+
 
     # TODO FOR NAWMI
     productName = 'trimmer'
@@ -377,8 +377,7 @@ def search_result(request, search_string):
             for i in range(len(table)):
                 temp= []
                 for j in range(len(table[i])):
-                    if(table[i][j] != None):
-                        temp.append(table[i][j])
+                    temp.append(table[i][j])
                 products.append(temp)
         productHTML = loadProductData(request, products)
         return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )

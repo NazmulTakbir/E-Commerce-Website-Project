@@ -299,6 +299,14 @@ def logout_page(request):
         return HttpResponseRedirect(reverse('home_page'))
     else:
         return HttpResponseRedirect(reverse('home_page'))
+def accountBalance(email, type):
+    with connections['oracle'].cursor() as cursor:
+        if type == customer:
+            cursor.execute("SELECT WALLET_BALANCE(CUSTOMER_ID , 'CUSTOMER') FROM CUSTOMER WHERE EMAIL_ID = :email", {'email':email})
+            return cursor.fetchall()[0][0]
+        elif type == seller:
+            cursor.execute("SELECT WALLET_BALANCE(SELER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
+            return cursor.fetchall()[0][0]
 
 def myaccount(request):
     isloggedin = False
@@ -313,14 +321,14 @@ def myaccount(request):
             returnOrderHTML = orderTableHTML[1]
             walletTableHTML = generateWalletTableHTMLCustomer(request)
             reviewTableHTML = genrateReviewTableHTML(request)
-            accountBalance = 12000
+            accountBalance = accountBalance(request.session['useremail'], acType)
             return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML, 'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML, 'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML, 'accountBalance': accountBalance})
         elif acType == 'seller':
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
             advertTableHTML = generateAdvertTableHTML(request)
             walletTableHTML = generateWalletTableHTML(request)
-            accountBalance = 12000
+            accountBalance =accountBalance(request.session['useremail'], acType)
             return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML, 'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML, 'walletTableHTML': walletTableHTML, 'accountBalance': accountBalance})
         elif acType == 'deliveryGuy':
             deliveredItemHTML = generateDeliveredItemHTML(request)
@@ -337,106 +345,158 @@ def myaccount(request):
         return HttpResponseRedirect(reverse('home_page'))
 
 def generateProductTableHTML(request):
-    sellerID = 1
-    products = [ [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
-                 [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
-                 [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
-                 [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100] ]
+    # TODO prod id name category in stock sold amount
+    with connections['oracle'].cursor() as cursor:
+        query = """SELECT PRODUCT_ID, NAME, CATEGORY_NAME,IN_STOCK,SOLD_AMOUNT FROM
+                    (SELECT Q.PRODUCT_ID, Q.NAME, CATEGORY_NAME ,COUNT(T.PRODUCT_ID)IN_STOCK
+                    FROM (SELECT PRODUCT_ID, NAME, CATEGORY_ID FROM PRODUCT
+                    WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email))Q
+                    JOIN CATEGORY USING(CATEGORY_ID)
+                    LEFT OUTER JOIN
+                    (SELECT PRODUCT_ID, STATUS FROM PRODUCT_UNIT)T
+                    ON(T.PRODUCT_ID = Q.PRODUCT_ID AND T.STATUS ='Not Sold' )
+                    GROUP BY  Q.PRODUCT_ID, Q.NAME, CATEGORY_NAME ) JOIN
+                    (SELECT P.PRODUCT_ID ,COUNT(S.PRODUCT_ID)SOLD_AMOUNT
+                    FROM (SELECT PRODUCT_ID FROM PRODUCT WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER
+                    WHERE EMAIL_ID = :email))P
+                    LEFT OUTER JOIN (SELECT PRODUCT_ID, STATUS FROM PRODUCT_UNIT)S
+                    ON(P.PRODUCT_ID = S.PRODUCT_ID AND S.STATUS = 'Sold')
+                    GROUP BY P.PRODUCT_ID)
+                    USING(PRODUCT_ID);"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        products = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            products.append(temp)
 
-    result = ""
-    if( len(products)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(products) ):
-            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], sellerID)
-            editButton = """<a href={}>
-                                <button type="button" class="btn btn-link">Edit</button>
-                            </a>
-                         """.format(productURL)
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+        sellerID = 1
+        products = [ [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
+                     [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
+                     [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
+                     [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100] ]
+
+        result = ""
+        if( len(products)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( productURL, products[i][0], products[i][1], products[i][2], products[i][3], products[i][4], editButton)
-    return result
+                     """
+        else:
+            for i in range( len(products) ):
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], sellerID)
+                editButton = """<a href={}>
+                                    <button type="button" class="btn btn-link">Edit</button>
+                                </a>
+                             """.format(productURL)
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( productURL, products[i][0], products[i][1], products[i][2], products[i][3], products[i][4], editButton)
+        return result
 
 def generateOfferTableHTML(request):
-    sellerID = 1
-    offers = [ [123451234512345, 'Sept 31 2019', 'Oct 03 2019', 12, 0, 0, 1],
-               [123451234512345, 'Oct 03 2019', 'Dec 03 2019', 32, 10, 100, 2] ]
-    result = ""
-    if( len(offers)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(offers) ):
-            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], offers[i][0], sellerID)
-            endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    # TODO prod id start date end date discount min quantity mn price
+    with connections['oracle'].cursor() as cursor:
+        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, PERCENTAGE_DISCOUNT DISCOUNT , MINIMUM_QUANTITY_PURCHASED MINIMUM_QUANTITY FROM OFFER
+                   WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        offers = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            offers.append(temp)
+        sellerID = 1
+        offers = [ [123451234512345, 'Sept 31 2019', 'Oct 03 2019', 12, 0, 0],
+                   [123451234512345, 'Oct 03 2019', 'Dec 03 2019', 32, 10, 100] ]
+        result = ""
+        if( len(offers)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], offers[i][5], endOfferButton)
-    return result
+                     """
+        else:
+            for i in range( len(offers) ):
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], offers[i][0], sellerID)
+                endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], offers[i][5], endOfferButton)
+        return result
 
 def generateAdvertTableHTML(request):
-    sellerID = 1
-    adverts = [ [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'],
-                [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'] ]
-    result = ""
-    if( len(adverts)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(adverts) ):
-            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], adverts[i][0], sellerID)
-            endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    # TODO product id start date end date cost diplay preference picture
+    with connections['oracle'].cursor() as cursor:
+        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, COST_FOR_SELLER COST, DISPLAY_PREFERENCE, PICTURE FROM  ADVERTISEMENT
+                   WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        adverts = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            adverts.append(temp)
+        sellerID = 1
+        adverts = [ [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'],
+                    [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'] ]
+        result = ""
+        if( len(adverts)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], adverts[i][4], adverts[i][5], endOfferButton)
-    return result
+                     """
+        else:
+            for i in range( len(adverts) ):
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], adverts[i][0], sellerID)
+                endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], adverts[i][4], adverts[i][5], endOfferButton)
+        return result
 
 def generateWalletTableHTML(request):
+    # TODO transaction id date type amount service charge
     sellerID = 1
     scp = info.serviceChargePercentage
     transactions = [ [123451234512345, 'Aug 31 2019', 'Recharge', 2000, scp*2000],
@@ -463,117 +523,166 @@ def generateWalletTableHTML(request):
     return result
 
 def generateCartTableHTML(request):
-    cartItems = [ [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05],
-                  [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05] ]
-    result = ""
-    if( len(cartItems)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(cartItems) ):
-            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
-            totalPrice = cartItems[i][5]*cartItems[i][4] * (1-cartItems[i][6])
-            orderButton = """<a href={}>
-                                <button type="button" class="btn btn-success" style="margin: 5px">Order</button>
-                            </a>
-                         """.format(productURL)
-            deleteButton = """<a href={}>
-                                <button type="button" class="btn btn-danger" style="margin: 5px">Delete</button>
-                            </a>
-                         """.format(productURL)
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{} {}</td>
+    # # TODO: # product id seller prod name sell name quantity price maximum discount
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT  PRODUCT_ID, SELLER_ID , P.NAME PRODUCT_NAME, S.NAME SELLER_NAME,QUANTITY, PRICE, COUNT(*)MAX_DISCOUNT FROM
+                    (SELECT PRODUCT_ID, SELLER_ID , QUANTITY
+                    FROM CART_ITEM
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)) LEFT OUTER JOIN
+                    (SELECT PRODUCT_ID,PERCENTAGE_DISCOUNT FROM OFFER) USING(PRODUCT_ID)
+                    JOIN (SELECT PRODUCT_ID , NAME, PRICE FROM PRODUCT)P USING(PRODUCT_ID)
+                    JOIN (SELECT NAME, SELLER_ID FROM SELLER)S USING (SELLER_ID)
+                    GROUP BY PRODUCT_ID, SELLER_ID , QUANTITY, PRICE, S.NAME, P.NAME"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        cartItems = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            cartItems.append(temp)
+        cartItems = [ [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05],
+                      [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05] ]
+        result = ""
+        if( len(cartItems)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( productURL, cartItems[i][2], cartItems[i][3], cartItems[i][5], cartItems[i][4], cartItems[i][6], totalPrice, orderButton, deleteButton)
-    return result
+                     """
+        else:
+            for i in range( len(cartItems) ):
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
+                totalPrice = cartItems[i][5]*cartItems[i][4] * (1-cartItems[i][6])
+                orderButton = """<a href={}>
+                                    <button type="button" class="btn btn-success" style="margin: 5px">Order</button>
+                                </a>
+                             """.format(productURL)
+                deleteButton = """<a href={}>
+                                    <button type="button" class="btn btn-danger" style="margin: 5px">Delete</button>
+                                </a>
+                             """.format(productURL)
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{} {}</td>
+                            </tr>
+                         """.format( productURL, cartItems[i][2], cartItems[i][3], cartItems[i][5], cartItems[i][4], cartItems[i][6], totalPrice, orderButton, deleteButton)
+        return result
 
 def generateOrderTableHTML(request):
-    pHTML = rHTML = ""
-    purchaseOrder = [ ['123451234512345', 'Aug 31 2019', 'Wallet', 'Delivered', 'Sept 10 2019', '9 Sept 2019', '01722345467'],
-                      ['123451234512345', 'Aug 31 2019', 'Wallet', 'Not Delivered', 'Sept 10 2019', '', '01722345467'], ]
-    if( len(purchaseOrder)==0 ):
-        pHTML = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(purchaseOrder) ):
-            orderURL = "http://{}".format(request.META['HTTP_HOST'])
-            orderAlterButton = '<button type="button" class="btn btn-danger">{}</button>'
-            if( purchaseOrder[i][3] == 'Delivered' ):
-                orderAlterButton = orderAlterButton.format("Return")
-            elif( purchaseOrder[i][3] == 'Not Delivered' ):
-                orderAlterButton = orderAlterButton.format("Cancel")
-            pHTML += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    # TODO prod id order date payment method status expected delivery date delivereddate deliver guy ph no
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS,MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER)
+                    EXPECTED_DELIVERY_DATE, DELIVERED_DATE, PHONE_NUMBER DELIVERY_GUY_NUMBER FROM
+                    CUSTOMER_ORDER  JOIN PURCHASE_ORDER P USING(ORDER_ID)
+                    JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON (PH.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID)
+                    JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS) USING(ORDER_ID) JOIN
+                    (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)
+                    GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, DELIVERED_DATE, PHONE_NUMBER"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        purchaseOrder = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            purchaseOrder.append(temp)
+        pHTML = rHTML = ""
+        purchaseOrder = [ ['123451234512345', 'Aug 31 2019', 'Wallet', 'Delivered', 'Sept 10 2019', '9 Sept 2019', '01722345467'],
+                          ['123451234512345', 'Aug 31 2019', 'Wallet', 'Not Delivered', 'Sept 10 2019', '', '01722345467'], ]
+        if( len(purchaseOrder)==0 ):
+            pHTML = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
+                     """
+        else:
+            for i in range( len(purchaseOrder) ):
+                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                orderAlterButton = '<button type="button" class="btn btn-danger">{}</button>'
+                if( purchaseOrder[i][3] == 'Delivered' ):
+                    orderAlterButton = orderAlterButton.format("Return")
+                elif( purchaseOrder[i][3] == 'Not Delivered' ):
+                    orderAlterButton = orderAlterButton.format("Cancel")
+                pHTML += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
 
-
-    returnOrder = [ ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Approved', 'Oct 31 2019', '01844375468'],
-                    ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Not Approved', '', '01844375468'],]
-    if( len(returnOrder)==0 ):
-        rHTML = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(returnOrder) ):
-            orderURL = "http://{}".format(request.META['HTTP_HOST'])
-            orderAlterButton = '<button type="button" class="btn btn-danger" style="display: {}">Cancel</button>'
-            if( returnOrder[i][4] == 'Approved' ):
-                orderAlterButton = orderAlterButton.format('none')
-            else:
-                orderAlterButton = orderAlterButton.format('block')
-            rHTML += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+        # TODO order id order date complaint payment status returned date custoemr care phone
+        query =  """SELECT ORDER_ID, ORDER_DATE,COMPLAINT_DES, PAYMENT_METHOD, APPROVAL_STATUS,RETURN_DATE,
+                    PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER  JOIN RETURN_ORDER P USING(ORDER_ID)
+                    JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON
+                    (PH.EMPLOYEE_ID = P.CUSTOMER_CARE_EMPLOYEE_ID)
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        returnOrder = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            returnOrder.append(temp)
+        returnOrder = [ ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Approved', 'Oct 31 2019', '01844375468'],
+                        ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Not Approved', '', '01844375468'],]
+        if( len(returnOrder)==0 ):
+            rHTML = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( orderURL, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], returnOrder[i][6], orderAlterButton)
+                     """
+        else:
+            for i in range( len(returnOrder) ):
+                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                orderAlterButton = '<button type="button" class="btn btn-danger" style="display: {}">Cancel</button>'
+                if( returnOrder[i][4] == 'Approved' ):
+                    orderAlterButton = orderAlterButton.format('none')
+                else:
+                    orderAlterButton = orderAlterButton.format('block')
+                rHTML += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( orderURL, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], returnOrder[i][6], orderAlterButton)
 
 
-    return [pHTML, rHTML]
+        return [pHTML, rHTML]
 
 def generateWalletTableHTMLCustomer(request):
     scp = info.serviceChargePercentage
@@ -601,169 +710,257 @@ def generateWalletTableHTMLCustomer(request):
     return result
 
 def genrateReviewTableHTML(request):
-    reviews = [ [123451234512345, 123451234512345, 'Trimmer', 'Philips', 'Aug 31 2019', 4, 'Battery Does Not Last Long'],
-                     [123451234512345, 123451234512345, 'Trimmer', 'Philips',  'Aug 31 2019', 5, 'Perfect. Changed My Life'] ]
-    result = ""
-    if( len(reviews)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(reviews) ):
-            deleteReview = '<button type="button" class="btn btn-danger">Delete</button>'
-            productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], reviews[i][0], reviews[i][1])
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    # TODO prod id seller id prod name date rating description
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT PRODUCT_ID, SELLER_ID,P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, REVIEW_DATE, RATING,
+                    DESCRIPTION FROM REVIEW JOIN (SELECT PRODUCT_ID, NAME FROM PRODUCT)P USING (PRODUCT_ID)
+                    JOIN (SELECT SELLER_ID, NAME FROM SELLER)S USING (SELLER_ID)
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        reviews = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            reviews.append(temp)
+        reviews = [ [123451234512345, 123451234512345, 'Trimmer', 'Philips', 'Aug 31 2019', 4, 'Battery Does Not Last Long'],
+                    [123451234512345, 123451234512345, 'Trimmer', 'Philips',  'Aug 31 2019', 5, 'Perfect. Changed My Life'] ]
+        result = ""
+        if( len(reviews)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( productURL, reviews[i][2], reviews[i][3], reviews[i][4], reviews[i][5], reviews[i][6], deleteReview)
-    return result
+                     """
+        else:
+            for i in range( len(reviews) ):
+                deleteReview = '<button type="button" class="btn btn-danger">Delete</button>'
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], reviews[i][0], reviews[i][1])
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( productURL, reviews[i][2], reviews[i][3], reviews[i][4], reviews[i][5], reviews[i][6], deleteReview)
+        return result
 
 def generateDeliveredItemHTML(request):
-    orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Oct 09 2020', 'Cash', 5000] ]
-    result = ""
-    if( len(orderedItems)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(orderedItems) ):
-            orderURL = "http://{}".format(request.META['HTTP_HOST'])
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    # TODO order id customer name customer number address expected date delivered date payment method amount
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS",
+                    MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER) EXPECTED_DELIVERY_DATE , DELIVERED_DATE, PAYMENT_METHOD,
+                    ORDER_TOTAL(ORDER_ID) TOTAL_PAYMENT FROM (SELECT * FROM PURCHASE_ORDER JOIN CUSTOMER_ORDER USING(ORDER_ID)
+                    WHERE DELIVERY_EMPLOYEE_ID = (SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email)
+                    AND DELIVERY_STATUS = 'Delivered' ) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
+                    CUSTOMER_NAME, PHONE_NUMBER "CUSTOMER PHONE",('Apartment : '|| APARTMENT_NUMBER||', Building : '
+                    ||BUILDING_NUMBER||', Road : '||ROAD||' , '||AREA||' , '||CITY) "CUSTOMER ADDRESS",
+                    CUSTOMER_ID FROM CUSTOMER) USING (CUSTOMER_ID) JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS)
+                    USING(ORDER_ID) JOIN (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
+                    GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        orderedItems = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            orderedItems.append(temp)
+        orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Oct 09 2020', 'Cash', 5000] ]
+        result = ""
+        if( len(orderedItems)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
-    return result
+                     """
+        else:
+            for i in range( len(orderedItems) ):
+                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
+        return result
 
 def generatePendingDeliveryHTML(request):
-    orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000] ]
-    result = ""
-    if( len(orderedItems)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(orderedItems) ):
-            markDelivered = '<button type="button" class="btn btn-info">Delivered</button>'
-            orderURL = "http://{}".format(request.META['HTTP_HOST'])
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    # TODO order id customer name phone address expected date payment method amount
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS",
+                    MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER) EXPECTED_DELIVERY_DATE, PAYMENT_METHOD,
+                    ORDER_TOTAL(ORDER_ID) TOTAL_PAYMENT FROM (SELECT * FROM PURCHASE_ORDER JOIN CUSTOMER_ORDER USING(ORDER_ID)
+                    WHERE DELIVERY_EMPLOYEE_ID = (SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email)
+                    AND DELIVERY_STATUS = 'Not Delivered' ) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
+                    CUSTOMER_NAME, PHONE_NUMBER "CUSTOMER PHONE",('Apartment : '|| APARTMENT_NUMBER||', Building : '
+                    ||BUILDING_NUMBER||', Road : '||ROAD||' , '||AREA||' , '||CITY) "CUSTOMER ADDRESS",
+                    CUSTOMER_ID FROM CUSTOMER) USING (CUSTOMER_ID) JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS)
+                    USING(ORDER_ID) JOIN (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
+                    GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        orderedItems = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            orderedItems.append(temp)
+        orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000] ]
+        result = ""
+        if( len(orderedItems)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
-    return result
+                     """
+        else:
+            for i in range( len(orderedItems) ):
+                markDelivered = '<button type="button" class="btn btn-info">Delivered</button>'
+                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
+        return result
 
 def generateManagedComplaintsHTML(request):
-    complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Approved', 'Oct 15 2019'],
-                   [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Rejected', 'Oct 15 2019'] ]
-    result = ""
-    if( len(complaints)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(complaints) ):
-            orderURL = "http://{}".format(request.META['HTTP_HOST'])
-            color = ""
-            if( complaints[i][7] == 'Approved' ):
-                color = '#5cb85c'
-            elif( complaints[i][7] == 'Rejected' ):
-                color = "#d9534f"
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td style="font-weight: bold; color: {}">{}</td>
-                            <td>{}</td>
+    # TODO order id date customer name number complaint payment method amount status returned date
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT",
+                    PAYMENT_METHOD, "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
+                    (SELECT ORDER_ID, COMPLAINT_DES,ORDER_TOTAL(ORDER_ID)"TOTAL AMOUNT",APPROVAL_STATUS STATUS,
+                    RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
+                    FROM EMPLOYEE WHERE EMAIL_ID = :email)) JOIN CUSTOMER_ORDER
+                    USING(ORDER_ID) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)"CUSTOMER NAME",PHONE_NUMBER
+                    "CUSTOMER PHONE",CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        complaints = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            complaints.append(temp)
+        complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Approved', 'Oct 15 2019'],
+                       [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Rejected', 'Oct 15 2019'] ]
+        result = ""
+        if( len(complaints)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], color, complaints[i][7], complaints[i][8])
-    return result
+                     """
+        else:
+            for i in range( len(complaints) ):
+                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                color = ""
+                if( complaints[i][7] == 'Approved' ):
+                    color = '#5cb85c'
+                elif( complaints[i][7] == 'Rejected' ):
+                    color = "#d9534f"
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td style="font-weight: bold; color: {}">{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], color, complaints[i][7], complaints[i][8])
+        return result
 
 def generatePendingComplaintsHTML(request):
-    complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000] ]
-    result = ""
-    if( len(complaints)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(complaints) ):
-            orderURL = "http://{}".format(request.META['HTTP_HOST'])
-            approve = """<a href={}>
-                            <i style="color: #5cb85c; margin-right: 10px; margin-left: 5px" class="fa fa-check-square fa-2x" aria-hidden="true"></i>
-                         </a>""".format(orderURL)
-            reject = """<a href={}>
-                            <i style="color: #d9534f" class="fa fa-window-close fa-2x" aria-hidden="true"></i>
-                        </a>""".format(orderURL)
-            result += """<tr>
-                            <th scope="row"><a href={}>{}</a></th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{} {}</td>
+    # TODO order id date customer name number complaint payment method amount
+    with connections['oracle'].cursor() as cursor:
+        query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT", PAYMENT_METHOD,
+                    "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
+                    (SELECT ORDER_ID, COMPLAINT_DES,ORDER_TOTAL(ORDER_ID)"TOTAL AMOUNT",APPROVAL_STATUS STATUS,
+                    RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
+                    FROM EMPLOYEE WHERE EMAIL_ID = :email)AND APPROVAL_STATUS = 'Not Approved') JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN
+                    (SELECT (FIRST_NAME||' '||LAST_NAME)"CUSTOMER NAME",PHONE_NUMBER "CUSTOMER PHONE",
+                    CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID);"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        table = cursor.fetchall()
+        complaints = []
+        for i in range(len(table)):
+            temp= []
+            for j in range(len(table[i])):
+                temp.append(table[i][j])
+            complaints.append(temp)
+        complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000] ]
+        result = ""
+        if( len(complaints)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], approve, reject)
-    return result
+                     """
+        else:
+            for i in range( len(complaints) ):
+                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                approve = """<a href={}>
+                                <i style="color: #5cb85c; margin-right: 10px; margin-left: 5px" class="fa fa-check-square fa-2x" aria-hidden="true"></i>
+                             </a>""".format(orderURL)
+                reject = """<a href={}>
+                                <i style="color: #d9534f" class="fa fa-window-close fa-2x" aria-hidden="true"></i>
+                            </a>""".format(orderURL)
+                result += """<tr>
+                                <th scope="row"><a href={}>{}</a></th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{} {}</td>
+                            </tr>
+                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], approve, reject)
+        return result
