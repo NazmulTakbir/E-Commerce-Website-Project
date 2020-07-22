@@ -65,7 +65,6 @@ def accountType(email):
             return 'seller'
 
 def item_page(request, product_id, seller_id):
-
     isloggedin = False
     acType = 'none'
     iscustomerlogin = False
@@ -79,6 +78,7 @@ def item_page(request, product_id, seller_id):
         formIdentity = request.POST.get('formIdentity')
         if formIdentity == 'orderForm':
             orderQuantity = int( request.POST.get('orderQuantity') )
+            return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'reviewForm':
             rating = request.POST.get("starRating")
             reviewDescription = request.POST.get("reviewDescription")
@@ -88,14 +88,17 @@ def item_page(request, product_id, seller_id):
                 data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail'], 'rating':rating, 'description':reviewDescription}
                 cursor.execute(query, data)
                 cursor.execute("COMMIT")
+            return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'cartForm':
+            # TODO nawmi
             cartQuantity = int( request.POST.get('cartQuantity') )
+            return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
 
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT P.NAME PRODUCT_NAME, P.DESCRIPTION, C.CATEGORY_NAME, P.EXPECTED_TIME_TO_DELIVER,S.NAME SELLER_NAME ,COUNT(PU.ITEM_NUMBER) IN_STOCK, AVG(R.RATING) RATING FROM
+        query =  """SELECT P.NAME PRODUCT_NAME, P.DESCRIPTION, C.CATEGORY_NAME, P.EXPECTED_TIME_TO_DELIVER,S.NAME SELLER_NAME ,COUNT(PU.ITEM_NUMBER) IN_STOCK, AVG(R.RATING) RATING, P.PRICE FROM
                     PRODUCT P JOIN CATEGORY C USING(CATEGORY_ID) JOIN SELLER S USING(SELLER_ID) JOIN PRODUCT_UNIT PU USING(PRODUCT_ID,SELLER_ID) LEFT OUTER JOIN REVIEW R USING(PRODUCT_ID,SELLER_ID)
                     WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND PU.STATUS = 'Not Sold')
-                    GROUP BY P.NAME, P.DESCRIPTION, CATEGORY_NAME, EXPECTED_TIME_TO_DELIVER,S.NAME"""
+                    GROUP BY P.NAME, P.DESCRIPTION, CATEGORY_NAME, EXPECTED_TIME_TO_DELIVER,S.NAME, P.PRICE"""
         data = {'product_id' :product_id,'seller_id':seller_id}
         cursor.execute(query, data)
         result = cursor.fetchall()
@@ -103,6 +106,7 @@ def item_page(request, product_id, seller_id):
         productDescription = result[0][1]
         productCategory = result[0][2]
         rating = result[0][6]
+        price = result[0][7]
         sellerName = result[0][4]
         inStock = result[0][5]
         deliveryTime = result[0][3]
@@ -140,12 +144,11 @@ def item_page(request, product_id, seller_id):
         result = cursor.fetchall()
         pictures = []
         for i in range(len(result)):
-            pictures.append(result[i][0])
-
-        pictures = ['https://image.freepik.com/free-vector/coffee-advertisement-realistic-composition_1284-26172.jpg',
-                    'https://www.designyourway.net/blog/wp-content/uploads/2010/11/Nike-Print-Ads-10.jpg',
-                    'https://videohive.img.customer.envatousercontent.com/files/62074379/previewImage.jpg?auto=compress%2Cformat&fit=crop&crop=top&max-h=8000&max-w=590&s=386c05c2a5bf67524b74e2b7a5d8ada9',
-                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAASFBMVEX///8AAADCwsLy8vJ7e3tSUlJZWVk3Nzf4+PiioqLW1tb8/PwEBATa2trz8/NPT09FRUWoqKjQ0NAoKCg8PDwyMjK9vb1ycnIbkZltAAABjElEQVR4nO3dW27UQBRFURsS8nAHJ4Ek858pIhLim6PyKYteawDl2rqy5b+7LAAAAAAAAAAAtG2zL3C4ExaOvdL2fd/320FGnLQ/vw4NXLav69m8jw1czlf4ZWjhonCCaygc+zG9nsLL1Krfj/9zg8NmODnx7/OPm+Hdt5n242e4vgw99189rUfPcF0fpv6jvlYKZ3pUGFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmFPYojCnsEVhTmGLwpzCFoU5hS0KcwpbFOYUtijMKWxRmLuewsv6stzPszVm+OPn3URvh28HvEzf8Hj8/sOzUKhQ4XxjdzpvJ9yt/v8Xjt0ev2z3Nyfz8TS4cOxbPcLYK32edrbIs90HAAAAAAAAAGD5BeMzNfuZXsmPAAAAAElFTkSuQmCC']
+            imagePath = "http://{}/static/images/productImages/{}_{}_{}.jpg".format(request.META['HTTP_HOST'], product_id, seller_id, i+1)
+            imageFile = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_{}.jpg".format(product_id, seller_id, i+1),'wb')
+            imageFile.write( result[i][0].read() )
+            imageFile.close()
+            pictures.append(imagePath)
 
         ratingHTML = "<span style='color: #d9534f'><strong> -- UNRATED</strong></span>"
         if rating is None:
@@ -199,13 +202,14 @@ def item_page(request, product_id, seller_id):
                 for j in range(1, int(review[1])+1):
                     starHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
                 for j in range(int(review[1])+1, 6):
-                    starHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
+                    starHTML += '<li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
                 reviewsHTML += """<li class="list-group-item">
                                     <h6 class="card-title" style="color: #0275d8">{}</h6>
                                     <p class="card-text" style="margin-bottom: 2px;">{}</p>
                                     <ul class="rating" style="padding-left: 0;">
                                         {}
                                     </ul>
+                                    <br />
                                     <small class="text-muted">{}</small>
                                   </li>""".format(review[0], review[2], starHTML, review[3])
 
@@ -228,9 +232,10 @@ def item_page(request, product_id, seller_id):
             'featureListHTML': featureListHTML, 'offerListHTML': offerListHTML, 'ratingHTML': ratingHTML,
             'sellerName': sellerName, 'inStockHTML': inStockHTML, 'deliveryTime': deliveryTime,
             'offerDisplay': offerDisplay, 'reviewsHTML': reviewsHTML, 'productImageHTML': productImageHTML,
-            'productImageHTML2': productImageHTML2, 'productID': product_id, 'inStock': inStock}
+            'productImageHTML2': productImageHTML2, 'productID': product_id, 'inStock': inStock,
+            'price': price}
 
-        return render(request, 'item.html', data)
+    return render(request, 'item.html', data)
 
 def add_item_page(request):
     isloggedin = False
@@ -319,22 +324,6 @@ def add_item_page(request):
 
     return render(request, 'newProduct.html', {'isloggedin': isloggedin, 'accountType': acType})
 
-def add_advert_page(request):
-    isloggedin = False
-    acType = 'none'
-    if request.session.has_key('useremail'):
-        isloggedin = True
-        acType = accountType(request.session['useremail'])
-    pass
-
-def add_offer_page(request):
-    isloggedin = False
-    acType = 'none'
-    if request.session.has_key('useremail'):
-        isloggedin = True
-        acType = accountType(request.session['useremail'])
-    pass
-
 def check_category(category):
     query = "SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category"
     with connections['oracle'].cursor() as cursor:
@@ -376,7 +365,7 @@ def search_result(request, search_string):
                     FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                     FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
                     FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
-                    LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
+                    LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = A.SELLER_ID)
 					WHERE CATEGORY_ID = (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category)
                     GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                     LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
@@ -416,7 +405,7 @@ def search_result(request, search_string):
                     FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                     FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
                     FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
-                    LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
+                    LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = A.SELLER_ID)
                     GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                     LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
                     WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
@@ -448,7 +437,7 @@ def search_result(request, search_string):
                 FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                 FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
                 FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
-                LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = S.SELLER_ID)
+                LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = A.SELLER_ID)
                 GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                 LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
                 WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
@@ -497,13 +486,13 @@ def loadProductData(request, products):
         for j in range(starCount+1, 6):
             ratingHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
 
-        image1Path = "http://{}/static/images/productImages/{}_1.jpg".format(request.META['HTTP_HOST'], products[i][0])
-        image2Path = "http://{}/static/images/productImages/{}_2.jpg".format(request.META['HTTP_HOST'], products[i][0])
+        image1Path = "http://{}/static/images/productImages/{}_{}_1.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
+        image2Path = "http://{}/static/images/productImages/{}_{}_2.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
 
         productHTML += htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount)
 
-        imageFile1 = open(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_1.jpg",'wb')
-        imageFile2 = open(settings.BASE_DIR+"\\static\\images\\productImages\\"+str(products[i][0])+"_2.jpg",'wb')
+        imageFile1 = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_1.jpg".format(products[i][0], products[i][1]),'wb')
+        imageFile2 = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_2.jpg".format(products[i][0], products[i][1]),'wb')
 
         imageFile1.write( products[i][4].read() )
         imageFile2.write( products[i][5].read() )

@@ -92,6 +92,21 @@ def make_image_square(img):
     new_img.paste(img, (int((size - width) / 2), int((size - height) / 2)))
     return new_img
 
+def make_16_9(img):
+    width, height = img.size
+    if width > height*1.78:
+        newwidth = width
+        newheight = int(width * 9/16)
+        new_img = Image.new('RGB', (newwidth, newheight), (255, 255, 255))
+        new_img.paste(img, (int((newwidth - width) / 2), int((newheight - height) / 2)))
+        return new_img
+    else:
+        newwidth = int(height*(16/9))
+        newheight = height
+        new_img = Image.new('RGB', (newwidth, newheight), (255, 255, 255))
+        new_img.paste(img, (int((newwidth - width) / 2), int((newheight - height) / 2)))
+        return new_img
+
 def signup_page(request):
     adminLogin = False
     isloggedin = False
@@ -319,7 +334,17 @@ def myaccount(request):
     if request.session.has_key('useremail'):
         isloggedin = True
         acType = accountType(request.session['useremail'])
+
         if acType == 'customer':
+            # TO DO extract the basic info details
+            if request.method == 'POST':
+                formIdentity = request.POST.get('formIdentity')
+                if formIdentity == 'reviewForm':
+                    productID = request.POST.get('delRevBtn').split('+')[0]
+                    sellerID = request.POST.get('delRevBtn').split('+')[1]
+                    # TODO nawmi delete review
+                    return HttpResponseRedirect(reverse('accounts:myaccount'))
+
             cartTableHTML = generateCartTableHTML(request)
             orderTableHTML = generateOrderTableHTML(request)
             purchaseOrderHTML = orderTableHTML[0]
@@ -336,24 +361,52 @@ def myaccount(request):
             return render(request, 'customerAccount.html', data)
 
         elif acType == 'seller':
+            # TO DO extract the basic info details
+            if request.method == 'POST':
+                formIdentity = request.POST.get('formIdentity')
+                if formIdentity == 'addOfferForm':
+                    # TODO nawmi
+                    # check if product id is valid
+                    productID = int(request.POST.get('productID'))
+                    startDate = request.POST.get('startDate')
+                    endDate = request.POST.get('endDate')
+                    discount = request.POST.get('discount')
+                    minQuan = request.POST.get('minQuan')
+
+                elif formIdentity == 'addAdvertForm':
+                    productID = int(request.POST.get('productID'))
+
+                    blob = io.BytesIO()
+                    if 'advertImage' in request.FILES:
+                        imgFile = request.FILES['advertImage']
+                        img = Image.open(imgFile)
+                        img = make_16_9(img)
+                        img.save(blob, 'jpeg')
+                        blob.seek(0)
+
+                return HttpResponseRedirect(reverse('accounts:myaccount'))
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
             advertTableHTML = generateAdvertTableHTML(request)
             walletTableHTML = generateWalletTableHTML(request)
             acBal = accountBalance(request.session['useremail'], acType)
+            advertCost = info.advertCost
 
             data = {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML,
                     'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML,
-                    'walletTableHTML': walletTableHTML, 'accountBalance': acBal}
+                    'walletTableHTML': walletTableHTML, 'accountBalance': acBal, 'advertCost': advertCost,
+                    'buyAdvert': acBal>=advertCost}
 
             return render(request, 'sellerAccount.html', data)
 
         elif acType == 'deliveryGuy':
+            # TO DO extract the basic info details
             deliveredItemHTML = generateDeliveredItemHTML(request)
             pendingDeliveryItemHTML = generatePendingDeliveryHTML(request)
             return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType, 'deliveredItemHTML': deliveredItemHTML, 'pendingDeliveryItemHTML': pendingDeliveryItemHTML})
 
         elif acType == 'customerCare':
+            # TO DO extract the basic info details
             managedComplaintsHTML = generateManagedComplaintsHTML(request)
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
             return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': acType, 'managedComplaintsHTML': managedComplaintsHTML, 'pendingComplaintsHTML': pendingComplaintsHTML})
@@ -468,7 +521,7 @@ def generateOfferTableHTML(request):
 
 def generateAdvertTableHTML(request):
     with connections['oracle'].cursor() as cursor:
-        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, COST_FOR_SELLER COST, DISPLAY_PREFERENCE, PICTURE FROM ADVERTISEMENT
+        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, COST_FOR_SELLER COST, PICTURE FROM ADVERTISEMENT
                    WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
@@ -491,7 +544,6 @@ def generateAdvertTableHTML(request):
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td></td>
                         </tr>
                      """
         else:
@@ -505,9 +557,8 @@ def generateAdvertTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
                             </tr>
-                         """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], adverts[i][4], adverts[i][5], endOfferButton)
+                         """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], adverts[i][4], endOfferButton)
         return result
 
 def generateWalletTableHTML(request):
@@ -737,11 +788,11 @@ def genrateReviewTableHTML(request):
         table = cursor.fetchall()
         reviews = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
-            if temp[i][6] == None:
-                temp[i][6] = ''
+            if temp[6] == None:
+                temp[6] = ''
             reviews.append(temp)
 
         result = ""
@@ -757,7 +808,9 @@ def genrateReviewTableHTML(request):
                      """
         else:
             for i in range( len(reviews) ):
-                deleteReview = '<button type="button" class="btn btn-danger">Delete</button>'
+                deleteReview = """<button name="delRevBtn" value="{}" type="submit" class="btn btn-danger">
+                                    Delete
+                                  </button>""".format( str(reviews[i][0])+"+"+str(reviews[i][1]) )
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], reviews[i][0], reviews[i][1])
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
@@ -765,13 +818,12 @@ def genrateReviewTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
+                                <td style="vertical-align: middle; text-align: center">{}</td>
                             </tr>
                          """.format( productURL, reviews[i][2], reviews[i][3], reviews[i][4], reviews[i][5], reviews[i][6], deleteReview)
         return result
 
 def generateDeliveredItemHTML(request):
-    # TODO order id customer name customer number address expected date delivered date payment method amount
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS",
                     MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER) EXPECTED_DELIVERY_DATE , DELIVERED_DATE, PAYMENT_METHOD,
@@ -822,7 +874,6 @@ def generateDeliveredItemHTML(request):
         return result
 
 def generatePendingDeliveryHTML(request):
-    # TODO order id customer name phone address expected date payment method amount
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS",
                     MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER) EXPECTED_DELIVERY_DATE, PAYMENT_METHOD,

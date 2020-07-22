@@ -15,6 +15,10 @@ window.onload=function(){
   offersForm.style.display = 'none'
   advertForm.style.display = 'none'
   walletForm.style.display = 'none'
+  var temp = document.getElementById('advertImage')
+  if( temp ) {
+    temp.style.display = 'none'
+  }
 
   basicInfo.addEventListener('click', () => {
     basicInfoForm.style.display = 'block'
@@ -55,4 +59,20 @@ window.onload=function(){
     advertForm.style.display = 'none'
     walletForm.style.display = 'block'
   })
+}
+
+function uploadPicture(event) {
+  var image = document.getElementById('advertImage');
+	if (event.target.files && event.target.files[0]) {
+		image.src = URL.createObjectURL(event.target.files[0]);
+		image.onload = function() {
+			image.style.width = '150px';
+			image.style.height = 'auto';
+			URL.revokeObjectURL(image.src) // free memory
+		}
+		document.getElementById('advertImage').style.display = 'block'
+	} else {
+		image.src = "#"
+		document.getElementById('advertImage').style.display = 'none'
+	}
 }

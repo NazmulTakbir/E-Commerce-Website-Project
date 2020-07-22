@@ -17,256 +17,334 @@ My Account
   <div class="row">
     <div class="container d-flex justify-content-center">
       <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
+        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
+        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myProducts" type="radio" name="radioButton" value="myProducts"> Products</label>
+        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myOffers" type="radio" name="radioButton" value="myOffers"> Offers</label>
+        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myAdverts" type="radio" name="radioButton" value="myAdverts"> Advertisements</label>
+        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myWallet" type="radio" name="radioButton" value="myWallet"> Wallet</label>
+        <br />
+        <br />
+        <div id='basicInfoForm'>
+          <div class="container d-flex justify-content-center">
+            <div class="col-lg-8">
+              <div class="row">
+              <h2 class="mb-3 font-weight-bold col-lg-12">Basic Info : </h2>
+              <div class="col-lg-12">
+  				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
+      			  </div>
+              <div class="col-lg-6">
+                <div class="form-group">
+                  <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="form-group">
+                  <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="form-group">
+                  <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="form-group">
+                  <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                </div>
+              </div>
+              <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
+              <div class="col-lg-12">
+    			     <h6 class="mb-3 font-weight-bold">Personal: </h6>
+        		  </div>
+              <div class="col-lg-6">
+                <div class="form-group">
+                  <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                </div>
+              </div>
+              <div class="col-lg-6">
+        		    <div class="form-group">
+                  <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                </div>
+        		  </div>
+      			  <div class="col-lg-6">
+                <div class="form-group">
+                  <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                </div>
+              </div>
+              <div class="col-lg-6">
+      			    <div class="form-group">
+                  <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                </div>
+      			  </div>
+      			  <div class="col-lg-12">
+      		      <h6 class="mb-3 font-weight-bold">Address: </h6>
+      			  </div>
+              <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                 </div>
+               </div>
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
+                 </div>
+               </div>
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="customerRoad" class="form-control" type="text" placeholder="Road">
+                 </div>
+               </div>
+               <div class="col-lg-6">
+                 <div class="form-group">
+                   <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
+                 </div>
+               </div>
+               <div class="col-lg-12">
+                 <div class="form-group">
+                   <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
+                 </div>
+               </div>
+               <div class="col-lg-12">
+       		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
+       			   </div>
+             </div>
+            </div>
+          </div>
+        </div>
+
+        <div id='productsForm'>
+          <div class="container d-flex justify-content-center">
+            <div class="col-lg-12">
+              <div class="row">
+                <h2 class="mb-3 font-weight-bold col-lg-12">Products : </h2>
+                <br />
+                <div class="col-lg-12 overflow-auto">
+                  <table class="table table-hover table-bordered">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th style="width: 150px; vertical-align: middle" scope="col">ID</th>
+                        <th style="width: 200px; vertical-align: middle" scope="col">Name</th>
+                        <th style="width: 150px; vertical-align: middle" scope="col">Category</th>
+                        <th style="width: 100px; vertical-align: middle" scope="col">In Stock</th>
+                        <th style="width: 100px; vertical-align: middle" scope="col">Sold Amount</th>
+                        <th style="width: 100px; vertical-align: middle" scope="col">Edit Details</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background-color: white">
+                      {% autoescape off %}
+                        {{productTableHTML}}
+                      {% endautoescape %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end">
+                <div class="col-lg-6">
+        			    <div class="form-group">
+                    <a href="{% url 'product:additem' %}">
+                      <button type="button" class="btn btn-dark">Add New Product</button>
+                    </a>
+                  </div>
+        			  </div>
+      			  </div>
+            </div>
+          </div>
+        </div>
+
+        <div id='offersForm'>
+          <div class="container d-flex justify-content-center">
+            <div class="col-lg-12">
+              <div class="row">
+                <h2 class="mb-3 font-weight-bold col-lg-12">Offers : </h2>
+                <br />
+                <div class="col-lg-12 overflow-auto">
+                  <table class="table table-hover table-bordered">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th style="width: 150px" scope="col">Product ID</th>
+                        <th style="width: 100px" scope="col">Start Date</th>
+                        <th style="width: 100px" scope="col">End Date</th>
+                        <th style="width: 100px" scope="col">Discount</th>
+                        <th style="width: 150px" scope="col">Minimum Quantity</th>
+                        <th style="width: 150px" scope="col">Force Ending</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background-color: white">
+                      {% autoescape off %}
+                        {{offerTableHTML}}
+                      {% endautoescape %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <button data-toggle="modal" data-target="#addOffer" type="button" class="btn btn-dark">Create New Offer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id='advertForm'>
+          <div class="container d-flex justify-content-center">
+            <div class="col-lg-12">
+              <div class="row">
+                <h2 class="mb-3 font-weight-bold col-lg-12">Advertisements : </h2>
+                <br />
+                <div class="col-lg-12 overflow-auto">
+                  <table class="table table-hover table-bordered">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th style="width: 150px; vertical-align: middle" scope="col">Product ID</th>
+                        <th style="width: 100px; vertical-align: middle" scope="col">Start Date</th>
+                        <th style="width: 100px; vertical-align: middle" scope="col">End Date</th>
+                        <th style="width: 75px; vertical-align: middle" scope="col">Cost</th>
+                        <th style="width: 300px; vertical-align: middle" scope="col">Picture</th>
+                        <th style="width: 150px; vertical-align: middle" scope="col">Force Ending</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background-color: white">
+                      {% autoescape off %}
+                        {{advertTableHTML}}
+                      {% endautoescape %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end">
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <button data-toggle="modal" data-target="#addAdvert" type="button" class="btn btn-dark">Create New Advertisement</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id='walletForm'>
+          <div class="container d-flex justify-content-center">
+            <div class="col-lg-12">
+              <div class="row">
+                <h2 class="mb-3 font-weight-bold">Transactions : </h2>
+                <br />
+                <div class="col-lg-12 overflow-auto">
+                  <table class="table table-hover table-bordered">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th style="width: 70px" scope="col">Transaction ID</th>
+                        <th style="width: 100px" scope="col">Date</th>
+                        <th style="width: 100px" scope="col">Type</th>
+                        <th style="width: 100px" scope="col">Amount</th>
+                        <th style="width: 100px" scope="col">Service Charge</th>
+                      </tr>
+                    </thead>
+                    <tbody style="background-color: white">
+                      {% autoescape off %}
+                        {{walletTableHTML}}
+                      {% endautoescape %}
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-lg-12">
+                  <div class="d-flex justify-content-end">
+                    <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Balance : {{accountBalance}}</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addOffer" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Create New Offer</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form class="mt-3" method="POST">
+          {% csrf_token %}
+          <div class="modal-body">
+            <label for="productID"><strong>Product ID : &nbsp;</strong></label>
+            <input type="number" id="productID" name="productID" required=""><br /> <br />
+            <label for="startDate"><strong>Start Date : &nbsp;</strong></label>
+            <input type="date" id="startDate" name="startDate" required=""><br /> <br />
+            <label for="endDate"><strong>End Date : &nbsp;</strong></label>
+            <input type="date" id="endDate" name="endDate" required=""> <br /> <br />
+            <label for="discount"><strong>Percentage Discount : &nbsp;</strong></label>
+            <input step="0.01" min="0" max="100" type="number" id="discount" name="discount" required=""><br /> <br />
+            <label for="minQuan"><strong>Minimum Quantity Purchased : &nbsp;</strong></label>
+            <input min="1" max="100" type="number" id="minQuan" name="discount"><br /> <br />
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Confirm</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <input type="hidden" name="formIdentity" value="addOfferForm">
+          </div>
+        </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addAdvert" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      {% if buyAdvert %}
+        <div class="modal-header" style="background-color: #114f25;">
+          <h4 class="modal-title" style="color:white"><strong>Buy New Advertisement</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
         <form class="mt-3" method="POST" enctype="multipart/form-data">
           {% csrf_token %}
-            <label class="col-lg-2 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
-            <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myProducts" type="radio" name="radioButton" value="myProducts"> Products</label>
-            <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myOffers" type="radio" name="radioButton" value="myOffers"> Offers</label>
-            <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myAdverts" type="radio" name="radioButton" value="myAdverts"> Advertisements</label>
-            <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myWallet" type="radio" name="radioButton" value="myWallet"> Wallet</label>
-            <br />
-            <br />
-            <div id='basicInfoForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-8">
-                  <div class="row">
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Basic Info : </h2>
-                  <div class="col-lg-12">
-      				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
-          			  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
-                    </div>
-                  </div>
-                  <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
-                  <div class="col-lg-12">
-        			     <h6 class="mb-3 font-weight-bold">Personal: </h6>
-            		  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-            		    <div class="form-group">
-                      <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
-                    </div>
-            		  </div>
-          			  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-          			    <div class="form-group">
-                      <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
-                    </div>
-          			  </div>
-          			  <div class="col-lg-12">
-          		      <h6 class="mb-3 font-weight-bold">Address: </h6>
-          			  </div>
-                  <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerRoad" class="form-control" type="text" placeholder="Road">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
-                     </div>
-                   </div>
-                   <div class="col-lg-12">
-                     <div class="form-group">
-                       <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
-                     </div>
-                   </div>
-                   <div class="col-lg-12">
-           		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
-           			   </div>
-                 </div>
-                </div>
-              </div>
-            </div>
-
-            <div id='productsForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-12">
-                  <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Products : </h2>
-                    <br />
-                    <div class="col-lg-12 overflow-auto">
-                      <table class="table table-hover table-bordered">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th style="width: 150px; vertical-align: middle" scope="col">ID</th>
-                            <th style="width: 200px; vertical-align: middle" scope="col">Name</th>
-                            <th style="width: 150px; vertical-align: middle" scope="col">Category</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">In Stock</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">Sold Amount</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">Edit Details</th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: white">
-                          {% autoescape off %}
-                            {{productTableHTML}}
-                          {% endautoescape %}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="d-flex justify-content-end">
-                    <div class="col-lg-6">
-            			    <div class="form-group">
-                        <a href="{% url 'product:additem' %}">
-                          <button type="button" class="btn btn-dark">Add New Product</button>
-                        </a>
-                      </div>
-            			  </div>
-          			  </div>
-                </div>
-              </div>
-            </div>
-
-            <div id='offersForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-12">
-                  <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Offers : </h2>
-                    <br />
-                    <div class="col-lg-12 overflow-auto">
-                      <table class="table table-hover table-bordered">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th style="width: 150px" scope="col">Product ID</th>
-                            <th style="width: 100px" scope="col">Start Date</th>
-                            <th style="width: 100px" scope="col">End Date</th>
-                            <th style="width: 100px" scope="col">Discount</th>
-                            <th style="width: 150px" scope="col">Minimum Quantity</th>
-                            <th style="width: 150px" scope="col">Force Ending</th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: white">
-                          {% autoescape off %}
-                            {{offerTableHTML}}
-                          {% endautoescape %}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="d-flex justify-content-end">
-                    <div class="col-lg-6">
-                      <div class="form-group">
-                        <a href="{% url 'product:addoffer' %}">
-                          <button type="button" class="btn btn-dark">Add New Offer</button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div id='advertForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-12">
-                  <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Advertisements : </h2>
-                    <br />
-                    <div class="col-lg-12 overflow-auto">
-                      <table class="table table-hover table-bordered">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th style="width: 150px; vertical-align: middle" scope="col">Product ID</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">Start Date</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">End Date</th>
-                            <th style="width: 75px; vertical-align: middle" scope="col">Cost</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">Display Preference</th>
-                            <th style="width: 300px; vertical-align: middle" scope="col">Picture</th>
-                            <th style="width: 150px; vertical-align: middle" scope="col">Force Ending</th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: white">
-                          {% autoescape off %}
-                            {{advertTableHTML}}
-                          {% endautoescape %}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="d-flex justify-content-end">
-                    <div class="col-lg-6">
-                      <div class="form-group">
-                        <a href="{% url 'product:addoffer' %}">
-                          <button type="button" class="btn btn-dark">Add New Advertisement</button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div id='walletForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-12">
-                  <div class="row">
-                    <h2 class="mb-3 font-weight-bold">Transactions : </h2>
-                    <br />
-                    <div class="col-lg-12 overflow-auto">
-                      <table class="table table-hover table-bordered">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th style="width: 70px" scope="col">Transaction ID</th>
-                            <th style="width: 100px" scope="col">Date</th>
-                            <th style="width: 100px" scope="col">Type</th>
-                            <th style="width: 100px" scope="col">Amount</th>
-                            <th style="width: 100px" scope="col">Service Charge</th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: white">
-                          {% autoescape off %}
-                            {{walletTableHTML}}
-                          {% endautoescape %}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div class="col-lg-12">
-                      <div class="d-flex justify-content-end">
-                        <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Balance : {{accountBalance}}</h5>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="modal-body" style="padding-top: 0px;">
+            <span style="color: #d9534f;">
+              <strong>
+                Cost of Advertisement : <span style="font-size:25px">৳</span> {{advertCost}}  <br />
+                Advertisement will be set for 30 days starting from today
+              </strong>
+            </span><br /> <br />
+            <label for="advertproductID"><strong>Product ID : &nbsp;</strong></label>
+            <input type="number" id="advertproductID" name="productID" required=""><br /> <br />
+            <label for="advertImageInput"><strong>Picture : &nbsp;</strong></label>
+            <input type='file' accept='image/*' name='advertImage' id="advertImageInput" onchange="uploadPicture(event)" required=""/>
+            <img id="advertImage" src="#" alt="your image" />
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Confirm</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <input type="hidden" name="formIdentity" value="addAdvertForm">
+          </div>
         </form>
-      </div>
+      {% else %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Not Enough Balance</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <strong>
+            Your wallet balance must be at least
+            <span style="font-size:25px">৳</span>
+            {{advertCost}} to buy an advertisement
+          </strong>
+        </div>
+        <div class="modal-footer">
+          <span>
+            <button style="margin-left: 0px; margin-bottom: 0px" type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+          </span>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

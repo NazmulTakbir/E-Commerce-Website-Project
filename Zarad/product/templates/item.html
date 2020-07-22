@@ -19,12 +19,12 @@ Item
   <div class="jumbotron jumbotron-fluid" style="margin-bottom: 10px; padding-bottom: 10px; padding-top: 10px">
     <div class="container">
       <h1 style="color: #292b2c"><strong>{{productName}}</strong></h1>
-      <p style="color: #0275d8" class="lead"><strong>{{productCategory}} </strong> </p>
-      <p><small>Product ID : {{productID}}</small></p>
+      <span style="color: #0275d8"><strong>{{productCategory}} </strong> </span><br />
+      <small>Product ID : {{productID}}</small>
     </div>
   </div>
-  <div class="row" style="padding-top: 20px; padding-bottom: 50px;">
-    <div class="col-md-6 col-lg-6" style="margin-bottom: 20px">
+  <div class="row d-flex justify-content-center" style="padding-top: 20px; padding-bottom: 50px;">
+    <div class="col-md-6 col-lg-6" style="margin-bottom: 20px;">
       <div class="carousel slide" data-ride="carousel" id="carousel-1" data-interval="5000">
         <div class="carousel-inner" role="listbox">
           {% autoescape off %}
@@ -47,25 +47,32 @@ Item
         </ol>
       </div>
     </div>
-    <div class="col-md-6 col-lg-6">
+    <div class="col-md-5 col-lg-5">
       <div class="card">
         <div class="card-body">
           <ul class="list-group">
-            <li class="list-group-item">
+            <li class="list-group-item" style="padding-top: 7px; padding-bottom: 7px">
               <h5> Rating: </h5>
               {% autoescape off %}
                 {{ratingHTML}}
               {% endautoescape %}
             </li>
-            <li class="list-group-item">
+            <li class="list-group-item" style="padding-top: 7px; padding-bottom: 7px">
               <h5>Seller Name</h5>
               <h4 style="color: #0275d8"><strong>{{sellerName}}</strong></h4>
             </li>
-            <li class="list-group-item">
+            <li class="list-group-item" style="padding-top: 7px; padding-bottom: 7px">
+              <h5>Price :
+                <span style="color: #e39629">
+                  <strong><span style="font-size:25px"> ৳</span>{{price}}</strong>
+                </span>
+              </h5>
+            </li>
+            <li class="list-group-item" style="padding-top: 7px; padding-bottom: 7px">
               <h5>Approximate Delivery Time</h5>
               <h4 style="color: #5cb85c"><strong>{{deliveryTime}} days</strong></h4>
             </li>
-            <li class="list-group-item">
+            <li class="list-group-item" style="padding-top: 7px; padding-bottom: 7px">
               <h5>In Stock</h5>
               {% autoescape off %}
                 {{inStockHTML}}
@@ -121,8 +128,6 @@ Item
     </div>
   </div>
   <br />
-  <br />
-  <br />
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="card">
@@ -139,60 +144,78 @@ Item
       </div>
     </div>
   </div>
-  {% if iscustomerlogin %}
-    <div class="row" style="margin-top:25px;">
-      <div class="col-md-12 col-lg-12 d-flex justify-content-end">
-        <button data-toggle="modal" data-target="#exampleModal" class="btn btn-light" style="border-color: #114f25; background-color: #114f25; color:white; font-weight: bold;" type="button">Add Review</button>
-      </div>
+  <div class="row" style="margin-top:25px;">
+    <div class="col-md-12 col-lg-12 d-flex justify-content-end">
+      <button data-toggle="modal" data-target="#exampleModal" class="btn btn-light" style="border-color: #114f25; background-color: #114f25; color:white; font-weight: bold;" type="button">Add Review</button>
     </div>
-  {% endif %}
+  </div>
 </div>
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header" style="background-color: #114f25">
-        <h4 class="modal-title" id="exampleModalLabel" style="color: white"><strong>Review</strong></h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form class="mt-3" method="POST">
-        {% csrf_token %}
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-lg-12">
-              <h6 style="margin-bottom: 0px" class="mb-3 font-weight-bold">Comment : </h6>
-            </div>
-            <div class="col-lg-12">
-              <div class="form-group">
-                <textarea maxlength="1200" class="form-control" rows="4" name="reviewDescription" id="reviewDescription"></textarea>
-              </div>
-            </div>
+      {% if iscustomerlogin %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" id="exampleModalLabel" style="color: white"><strong>Review</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form class="mt-3" method="POST">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="row">
               <div class="col-lg-12">
-                <h6 style="margin-bottom: 0px" class="mb-3 font-weight-bold">Rating : </h6>
+                <h6 style="margin-bottom: 0px" class="mb-3 font-weight-bold">Comment : </h6>
               </div>
-            <div class="col-lg-12">
-              <fieldset class="rating">
-                <input type="radio" id="star5" name="starRating" value="5" />
-                <label for="star5">5 stars</label>
-                <input type="radio" id="star4" name="starRating" value="4" />
-                <label for="star4">4 stars</label>
-                <input type="radio" id="star3" name="starRating" value="3" checked/>
-                <label for="star3">3 stars</label>
-                <input type="radio" id="star2" name="starRating" value="2" />
-                <label for="star2">2 stars</label>
-                <input type="radio" id="star1" name="starRating" value="1" />
-                <label for="star1">1 star</label>
-            </fieldset>
+              <div class="col-lg-12">
+                <div class="form-group">
+                  <textarea maxlength="1200" class="form-control" rows="4" name="reviewDescription" id="reviewDescription"></textarea>
+                </div>
+              </div>
+                <div class="col-lg-12">
+                  <h6 style="margin-bottom: 0px" class="mb-3 font-weight-bold">Rating : </h6>
+                </div>
+              <div class="col-lg-12">
+                <fieldset class="rating">
+                  <input type="radio" id="star5" name="starRating" value="5" />
+                  <label for="star5">5 stars</label>
+                  <input type="radio" id="star4" name="starRating" value="4" />
+                  <label for="star4">4 stars</label>
+                  <input type="radio" id="star3" name="starRating" value="3" checked/>
+                  <label for="star3">3 stars</label>
+                  <input type="radio" id="star2" name="starRating" value="2" />
+                  <label for="star2">2 stars</label>
+                  <input type="radio" id="star1" name="starRating" value="1" />
+                  <label for="star1">1 star</label>
+              </fieldset>
+              </div>
             </div>
           </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Submit</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <input type="hidden" name="formIdentity" value="reviewForm">
+          </div>
+        </form>
+      {% else %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Please Login</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          You must be logged in as a customer to perform this action
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Submit</button>
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-          <input type="hidden" name="formIdentity" value="reviewForm">
+          <span>
+            <a style="text-decoration: none;" href="{% url 'accounts:login' %}" target="_blank">
+              <button style="margin-right: 0px; margin-bottom: 0px" type="submit" class="btn btn-success">Login</button>
+            </a>
+            <button style="margin-left: 0px; margin-bottom: 0px" type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </span>
         </div>
-      </form>
+      {% endif %}
     </div>
   </div>
 </div>
