@@ -11,19 +11,20 @@ Item
 <link rel="stylesheet" href="{% static 'css/Community-ChatComments.css' %}">
 <link rel="stylesheet" href="{% static 'css/elegant_registration_form.css' %}">
 <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 {%endblock%}
 
 {% block content %}
 <div class="container" style="padding-top: 20px;">
   <div class="jumbotron jumbotron-fluid" style="margin-bottom: 10px; padding-bottom: 10px; padding-top: 10px">
     <div class="container">
-      <h1><strong>{{productName}}</strong></h1>
-      <p class="lead"><strong>{{productDescription}} </strong> </p>
-      <p class="lead"><strong>{{productCategory}}</strong></p>
+      <h1 style="color: #292b2c"><strong>{{productName}}</strong></h1>
+      <p style="color: #0275d8" class="lead"><strong>{{productCategory}} </strong> </p>
+      <p><small>Product ID : {{productID}}</small></p>
     </div>
   </div>
   <div class="row" style="padding-top: 20px; padding-bottom: 50px;">
-    <div class="col-md-5 col-lg-5" style="margin-bottom: 20px">
+    <div class="col-md-6 col-lg-6" style="margin-bottom: 20px">
       <div class="carousel slide" data-ride="carousel" id="carousel-1" data-interval="5000">
         <div class="carousel-inner" role="listbox">
           {% autoescape off %}
@@ -46,7 +47,7 @@ Item
         </ol>
       </div>
     </div>
-    <div class="col-md-7 col-lg-7">
+    <div class="col-md-6 col-lg-6">
       <div class="card">
         <div class="card-body">
           <ul class="list-group">
@@ -70,6 +71,12 @@ Item
                 {{inStockHTML}}
               {% endautoescape %}
             </li>
+            <li style="padding: 5px; list-style-type:none;">
+              <div style="text-align: center; vertical-align: middle; ">
+                <button data-toggle="modal" data-target="#buyNowModal" style="margin-top: 5px; margin-bottom: 5px; font-size:20px" type="button" class="btn btn-success">Buy Now &nbsp;&nbsp;<i class="fa fa-gift fa-lg" aria-hidden="true"></i></button>
+                <button data-toggle="modal" data-target="#addToCart" style="margin-top: 5px; margin-bottom: 5px; font-size:20px" type="button" class="btn btn-info">Add to Cart &nbsp;&nbsp;<i class="fa fa-shopping-cart fa-lg" aria-hidden="true"></i></button>
+              </div>
+            </li>
           </ul>
         </div>
       </div>
@@ -80,6 +87,10 @@ Item
       <div class="card">
         <div class="card-body">
           <ul class="list-group">
+            <li class="list-group-item">
+              <h5> Description: </h5>
+              {{productDescription}}
+            </li>
             <li class="list-group-item">
               <h5> Features: </h5>
               <ul>
@@ -92,7 +103,7 @@ Item
         </div>
       </div>
     </div>
-    <div style="display: {{offerDisplay}}" class="col-md-6 col-lg-6">
+    <div style="display: {{offerDisplay}}" class="col-md-12 col-lg-12">
       <div class="card">
         <div class="card-body">
           <ul class="list-group">
@@ -179,8 +190,97 @@ Item
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Submit</button>
           <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          <input type="hidden" name="formIdentity" value="reviewForm">
         </div>
       </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="buyNowModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      {% if iscustomerlogin %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Confirm Order</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form class="mt-3" method="POST">
+          {% csrf_token %}
+          <div class="modal-body">
+            <label for="orderQuantity"><strong>No. of Units : &nbsp;</strong></label>
+            <input style="width: 120px;" type="number" id="orderQuantity" name="orderQuantity" min="1" max="{{inStock}}" oninput="validity.valid||(value='');" required="">
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Confirm</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <input type="hidden" name="formIdentity" value="orderForm">
+          </div>
+        </form>
+      {% else %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Please Login</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          You must be logged in as a customer to perform this action
+        </div>
+        <div class="modal-footer">
+          <span>
+            <a style="text-decoration: none;" href="{% url 'accounts:login' %}" target="_blank">
+              <button style="margin-right: 0px; margin-bottom: 0px" type="submit" class="btn btn-success">Login</button>
+            </a>
+            <button style="margin-left: 0px; margin-bottom: 0px" type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="addToCart" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      {% if iscustomerlogin %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Add to Cart</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form class="mt-3" method="POST">
+          {% csrf_token %}
+          <div class="modal-body">
+            <label for="orderQuantity"><strong>No. of Units : &nbsp;</strong></label>
+            <input style="width: 120px;" type="number" id="cartQuantity" name="cartQuantity" min="1" max="{{inStock}}" oninput="validity.valid||(value='');" required="">
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Confirm</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+            <input type="hidden" name="formIdentity" value="cartForm">
+          </div>
+        </form>
+      {% else %}
+        <div class="modal-header" style="background-color: #114f25">
+          <h4 class="modal-title" style="color:white"><strong>Please Login</strong></h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          You must be logged in as a customer to perform this action
+        </div>
+        <div class="modal-footer">
+          <span>
+            <a style="text-decoration: none;" href="{% url 'accounts:login' %}" target="_blank">
+              <button style="margin-right: 0px; margin-bottom: 0px" type="submit" class="btn btn-success">Login</button>
+            </a>
+            <button style="margin-left: 0px; margin-bottom: 0px" type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </span>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

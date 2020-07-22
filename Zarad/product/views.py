@@ -75,11 +75,15 @@ def item_page(request, product_id, seller_id):
             iscustomerlogin = True
 
     if request.method == 'POST':
-        rating = int( request.POST.get("starRating") )
-        reviewDescription = request.POST.get("reviewDescription")
+        formIdentity = request.POST.get('formIdentity')
+        if formIdentity == 'orderForm':
+            orderQuantity = int( request.POST.get('orderQuantity') )
+        elif formIdentity == 'reviewForm':
+            rating = int( request.POST.get("starRating") )
+            reviewDescription = request.POST.get("reviewDescription")
+        elif formIdentity == 'cartForm':
+            cartQuantity = int( request.POST.get('cartQuantity') )
 
-
-    # TODO FOR NAWMI
     productName = 'trimmer'
     productDescription = 'sth'
     productCategory = 'sth'
@@ -145,13 +149,14 @@ def item_page(request, product_id, seller_id):
             for j in range(1, review[1]+1):
                 starHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
             for j in range(review[1]+1, 6):
-                starHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
+                starHTML += '<li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
             reviewsHTML += """<li class="list-group-item">
                                 <h6 class="card-title" style="color: #0275d8">{}</h6>
                                 <p class="card-text" style="margin-bottom: 2px;">{}</p>
                                 <ul class="rating" style="padding-left: 0;">
                                     {}
                                 </ul>
+                                <br />
                                 <small class="text-muted">{}</small>
                               </li>""".format(review[0], review[2], starHTML, review[3])
 
@@ -174,7 +179,7 @@ def item_page(request, product_id, seller_id):
             'featureListHTML': featureListHTML, 'offerListHTML': offerListHTML, 'ratingHTML': ratingHTML,
             'sellerName': sellerName, 'inStockHTML': inStockHTML, 'deliveryTime': deliveryTime,
             'offerDisplay': offerDisplay, 'reviewsHTML': reviewsHTML, 'productImageHTML': productImageHTML,
-            'productImageHTML2': productImageHTML2}
+            'productImageHTML2': productImageHTML2, 'productID': product_id, 'inStock': inStock}
 
     return render(request, 'item.html', data)
 

@@ -299,14 +299,19 @@ def logout_page(request):
         return HttpResponseRedirect(reverse('home_page'))
     else:
         return HttpResponseRedirect(reverse('home_page'))
+
 def accountBalance(email, type):
     with connections['oracle'].cursor() as cursor:
-        if type == customer:
+        if type == 'customer':
             cursor.execute("SELECT WALLET_BALANCE(CUSTOMER_ID , 'CUSTOMER') FROM CUSTOMER WHERE EMAIL_ID = :email", {'email':email})
-            return cursor.fetchall()[0][0]
-        elif type == seller:
-            cursor.execute("SELECT WALLET_BALANCE(SELER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
-            return cursor.fetchall()[0][0]
+            balance = cursor.fetchall()[0][0]
+            if balance == None:
+                return 0
+        elif type == 'seller':
+            cursor.execute("SELECT WALLET_BALANCE(SELLER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
+            balance = cursor.fetchall()[0][0]
+            if balance == None:
+                return 0
 
 def myaccount(request):
     isloggedin = False
@@ -321,19 +326,33 @@ def myaccount(request):
             returnOrderHTML = orderTableHTML[1]
             walletTableHTML = generateWalletTableHTMLCustomer(request)
             reviewTableHTML = genrateReviewTableHTML(request)
-            accountBalance = accountBalance(request.session['useremail'], acType)
-            return render(request, 'customerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML, 'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML, 'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML, 'accountBalance': accountBalance})
+            acBal = accountBalance(request.session['useremail'], acType)
+
+            data = {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML,
+                    'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML,
+                    'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML,
+                    'accountBalance': acBal}
+
+            return render(request, 'customerAccount.html', data)
+
         elif acType == 'seller':
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
             advertTableHTML = generateAdvertTableHTML(request)
             walletTableHTML = generateWalletTableHTML(request)
-            accountBalance =accountBalance(request.session['useremail'], acType)
-            return render(request, 'sellerAccount.html', {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML, 'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML, 'walletTableHTML': walletTableHTML, 'accountBalance': accountBalance})
+            acBal = accountBalance(request.session['useremail'], acType)
+
+            data = {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML,
+                    'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML,
+                    'walletTableHTML': walletTableHTML, 'accountBalance': acBal}
+
+            return render(request, 'sellerAccount.html', data)
+
         elif acType == 'deliveryGuy':
             deliveredItemHTML = generateDeliveredItemHTML(request)
             pendingDeliveryItemHTML = generatePendingDeliveryHTML(request)
             return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType, 'deliveredItemHTML': deliveredItemHTML, 'pendingDeliveryItemHTML': pendingDeliveryItemHTML})
+
         elif acType == 'customerCare':
             managedComplaintsHTML = generateManagedComplaintsHTML(request)
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
@@ -345,7 +364,6 @@ def myaccount(request):
         return HttpResponseRedirect(reverse('home_page'))
 
 def generateProductTableHTML(request):
-    # TODO prod id name category in stock sold amount
     with connections['oracle'].cursor() as cursor:
         query = """SELECT PRODUCT_ID, NAME, CATEGORY_NAME,IN_STOCK,SOLD_AMOUNT FROM
                     (SELECT Q.PRODUCT_ID, Q.NAME, CATEGORY_NAME ,COUNT(T.PRODUCT_ID)IN_STOCK
@@ -363,8 +381,10 @@ def generateProductTableHTML(request):
                     ON(P.PRODUCT_ID = S.PRODUCT_ID AND S.STATUS = 'Sold')
                     GROUP BY P.PRODUCT_ID)
                     USING(PRODUCT_ID);"""
+
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
+
         products = []
         for i in range(len(table)):
             temp= []
@@ -372,11 +392,8 @@ def generateProductTableHTML(request):
                 temp.append(table[i][j])
             products.append(temp)
 
-        sellerID = 1
-        products = [ [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
-                     [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
-                     [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100],
-                     [123451234512345, '3 in 1 Electric Trimmer For Men', 'Men\'s Fashion', 12, 100] ]
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {'email':request.session['useremail']})
+        sellerID = cursor.fetchall()[0][0]
 
         result = ""
         if( len(products)==0 ):
@@ -408,26 +425,25 @@ def generateProductTableHTML(request):
         return result
 
 def generateOfferTableHTML(request):
-    # TODO prod id start date end date discount min quantity mn price
     with connections['oracle'].cursor() as cursor:
-        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, PERCENTAGE_DISCOUNT DISCOUNT , MINIMUM_QUANTITY_PURCHASED MINIMUM_QUANTITY FROM OFFER
+        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, PERCENTAGE_DISCOUNT DISCOUNT, MINIMUM_QUANTITY_PURCHASED MINIMUM_QUANTITY FROM OFFER
                    WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         offers = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             offers.append(temp)
-        sellerID = 1
-        offers = [ [123451234512345, 'Sept 31 2019', 'Oct 03 2019', 12, 0, 0],
-                   [123451234512345, 'Oct 03 2019', 'Dec 03 2019', 32, 10, 100] ]
+
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {'email':request.session['useremail']})
+        sellerID = cursor.fetchall()[0][0]
+
         result = ""
         if( len(offers)==0 ):
             result = """<tr>
                             <th scope="row"></th>
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -446,15 +462,13 @@ def generateOfferTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
                             </tr>
-                         """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], offers[i][5], endOfferButton)
+                         """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], endOfferButton)
         return result
 
 def generateAdvertTableHTML(request):
-    # TODO product id start date end date cost diplay preference picture
     with connections['oracle'].cursor() as cursor:
-        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, COST_FOR_SELLER COST, DISPLAY_PREFERENCE, PICTURE FROM  ADVERTISEMENT
+        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, COST_FOR_SELLER COST, DISPLAY_PREFERENCE, PICTURE FROM ADVERTISEMENT
                    WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
@@ -464,9 +478,10 @@ def generateAdvertTableHTML(request):
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             adverts.append(temp)
-        sellerID = 1
-        adverts = [ [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'],
-                    [123451234512345, 'Aug 31 2019', '31 Jan 2019', 2000, 1, 'picBlob'] ]
+
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {'email':request.session['useremail']})
+        sellerID = cursor.fetchall()[0][0]
+
         result = ""
         if( len(adverts)==0 ):
             result = """<tr>
@@ -523,26 +538,29 @@ def generateWalletTableHTML(request):
     return result
 
 def generateCartTableHTML(request):
-    # # TODO: # product id seller prod name sell name quantity price maximum discount
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT  PRODUCT_ID, SELLER_ID , P.NAME PRODUCT_NAME, S.NAME SELLER_NAME,QUANTITY, PRICE, COUNT(*)MAX_DISCOUNT FROM
-                    (SELECT PRODUCT_ID, SELLER_ID , QUANTITY
-                    FROM CART_ITEM
-                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)) LEFT OUTER JOIN
-                    (SELECT PRODUCT_ID,PERCENTAGE_DISCOUNT FROM OFFER) USING(PRODUCT_ID)
-                    JOIN (SELECT PRODUCT_ID , NAME, PRICE FROM PRODUCT)P USING(PRODUCT_ID)
-                    JOIN (SELECT NAME, SELLER_ID FROM SELLER)S USING (SELLER_ID)
-                    GROUP BY PRODUCT_ID, SELLER_ID , QUANTITY, PRICE, S.NAME, P.NAME"""
+        query =  """SELECT Q.PRODUCT_ID, Q.SELLER_ID, P.NAME P_NAME, S.NAME S_NAME, QUANTITY, P.PRICE, DISCOUNT  FROM
+                    ( SELECT X.PRODUCT_ID, X.SELLER_ID, QUANTITY, MAX(PERCENTAGE_DISCOUNT) DISCOUNT FROM
+                    ( SELECT PRODUCT_ID, SELLER_ID, QUANTITY FROM CART_ITEM
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) ) X
+                    LEFT OUTER JOIN
+                    (SELECT PRODUCT_ID, SELLER_ID, PERCENTAGE_DISCOUNT, MINIMUM_QUANTITY_PURCHASED FROM OFFER) Y
+                    ON (X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
+                    WHERE ( QUANTITY>=MINIMUM_QUANTITY_PURCHASED OR MINIMUM_QUANTITY_PURCHASED IS NULL )
+                    GROUP BY X.PRODUCT_ID, X.SELLER_ID, QUANTITY ) Q
+                    JOIN PRODUCT P ON ( P.PRODUCT_ID=Q.PRODUCT_ID AND P.SELLER_ID=Q.SELLER_ID )
+                    JOIN SELLER S ON ( S.SELLER_ID=Q.SELLER_ID );"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         cartItems = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
+            if temp[i][6] == None:
+                temp[i][6] = 0
             cartItems.append(temp)
-        cartItems = [ [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05],
-                      [1, 2, 'Trimmer', 'Gilette', 2, 1000, 0.05] ]
+
         result = ""
         if( len(cartItems)==0 ):
             result = """<tr>
@@ -558,7 +576,7 @@ def generateCartTableHTML(request):
         else:
             for i in range( len(cartItems) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
-                totalPrice = cartItems[i][5]*cartItems[i][4] * (1-cartItems[i][6])
+                totalPrice = cartItems[i][5]*cartItems[i][4] * (1-cartItems[i][6]/100)
                 orderButton = """<a href={}>
                                     <button type="button" class="btn btn-success" style="margin: 5px">Order</button>
                                 </a>
@@ -580,14 +598,13 @@ def generateCartTableHTML(request):
         return result
 
 def generateOrderTableHTML(request):
-    # TODO prod id order date payment method status expected delivery date delivereddate deliver guy ph no
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS,MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER)
+        query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER)
                     EXPECTED_DELIVERY_DATE, DELIVERED_DATE, PHONE_NUMBER DELIVERY_GUY_NUMBER FROM
-                    CUSTOMER_ORDER  JOIN PURCHASE_ORDER P USING(ORDER_ID)
+                    CUSTOMER_ORDER JOIN PURCHASE_ORDER P USING(ORDER_ID)
                     JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON (PH.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID)
-                    JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS) USING(ORDER_ID) JOIN
-                    (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
+                    JOIN (SELECT ORDER_ID, PRODUCT_ID, SELLER_ID FROM ORDERED_ITEMS) USING(ORDER_ID) JOIN
+                    (SELECT PRODUCT_ID, SELLER_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID, SELLER_ID)
                     WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)
                     GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, DELIVERED_DATE, PHONE_NUMBER"""
         cursor.execute(query, {'email':request.session['useremail']})
@@ -597,10 +614,11 @@ def generateOrderTableHTML(request):
             temp= []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
+            if temp[i][5] == None:
+                temp[i][5] = ''
             purchaseOrder.append(temp)
         pHTML = rHTML = ""
-        purchaseOrder = [ ['123451234512345', 'Aug 31 2019', 'Wallet', 'Delivered', 'Sept 10 2019', '9 Sept 2019', '01722345467'],
-                          ['123451234512345', 'Aug 31 2019', 'Wallet', 'Not Delivered', 'Sept 10 2019', '', '01722345467'], ]
+
         if( len(purchaseOrder)==0 ):
             pHTML = """<tr>
                             <th scope="row"></th>
@@ -633,9 +651,8 @@ def generateOrderTableHTML(request):
                             </tr>
                          """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
 
-        # TODO order id order date complaint payment status returned date custoemr care phone
-        query =  """SELECT ORDER_ID, ORDER_DATE,COMPLAINT_DES, PAYMENT_METHOD, APPROVAL_STATUS,RETURN_DATE,
-                    PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER  JOIN RETURN_ORDER P USING(ORDER_ID)
+        query =  """SELECT ORDER_ID, ORDER_DATE,COMPLAINT_DES, PAYMENT_METHOD, APPROVAL_STATUS, RETURN_DATE,
+                    PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER JOIN RETURN_ORDER P USING(ORDER_ID)
                     JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON
                     (PH.EMPLOYEE_ID = P.CUSTOMER_CARE_EMPLOYEE_ID)
                     WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
@@ -646,9 +663,10 @@ def generateOrderTableHTML(request):
             temp= []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
+            if table[i][5] == None:
+                table[i][5] = 0
             returnOrder.append(temp)
-        returnOrder = [ ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Approved', 'Oct 31 2019', '01844375468'],
-                        ['123451234512345', 'Aug 31 2019', 'Does not Work', 'Wallet', 'Not Approved', '', '01844375468'],]
+
         if( len(returnOrder)==0 ):
             rHTML = """<tr>
                             <th scope="row"></th>
@@ -710,11 +728,10 @@ def generateWalletTableHTMLCustomer(request):
     return result
 
 def genrateReviewTableHTML(request):
-    # TODO prod id seller id prod name date rating description
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT PRODUCT_ID, SELLER_ID,P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, REVIEW_DATE, RATING,
-                    DESCRIPTION FROM REVIEW JOIN (SELECT PRODUCT_ID, NAME FROM PRODUCT)P USING (PRODUCT_ID)
-                    JOIN (SELECT SELLER_ID, NAME FROM SELLER)S USING (SELLER_ID)
+        query =  """SELECT PRODUCT_ID, SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, REVIEW_DATE, RATING,
+                    DESCRIPTION FROM REVIEW JOIN (SELECT PRODUCT_ID, SELLER_ID, NAME FROM PRODUCT) P
+                    USING (PRODUCT_ID, SELLER_ID) JOIN (SELECT SELLER_ID, NAME FROM SELLER) S USING (SELLER_ID)
                     WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
@@ -723,9 +740,10 @@ def genrateReviewTableHTML(request):
             temp= []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
+            if temp[i][6] == None:
+                temp[i][6] = ''
             reviews.append(temp)
-        reviews = [ [123451234512345, 123451234512345, 'Trimmer', 'Philips', 'Aug 31 2019', 4, 'Battery Does Not Last Long'],
-                    [123451234512345, 123451234512345, 'Trimmer', 'Philips',  'Aug 31 2019', 5, 'Perfect. Changed My Life'] ]
+
         result = ""
         if( len(reviews)==0 ):
             result = """<tr>
