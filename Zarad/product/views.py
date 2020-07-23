@@ -10,6 +10,29 @@ from django.conf import settings
 import threading
 import math
 import io
+import random
+
+def getAdverts(request):
+    query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
+               WHERE END_DATE>SYSDATE"""
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        imagePaths = []
+        for result in results:
+            imagePath = "http://{}/static/images/productImages/advert{}_{}_{}.jpg".format(request.META['HTTP_HOST'], result[0], result[1], result[2])
+            imageFile = open(settings.BASE_DIR+"\\static\\images\\productImages\\advert{}_{}_{}.jpg".format(result[0], result[1], result[2]),'wb')
+            imageFile.write( result[3].read() )
+            imageFile.close()
+            imagePaths.append(imagePath)
+        if len(imagePaths)<4:
+            placeHolder = "http://{}/static/images/productImages/{}".format(request.META['HTTP_HOST'], 'advertisementPlaceholder.jpg')
+            imagePaths.append(placeHolder)
+        adverts = []
+        for i in range(8):
+            index = random.randrange(0, len(imagePaths))
+            adverts.append(imagePaths[index])
+        return adverts
 
 def ratingUtility(num):
     if num<=0:
@@ -169,6 +192,8 @@ def item_page(request, product_id, seller_id):
             temp = []
             for j in range(len(result[i])):
                 temp.append(result[i][j])
+            if temp[2] == None:
+                temp[2] = ''
             reviews.append(temp)
         query = """SELECT PICTURE FROM PRODUCT_PICTURE WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id )"""
         cursor.execute(query, data)
@@ -379,6 +404,8 @@ def search_result(request, search_string):
         isloggedin = True
         acType = accountType(request.session['useremail'])
 
+    adverts = getAdverts(request)
+
     if search_string.startswith('category_') and len(search_string)>len('category_'):
         category = search_string[len('category_'):]
         temp = ''
@@ -428,22 +455,30 @@ def search_result(request, search_string):
             words = ' '.join(words)
 
             productHTML = loadProductData(request, products)
-            return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": words} )
+            data = {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML,
+                    'searchString': words, 'showOffersOnly': True, 'advert1': adverts[0],
+                    'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+                    'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+                    'advert8': adverts[7]}
+            return render(request, 'search_result.html', data )
 
     elif search_string == 'Offers_Only':
-        query =  """SELECT W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE,
-                    W.SELLER_NAME,  W.MAX_DISCOUNT
+        query =  """SELECT * FROM
+                    ( SELECT W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME, W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE,
+                    W.SELLER_NAME, W.MAX_DISCOUNT
                     FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                     FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
                     FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
                     LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = A.SELLER_ID)
                     GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
-                    LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                    WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
-                    GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
+                    JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
+                    WHERE Y.END_DATE >= SYSDATE
+                    GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING) W
                     LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                     LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
-                    WHERE ROWNUM <= 80 AND MAX_DISCOUNT IS NOT NULL"""
+                    WHERE W.MAX_DISCOUNT IS NOT NULL
+                    ORDER BY W.MAX_DISCOUNT DESC )
+                    WHERE ROWNUM <= 80"""
         with connections['oracle'].cursor() as cursor:
             cursor.execute(query)
             table = cursor.fetchall()
@@ -452,9 +487,18 @@ def search_result(request, search_string):
                 temp= []
                 for j in range(len(table[i])):
                     temp.append(table[i][j])
+                if temp[3] == None:
+                    temp[3] = 0
+                if temp[5] == None:
+                    temp[5] = temp[4]
                 products.append(temp)
         productHTML = loadProductData(request, products)
-        return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": search_string} )
+        data = {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML,
+                'searchString': words, 'showOffersOnly': False, 'advert1': adverts[0],
+                'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+                'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+                'advert8': adverts[7]}
+        return render(request, 'search_result.html', data )
 
     words = []
     for i in search_string.split('_'):
@@ -463,7 +507,7 @@ def search_result(request, search_string):
     words = ' '.join(words)
 
     query =  """SELECT * FROM
-                (SELECT GREATEST(STRING_SIMILARITY(W.PRODUCT_NAME,:words) , STRING_SIMILARITY(W.SELLER_NAME, :words))AS MAX_SCORE,W.PRODUCT_ID,
+                (SELECT GREATEST(STRING_SIMILARITY(:words, W.PRODUCT_NAME) , STRING_SIMILARITY(:words, W.SELLER_NAME))AS MAX_SCORE,W.PRODUCT_ID,
                 W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE, W.SELLER_NAME,  W.MAX_DISCOUNT
                 FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
                 FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
@@ -495,7 +539,12 @@ def search_result(request, search_string):
             products.append(temp)
 
     productHTML = loadProductData(request, products)
-    return render(request, 'search_result.html', {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML, "searchString": words} )
+    data = {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML,
+            'searchString': words, 'showOffersOnly': True, 'advert1': adverts[0],
+            'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+            'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+            'advert8': adverts[7]}
+    return render(request, 'search_result.html', data )
 
 def loadProductData(request, products):
     total = len(products)
@@ -512,6 +561,7 @@ def loadProductData(request, products):
             sellerName = sellerName[:18] + "..."
         ratingHTML = ""
 
+        rating = float(products[i][3])
         starCount = round(float(products[i][3]))
         for j in range(1, starCount+1):
             ratingHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
@@ -521,7 +571,7 @@ def loadProductData(request, products):
         image1Path = "http://{}/static/images/productImages/{}_{}_1.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
         image2Path = "http://{}/static/images/productImages/{}_{}_2.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
 
-        productHTML += htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount)
+        productHTML += htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating)
 
         imageFile1 = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_1.jpg".format(products[i][0], products[i][1]),'wb')
         imageFile2 = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_2.jpg".format(products[i][0], products[i][1]),'wb')
@@ -534,14 +584,19 @@ def loadProductData(request, products):
 
     return productHTML
 
-def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount):
+def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating):
     showDiscount = 'none'
+    hasOffer = "no"
     if productDiscount > 0:
         showDiscount = 'inline'
+        hasOffer = "yes"
     ratingVisibility = 'visible'
     if starCount == 0:
         ratingVisibility = 'hidden'
     return """<div class="productItems col-lg-3 col-md-6 col-sm-6" id="product{}" style="display: none; margin-bottom: 20px;">
+        <label class="searchRank" style="display:none">{}</label>
+        <label class="productRatings" style="display:none">{}</label>
+        <label class="hasOffer" style="display:none">{}</label>
         <div class="product-grid7" style="background-color: white; padding: 5px">
           <div class="product-image7">
             <a href="{}">
@@ -563,4 +618,4 @@ def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sel
             </ul>
           </div>
         </div>
-      </div>""".format(i, productURL, image1Path, image2Path, productURL, productName, sellerName, productPrice, showDiscount, productDiscount, ratingVisibility, ratingHTML) + "\n"
+      </div>""".format(i, i, rating, hasOffer, productURL, image1Path, image2Path, productURL, productName, sellerName, productPrice, showDiscount, productDiscount, ratingVisibility, ratingHTML) + "\n"

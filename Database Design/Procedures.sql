@@ -94,7 +94,10 @@ BEGIN
 		
 	END LOOP;
 	
-	DBMS_OUTPUT.PUT_LINE(similarity_score);
+	score := UTL_MATCH.edit_distance_similarity( search_string, product_string )/100;
+	IF score > similarity_score AND score >= 0.7 THEN
+			similarity_score := score;
+	END IF;
 	
 	RETURN similarity_score;
 END ;
@@ -153,41 +156,55 @@ BEGIN
 		WHERE CUSTOMER_ID = ID AND 
 		LOWER(PAYMENT_METHOD) = 'wallet' AND
 		ORDER_STATUS(ORDER_ID) = 'delivered';
-		balance := balance - temp;
+		IF NOT temp IS NULL THEN
+			balance := balance - temp; 
+		END IF;
 		
 		SELECT SUM(ORDER_TOTAL(ORDER_ID)) INTO temp FROM CUSTOMER_ORDER 
 		WHERE CUSTOMER_ID = ID AND 
 		LOWER(PAYMENT_METHOD) = 'wallet' AND
 		ORDER_STATUS(ORDER_ID) = 'approved';
-		balance := balance + temp;
+		IF NOT temp IS NULL THEN
+			balance := balance + temp; 
+		END IF;
 		
 		SELECT SUM(B.AMOUNT) INTO temp FROM 
 		( SELECT TRANSACTION_ID FROM CUSTOMER_WALLET_RECHARGE WHERE CUSTOMER_ID = ID ) A
 		JOIN TRANSACTIONS B USING (TRANSACTION_ID);
-		balance := balance + temp;
+		IF NOT temp IS NULL THEN
+			balance := balance + temp; 
+		END IF;
 	
 	ELSIF AC_TYPE = 'SELLER' THEN
 		
 		SELECT SUM(COST_FOR_SELLER) INTO temp FROM ADVERTISEMENT
 		WHERE SELLER_ID = ID;
-		balance := balance - temp; 
+		IF NOT temp IS NULL THEN
+			balance := balance - temp; 
+		END IF;
 		
 		SELECT SUM(B.PRICE) INTO temp FROM
 		( SELECT PRODUCT_ID, SELLER_ID FROM ORDERED_ITEMS
 			WHERE SELLER_ID = ID AND ORDER_STATUS(ORDER_ID) = 'delivered' ) A
 		JOIN PRODUCT B ON (A.PRODUCT_ID=B.PRODUCT_ID AND A.SELLER_ID=B.SELLER_ID);
-		balance := balance + temp; 
-		
+		IF NOT temp IS NULL THEN
+			balance := balance + temp; 
+		END IF;
+
 		SELECT SUM(B.PRICE) INTO temp FROM
 		( SELECT PRODUCT_ID, SELLER_ID FROM ORDERED_ITEMS
 			WHERE SELLER_ID = ID AND ORDER_STATUS(ORDER_ID) = 'approved' ) A
 		JOIN PRODUCT B ON (A.PRODUCT_ID=B.PRODUCT_ID AND A.SELLER_ID=B.SELLER_ID);
-		balance := balance - temp;
+		IF NOT temp IS NULL THEN
+			balance := balance - temp; 
+		END IF;
 		
 		SELECT SUM(B.AMOUNT) INTO temp FROM 
 		( SELECT TRANSACTION_ID FROM SELLER_TRANSACTION WHERE SELLER_ID = ID ) A
 		JOIN TRANSACTIONS B USING (TRANSACTION_ID);
-		balance := balance + temp; 
+		IF NOT temp IS NULL THEN
+			balance := balance + temp; 
+		END IF;
 		
 	END IF;
 	

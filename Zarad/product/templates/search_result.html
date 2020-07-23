@@ -24,7 +24,7 @@ Search Result
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
           <button onclick="priceLH()" class="dropdown-item" href="#">Price: Low to High</button>
           <button onclick="priceHL()" class="dropdown-item" href="#">Price: High to Low</button>
-          <button class="dropdown-item" href="#">Rating: High to Low</button>
+          <button onclick="ratingHL()" class="dropdown-item" href="#">Rating: High to Low</button>
         </div>
       </div>
       <br />
@@ -48,13 +48,15 @@ Search Result
       </div>
       <br />
       <br />
-      <h6>Offers Only: </h6>
-      <input type="radio" id="offersYes" name="offers" value="male">
-      <label for="offersYes"> Yes</label><br>
-      <input type="radio" id="offersNo" name="offers" value="female">
-      <label for="offersNo"> No</label><br>
-      <br />
-      <br />
+      {% if showOffersOnly %}
+        <h6>Offers Only: </h6>
+        <input onclick="offersOnlyFunc()" type="radio" id="offersYes" name="offersOnly" value="offersYes">
+        <label for="offersYes"> Yes</label><br>
+        <input onclick="notOffersOnlyFunc()" type="radio" id="offersNo" name="offersOnly" value="offersNo" checked>
+        <label for="offersNo"> No</label><br>
+        <br />
+        <br />
+      {% endif %}
     </div>
     <div class="col-md-8 col-lg-10">
       <h6>Search Result For: <span style="color: #0275d8">{{searchString}}</span></h6>
@@ -78,6 +80,12 @@ Search Result
         <div class="shopping-grid">
           <div class="container">
             <div class="row">
+              {% if noresult %}
+              <div class="col-lg-12" style="text-align: center; color: #292b2c">
+                <br /> <br />
+                <h5>The Search Input did not match any Product Name or Seller Name</h5>
+              </div>
+              {% endif %}
               {% autoescape off %}
                 {{productHTML}}
               {% endautoescape %}

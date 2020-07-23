@@ -506,7 +506,7 @@ def myaccount(request):
                         pass
 
                 elif formIdentity == 'withdrawForm':
-                    accountBalance = 'sth'
+                    acBal = 'sth'
                     accountID = request.POST.get('accountID')
                     withdrawAmount = request.POST.get('withdrawAmount')
                     print(accountID, withdrawAmount)

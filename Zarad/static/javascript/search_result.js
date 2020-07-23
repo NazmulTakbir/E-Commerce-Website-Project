@@ -1,6 +1,7 @@
 var displayCount;
 var nextPageFunction;
 var prevPageFunction;
+var sellerCount;
 
 window.onload=function(){
 
@@ -43,6 +44,7 @@ window.onload=function(){
       return 0;
     }
   });
+  sellerCount = sellersDict.length
   for( var i=0; i<sellersDict.length && i<5; i++ ) {
     document.getElementById( 'seller'+(i+1).toString()+'Div' ).style.display = 'block'
     document.getElementById( 'seller'+(i+1).toString() ).nextSibling.innerHTML = "&nbsp" + sellersDict[i][0]
@@ -216,12 +218,53 @@ var priceHL = function () {
   }
 }
 
+var ratingHL = function () {
+  var items = []
+  var productItems = document.getElementsByClassName('productItems');
+  var productRatings = document.getElementsByClassName('productRatings');
+  for( var i=0; i<displayCount; i++ ) {
+    items.push( [ productItems[i].innerHTML, parseFloat(productRatings[i].innerText) ] )
+  }
+  items.sort(function(x, y) {
+    if( x[1] < y[1] ) {
+      return 1
+    }
+    else if( x[1] > y[1] ) {
+      return -1;
+    }
+    else {
+      return 0;
+    }
+  });
+  for( var i=0; i<displayCount; i++ ) {
+    productItems[i].innerHTML = items[i][0]
+  }
+}
+
 var selectSeller = function () {
+  document.getElementById('offersNo').checked = true
   selectedSellerName = this.nextSibling.innerHTML.substring(6)
   if( selectedSellerName === 'All Sellers' ) {
+    items = []
     var productItems = document.getElementsByClassName('productItems');
+    var searchRanks = document.getElementsByClassName('searchRank');
     for( var i=0; i<productItems.length; i++ ) {
       productItems[i].style.display = 'none'
+      items.push( [ productItems[i].innerHTML, parseInt(searchRanks[i].innerText) ] )
+    }
+    items.sort(function(x, y) {
+      if( x[1]<y[1] ) {
+        return -1
+      }
+      else if( x[1]>y[1] ) {
+        return 1;
+      }
+      else {
+        return 0;
+      }
+    });
+    for( var i=0; i<productItems.length; i++ ) {
+      productItems[i].innerHTML = items[i][0]
     }
     displayCount = productItems.length
     displayUtil(false)
@@ -250,5 +293,42 @@ var selectSeller = function () {
       productItems[i].innerHTML = items[i][0]
     }
     displayUtil(false)
+  }
+}
+
+var offersOnlyFunc = function () {
+  items = []
+  var productItems = document.getElementsByClassName('productItems');
+  var hasOffer = document.getElementsByClassName("hasOffer");
+  newdisplayCount = 0
+  for( var i=0; i<displayCount; i++ ) {
+    productItems[i].style.display = 'none'
+    if( hasOffer[i].innerText === 'yes' ) {
+      newdisplayCount += 1
+    }
+    items.push( [ productItems[i].innerHTML, hasOffer[i].innerText ] )
+  }
+  items.sort(function(x, y) {
+    if( x[1] === 'yes' ) {
+      return -1
+    }
+    else if( y[1] === 'yes' ) {
+      return 1;
+    }
+  });
+  for( var i=0; i<displayCount; i++ ) {
+    productItems[i].innerHTML = items[i][0]
+  }
+  displayCount = newdisplayCount
+  displayUtil(false)
+}
+
+var notOffersOnlyFunc = function () {
+  var sellers = document.getElementsByName('sellerSelection');
+  for( var i=0; i<=sellerCount; i++ ) {
+    if( sellers[i].checked ) {
+      sellers[i].click()
+      break;
+    }
   }
 }
