@@ -80,18 +80,51 @@ def item_page(request, product_id, seller_id):
             orderQuantity = int( request.POST.get('orderQuantity') )
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'reviewForm':
+            # TODO nawmi check if review already exists and delete/// done
             rating = request.POST.get("starRating")
             reviewDescription = request.POST.get("reviewDescription")
             with connections['oracle'].cursor() as cursor:
-                query = """INSERT INTO REVIEW VALUES (TO_NUMBER(:product_id), TO_NUMBER(:seller_id), (SELECT CUSTOMER_ID FROM CUSTOMER
-                           WHERE EMAIL_ID = :email),SYSDATE ,TO_NUMBER(:rating), :description)"""
-                data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail'], 'rating':rating, 'description':reviewDescription}
+                query = """SELECT RATING FROM REVIEW WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
+                          (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
+                data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail']}
                 cursor.execute(query, data)
-                cursor.execute("COMMIT")
+                result = cursor.fetchall()
+                print(result)
+                if(len(result) == 0):
+                    query = """INSERT INTO REVIEW VALUES (TO_NUMBER(:product_id), TO_NUMBER(:seller_id), (SELECT CUSTOMER_ID FROM CUSTOMER
+                               WHERE EMAIL_ID = :email),SYSDATE ,TO_NUMBER(:rating), :description)"""
+                    data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail'], 'rating':rating, 'description':reviewDescription}
+                    cursor.execute(query, data)
+                    cursor.execute("COMMIT")
+                else:
+                    query = """UPDATE REVIEW SET REVIEW_DATE = SYSDATE ,RATING = TO_NUMBER(:rating), DESCRIPTION = :description  WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
+                              (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
+                    data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail'], 'rating':rating, 'description':reviewDescription}
+                    cursor.execute(query, data)
+                    cursor.execute("COMMIT")
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'cartForm':
-            # TODO nawmi
-            cartQuantity = int( request.POST.get('cartQuantity') )
+            # TODO nawmi//done
+            cartQuantity = request.POST.get('cartQuantity')
+            with connections['oracle'].cursor() as cursor:
+                query = """SELECT QUANTITY FROM CART_ITEM WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
+                          (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
+                data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail']}
+                cursor.execute(query, data)
+                result = cursor.fetchall()
+                print(result)
+                if(len(result) == 0):
+                    query = """INSERT INTO CART_ITEM VALUES (TO_NUMBER(:product_id), TO_NUMBER(:seller_id), (SELECT CUSTOMER_ID FROM CUSTOMER
+                               WHERE EMAIL_ID = :email),TO_NUMBER(:cartQuantity))"""
+                    data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail'], 'cartQuantity':cartQuantity}
+                    cursor.execute(query, data)
+                    cursor.execute("COMMIT")
+                else:
+                    query = """UPDATE CART_ITEM SET QUANTITY = TO_NUMBER(:cartQuantity) WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
+                              (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
+                    data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail'],'cartQuantity':cartQuantity}
+                    cursor.execute(query, data)
+                    cursor.execute("COMMIT")
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
 
     with connections['oracle'].cursor() as cursor:
@@ -480,11 +513,12 @@ def loadProductData(request, products):
         if len(sellerName) >= 20:
             sellerName = sellerName[:18] + "..."
         ratingHTML = ""
-        starCount = round(int(products[i][3]))
+
+        starCount = round(float(products[i][3]))
         for j in range(1, starCount+1):
             ratingHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
         for j in range(starCount+1, 6):
-            ratingHTML += ' <li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
+            ratingHTML += '<li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
 
         image1Path = "http://{}/static/images/productImages/{}_{}_1.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
         image2Path = "http://{}/static/images/productImages/{}_{}_2.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
