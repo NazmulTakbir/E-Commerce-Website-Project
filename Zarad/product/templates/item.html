@@ -276,7 +276,7 @@ Item
         <form class="mt-3" method="POST">
           {% csrf_token %}
           <div class="modal-body">
-            <label for="orderQuantity"><strong>No. of Units : &nbsp;</strong></label>
+            <label for="cartQuantity"><strong>No. of Units : &nbsp;</strong></label>
             <input style="width: 120px;" type="number" id="cartQuantity" name="cartQuantity" min="1" max="{{inStock}}" oninput="validity.valid||(value='');" required="">
           </div>
           <div class="modal-footer">

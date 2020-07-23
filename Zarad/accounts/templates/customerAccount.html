@@ -112,91 +112,95 @@ My Account
           </div>
         </div>
 
-        <div id='cartForm'>
-          <div class="container d-flex justify-content-center">
-            <div class="col-lg-12">
-              <div class="row">
-                <h2 class="mb-3 font-weight-bold col-lg-12">Cart : </h2>
-                <br />
-                <div class="col-lg-12 overflow-auto">
-                  <table class="table table-hover table-bordered">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th style="width: 50px" scope="col">Product Name</th>
-                        <th style="width: 50px" scope="col">Seller Name</th>
-                        <th style="width: 50px" scope="col">Unit Price</th>
-                        <th style="width: 50px" scope="col">Quantity</th>
-                        <th style="width: 50px" scope="col">Max Discount</th>
-                        <th style="width: 50px" scope="col">Total Price</th>
-                        <th style="width: 100px" scope="col">Order / Delete</th>
-                      </tr>
-                    </thead>
-                    <tbody style="background-color: white">
-                      {% autoescape off %}
-                        {{cartTableHTML}}
-                      {% endautoescape %}
-                    </tbody>
-                  </table>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="formIdentity" value="cartForm">
+            <div id='cartForm'>
+              <div class="container d-flex justify-content-center">
+                <div class="col-lg-12">
+                  <div class="row">
+                    <h2 class="mb-3 font-weight-bold col-lg-12">Cart : </h2>
+                    <br />
+                    <div class="col-lg-12 overflow-auto">
+                      <table class="table table-hover table-bordered">
+                        <thead class="thead-dark">
+                          <tr>
+                            <th style="width: 50px; vertical-align: middle" scope="col">Product Name</th>
+                            <th style="width: 50px; vertical-align: middle" scope="col">Seller Name</th>
+                            <th style="width: 50px; vertical-align: middle" scope="col">Unit Price</th>
+                            <th style="width: 50px; vertical-align: middle" scope="col">Quantity</th>
+                            <th style="width: 50px; vertical-align: middle" scope="col">Max Discount</th>
+                            <th style="width: 50px; vertical-align: middle" scope="col">Total Price</th>
+                            <th style="width: 100px; vertical-align: middle" scope="col">Order / Delete</th>
+                          </tr>
+                        </thead>
+                        <tbody style="background-color: white">
+                          {% autoescape off %}
+                            {{cartTableHTML}}
+                          {% endautoescape %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </form>
 
-        <div id='ordersForm'>
-          <div class="container d-flex justify-content-center">
-            <div class="col-lg-12">
-              <div class="row">
-                <h2 class="mb-3 font-weight-bold col-lg-12">Purchase Order: </h2>
-                <br />
-                <div class="col-lg-12 overflow-auto" style="margin-bottom: 50px">
-                  <table class="table table-hover table-bordered">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Date</th>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Payment Method</th>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Status</th>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Expected Delivery Date</th>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Delivered Date</th>
-                        <th style="width: 100px; vertical-align: middle" scope="col">Delivery Guy Number</th>
-                        <th style="width: 100px; vertical-align: middle" scope="col">Return / Cancel</th>
-                      </tr>
-                    </thead>
-                    <tbody style="background-color: white">
-                      {% autoescape off %}
-                        {{purchaseOrderHTML}}
-                      {% endautoescape %}
-                    </tbody>
-                  </table>
-                </div>
-                <h2 class="mb-3 font-weight-bold col-lg-12">Return Orders: </h2>
-                <br />
-                <div class="col-lg-12 overflow-auto">
-                  <table class="table table-hover table-bordered">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Date</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Complaint</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Payment Method</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Status</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Returned Date</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Customer Care Number</th>
-                        <th style="width: 80px; vertical-align: middle" scope="col">Cancel</th>
-                      </tr>
-                    </thead>
-                    <tbody style="background-color: white">
-                      {% autoescape off %}
-                        {{returnOrderHTML}}
-                      {% endautoescape %}
-                    </tbody>
-                  </table>
+          <div id='ordersForm'>
+            <div class="container d-flex justify-content-center">
+              <div class="col-lg-12">
+                <div class="row">
+                  <h2 class="mb-3 font-weight-bold col-lg-12">Purchase Order: </h2>
+                  <br />
+                  <div class="col-lg-12 overflow-auto" style="margin-bottom: 50px">
+                    <table class="table table-hover table-bordered">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Date</th>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Payment Method</th>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Status</th>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Expected Delivery Date</th>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Delivered Date</th>
+                          <th style="width: 100px; vertical-align: middle" scope="col">Delivery Guy Number</th>
+                          <th style="width: 100px; vertical-align: middle" scope="col">Return / Cancel</th>
+                        </tr>
+                      </thead>
+                      <tbody style="background-color: white">
+                        {% autoescape off %}
+                          {{purchaseOrderHTML}}
+                        {% endautoescape %}
+                      </tbody>
+                    </table>
+                  </div>
+                  <h2 class="mb-3 font-weight-bold col-lg-12">Return Orders: </h2>
+                  <br />
+                  <div class="col-lg-12 overflow-auto">
+                    <table class="table table-hover table-bordered">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Date</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Complaint</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Payment Method</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Status</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Returned Date</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Customer Care Number</th>
+                          <th style="width: 80px; vertical-align: middle" scope="col">Cancel</th>
+                        </tr>
+                      </thead>
+                      <tbody style="background-color: white">
+                        {% autoescape off %}
+                          {{returnOrderHTML}}
+                        {% endautoescape %}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
         <div id='walletForm'>
           <div class="container d-flex justify-content-center">
@@ -208,11 +212,11 @@ My Account
                   <table class="table table-hover table-bordered">
                     <thead class="thead-dark">
                       <tr>
-                        <th style="width: 70px" scope="col">Transaction ID</th>
+                        <th style="width: 100px" scope="col">Transaction Type</th>
                         <th style="width: 100px" scope="col">Date</th>
-                        <th style="width: 100px" scope="col">Type</th>
                         <th style="width: 100px" scope="col">Amount</th>
                         <th style="width: 100px" scope="col">Service Charge</th>
+                        <th style="width: 100px" scope="col">Total Amount</th>
                       </tr>
                     </thead>
                     <tbody style="background-color: white">
@@ -224,7 +228,7 @@ My Account
                 </div>
                 <div class="col-lg-12">
                   <div class="d-flex justify-content-end">
-                    <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Balance : {{accountBalance}}</h5>
+                    <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Wallet Balance : {{accountBalance}}</h5>
                   </div>
                 </div>
               </div>

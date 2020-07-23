@@ -80,7 +80,6 @@ def item_page(request, product_id, seller_id):
             orderQuantity = int( request.POST.get('orderQuantity') )
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'reviewForm':
-            # TODO nawmi check if review already exists and delete/// done
             rating = request.POST.get("starRating")
             reviewDescription = request.POST.get("reviewDescription")
             with connections['oracle'].cursor() as cursor:
@@ -89,7 +88,7 @@ def item_page(request, product_id, seller_id):
                 data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail']}
                 cursor.execute(query, data)
                 result = cursor.fetchall()
-                print(result)
+
                 if(len(result) == 0):
                     query = """INSERT INTO REVIEW VALUES (TO_NUMBER(:product_id), TO_NUMBER(:seller_id), (SELECT CUSTOMER_ID FROM CUSTOMER
                                WHERE EMAIL_ID = :email),SYSDATE ,TO_NUMBER(:rating), :description)"""
@@ -104,7 +103,6 @@ def item_page(request, product_id, seller_id):
                     cursor.execute("COMMIT")
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'cartForm':
-            # TODO nawmi//done
             cartQuantity = request.POST.get('cartQuantity')
             with connections['oracle'].cursor() as cursor:
                 query = """SELECT QUANTITY FROM CART_ITEM WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
@@ -112,7 +110,7 @@ def item_page(request, product_id, seller_id):
                 data = {'product_id' :product_id,'seller_id':seller_id, 'email':request.session['useremail']}
                 cursor.execute(query, data)
                 result = cursor.fetchall()
-                print(result)
+
                 if(len(result) == 0):
                     query = """INSERT INTO CART_ITEM VALUES (TO_NUMBER(:product_id), TO_NUMBER(:seller_id), (SELECT CUSTOMER_ID FROM CUSTOMER
                                WHERE EMAIL_ID = :email),TO_NUMBER(:cartQuantity))"""

@@ -8,10 +8,10 @@ import io
 import info
 
 # Create your views here.
-def check_productID(product_id):
+def check_productID(product_id, seller_id):
     with connections['oracle'].cursor() as cursor:
-        query = "SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_ID = :product_id"
-        cursor.execute(query, {'product_id' :product_id })
+        query = "SELECT PRODUCT_ID FROM PRODUCT WHERE ( PRODUCT_ID = :product_id AND SELLER_ID = :seller_id )"
+        cursor.execute(query, {'product_id' :product_id, 'seller_id': seller_id})
         result = cursor.fetchall()
         if(len(result) == 0):
             return False
@@ -352,21 +352,30 @@ def myaccount(request):
                 if formIdentity == 'reviewForm':
                     productID = request.POST.get('delRevBtn').split('+')[0]
                     sellerID = request.POST.get('delRevBtn').split('+')[1]
-                    # TODO nawmi delete review///DONE
+
                     with connections['oracle'].cursor() as cursor:
                         query = """DELETE FROM REVIEW WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
                                   (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
                         data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
-                    return HttpResponseRedirect(reverse('accounts:myaccount'))
+                elif formIdentity == 'cartForm':
+                    action = request.POST.get('CartBtn').split('+')[0]
+                    productID = request.POST.get('CartBtn').split('+')[1]
+                    sellerID = request.POST.get('CartBtn').split('+')[2]
+                    if action == 'ORDER':
+                        pass
+                    elif action == 'DEL':
+                        #TODO nawmi delete cart item
+                        pass
+                return HttpResponseRedirect(reverse('accounts:myaccount'))
 
             cartTableHTML = generateCartTableHTML(request)
             orderTableHTML = generateOrderTableHTML(request)
             purchaseOrderHTML = orderTableHTML[0]
             returnOrderHTML = orderTableHTML[1]
             walletTableHTML = generateWalletTableHTMLCustomer(request)
-            reviewTableHTML = genrateReviewTableHTML(request)
+            reviewTableHTML = generateReviewTableHTML(request)
             acBal = accountBalance(request.session['useremail'], acType)
 
             data = {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML,
@@ -381,34 +390,39 @@ def myaccount(request):
             if request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'addOfferForm':
-                    # TODO nawmi
-                    # check if product id is valid
                     productID = int(request.POST.get('productID'))
                     startDate = request.POST.get('startDate')
                     endDate = request.POST.get('endDate')
                     discount = request.POST.get('discount')
                     minQuan = request.POST.get('minQuan')
-                    if(check_productID(productID)):
+
+                    sellerID = -1
+                    with connections['oracle'].cursor() as cursor:
+                        query = "SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email"
+                        cursor.execute(query , {'email':request.session['useremail']})
+                        result = cursor.fetchall()
+                        sellerID = result[0][0]
+
+                    if(check_productID(productID, sellerID)):
                         with connections['oracle'].cursor() as cursor:
                             query = "SELECT MAX(OFFER_NUMBER) FROM OFFER WHERE PRODUCT_ID = :productID AND SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"
                             cursor.execute(query , {'productID': productID , 'email':request.session['useremail']})
                             result = cursor.fetchall()
                             offer_number = 1
-                            print(len(result))
+
                             if (result[0][0] is not None ) :
                                 offer_number = int(result[0][0]) + 1
-                            print(minQuan)
-                            print(discount)
+
                             query = """INSERT INTO OFFER VALUES(TO_NUMBER(:productID),  (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email), TO_NUMBER(:offer_number),
                                        TO_DATE(:startDate,'YYYY-MM-DD'),TO_DATE(:endDate,'YYYY-MM-DD'), TO_NUMBER(:discount), TO_NUMBER(:minQuan) )"""
-                            data = {'productID' : productID,  'email':request.session['useremail'] , 'offer_number' :offer_number, 'startDate':startDate , 'endDate':endDate ,'minQuan':minQuan
-                                    ,'discount':discount }
+                            data = {'productID' : productID,  'email':request.session['useremail'] , 'offer_number' :offer_number,
+                                    'startDate':startDate , 'endDate':endDate ,'minQuan':minQuan,'discount':discount }
                             cursor.execute(query,data)
                             cursor.execute("COMMIT")
 
                 elif formIdentity == 'addAdvertForm':
                     productID = int(request.POST.get('productID'))
-                    # check if product id is valid
+
                     blob = io.BytesIO()
                     if 'advertImage' in request.FILES:
                         imgFile = request.FILES['advertImage']
@@ -416,7 +430,15 @@ def myaccount(request):
                         img = make_16_9(img)
                         img.save(blob, 'jpeg')
                         blob.seek(0)
-                    if(check_productID(productID)):
+
+                    sellerID = -1
+                    with connections['oracle'].cursor() as cursor:
+                        query = "SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email"
+                        cursor.execute(query , {'email':request.session['useremail']})
+                        result = cursor.fetchall()
+                        sellerID = result[0][0]
+
+                    if(check_productID(productID, sellerID)):
                         with connections['oracle'].cursor() as cursor:
                             query = "SELECT MAX(ADVERTISEMENT_NUMBER) FROM ADVERTISEMENT WHERE PRODUCT_ID = :productID AND SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"
                             cursor.execute(query , {'productID': productID , 'email':request.session['useremail']})
@@ -430,7 +452,20 @@ def myaccount(request):
                             cursor.execute(query,data)
                             cursor.execute("COMMIT")
 
+                elif formIdentity == 'delOfferForm':
+                    # TODO nawmi change end date to today
+                    product_id = request.POST.get('delOfferBtn').split('+')[0]
+                    seller_id = request.POST.get('delOfferBtn').split('+')[1]
+                    offerNumber = request.POST.get('delOfferBtn').split('+')[2]
+
+                elif formIdentity == 'delAdvertForm':
+                    # TODO nawmi change end date to yesterday delAdvertButton
+                    product_id = request.POST.get('delAdvertButton').split('+')[0]
+                    seller_id = request.POST.get('delAdvertButton').split('+')[1]
+                    advertNumber = request.POST.get('delAdvertButton').split('+')[2]
+
                 return HttpResponseRedirect(reverse('accounts:myaccount'))
+
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
             advertTableHTML = generateAdvertTableHTML(request)
@@ -457,8 +492,29 @@ def myaccount(request):
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
             return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': acType, 'managedComplaintsHTML': managedComplaintsHTML, 'pendingComplaintsHTML': pendingComplaintsHTML})
         elif acType == 'admin':
-            # Work To Be Done
-            return HttpResponseRedirect(reverse('home_page'))
+            if request.method == 'POST':
+                # TODO nawmi
+                formIdentity = request.POST.get('formIdentity')
+                if formIdentity == 'rechargeForm':
+                    acType = request.POST.get('acType')
+                    accountID = request.POST.get('accountID')
+                    rechargeAmount = request.POST.get('rechargeAmount')
+
+                    if acType == 'customer':
+                        pass
+                    elif acType == 'seller':
+                        pass
+
+                elif formIdentity == 'withdrawForm':
+                    accountBalance = 'sth'
+                    accountID = request.POST.get('accountID')
+                    withdrawAmount = request.POST.get('withdrawAmount')
+                    print(accountID, withdrawAmount)
+
+                return HttpResponseRedirect(reverse('accounts:myaccount'))
+
+            data = {'isloggedin': isloggedin, 'accountType': acType}
+            return render(request, 'adminAccount.html', data)
     else:
         return HttpResponseRedirect(reverse('home_page'))
 
@@ -525,7 +581,8 @@ def generateProductTableHTML(request):
 
 def generateOfferTableHTML(request):
     with connections['oracle'].cursor() as cursor:
-        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, PERCENTAGE_DISCOUNT DISCOUNT, MINIMUM_QUANTITY_PURCHASED MINIMUM_QUANTITY FROM OFFER
+        query = """SELECT PRODUCT_ID, START_DATE, END_DATE, PERCENTAGE_DISCOUNT DISCOUNT,
+                   MINIMUM_QUANTITY_PURCHASED MINIMUM_QUANTITY, OFFER_NUMBER FROM OFFER
                    WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
@@ -553,7 +610,9 @@ def generateOfferTableHTML(request):
         else:
             for i in range( len(offers) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], offers[i][0], sellerID)
-                endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
+                endOfferButton = """<button name="delOfferBtn" type="submit" value="{}" class="btn btn-danger" style="margin: 5px">
+                                    Delete
+                                    </button>""".format(str(offers[i][0])+"+"+str(sellerID)+"+"+str(offers[i][5]))
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
                                 <td >{}</td>
@@ -578,8 +637,7 @@ def generateAdvertTableHTML(request):
                 temp.append(table[i][j])
             adverts.append(temp)
 
-        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {'email':request.session['useremail']})
-        sellerID = cursor.fetchall()[0][0]
+        sellerID = adverts[i][5]
 
         result = ""
         if( len(adverts)==0 ):
@@ -600,7 +658,9 @@ def generateAdvertTableHTML(request):
                 imageFile.close()
 
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], adverts[i][0], sellerID)
-                endOfferButton = "<button type='button' class='btn btn-danger'>Force End</button>"
+                endAdvertButton = """<button name="delAdvertButton" type="submit" value="{}" class="btn btn-danger" style="margin: 5px">
+                                    Delete
+                                    </button>""".format(str(adverts[i][0])+"+"+str(adverts[i][5])+"+"+str(adverts[i][6]))
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
                                 <td >{}</td>
@@ -609,15 +669,24 @@ def generateAdvertTableHTML(request):
                                 <td><img src="{}" alt="Advertisement Picture" style="width:100%; height:auto"></td>
                                 <td>{}</td>
                             </tr>
-                         """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], imagePath, endOfferButton)
+                         """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], imagePath, endAdvertButton)
         return result
 
 def generateWalletTableHTML(request):
-    # TODO transaction id date type amount service charge
+    # TODO nawmi
+    """ seller can have five types of transactions :
+            wallet Recharge
+            wallet withdraw
+            pay for advertisement
+            revenue from purchase order
+            loss from return order """
     sellerID = 1
     scp = info.serviceChargePercentage
-    transactions = [ [123451234512345, 'Aug 31 2019', 'Recharge', 2000, scp*2000],
-                [123451234512345, 'Aug 31 2019', 'Recharge', 1000, scp*1000] ]
+    transactions = [ ['Wallet Recharge', 'Aug 31 2019', 2000, 100, 2100],
+                ['Revenue From Sales', 'Aug 31 2019', 5000, 0, 5000],
+                ['Loss From Returned Items', 'Sept 31 2019', 1000, 0, 1000],
+                ['Payment For Advertisement', 'Oct 31 2019', 2000, 0, 2000],
+                ['Withdraw From Wallet', 'Dec 31 2019', 2100-100, 100, 2100] ]
     result = ""
     if( len(transactions)==0 ):
         result = """<tr>
@@ -662,7 +731,7 @@ def generateCartTableHTML(request):
             if temp[6] is None:
                 temp[6] = 0
             cartItems.append(temp)
-        print(cartItems)
+
         result = ""
         if( len(cartItems)==0 ):
             result = """<tr>
@@ -679,14 +748,12 @@ def generateCartTableHTML(request):
             for i in range( len(cartItems) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
                 totalPrice = float(cartItems[i][5])*float(cartItems[i][4]) * (1-float(cartItems[i][6])/100)
-                orderButton = """<a href={}>
-                                    <button type="button" class="btn btn-success" style="margin: 5px">Order</button>
-                                </a>
-                             """.format(productURL)
-                deleteButton = """<a href={}>
-                                    <button type="button" class="btn btn-danger" style="margin: 5px">Delete</button>
-                                </a>
-                             """.format(productURL)
+                orderButton = """<button name="CartBtn" type="submit" value="{}" class="btn btn-success" style="margin: 5px">
+                                    Order
+                                  </button>""".format("ORDER+"+str(cartItems[i][0])+"+"+str(cartItems[i][1]))
+                deleteButton = """<button name="CartBtn" type="submit" value="{}" class="btn btn-danger" style="margin: 5px">
+                                    Delete
+                                  </button>""".format("DEL+"+str(cartItems[i][0])+"+"+str(cartItems[i][1]))
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
                                 <td >{}</td>
@@ -805,9 +872,20 @@ def generateOrderTableHTML(request):
         return [pHTML, rHTML]
 
 def generateWalletTableHTMLCustomer(request):
+    # TODO nawmi
+    """ customer can have five types of transactions :
+            wallet Recharge
+            cash payment for a purchase order
+            cash payment for a return order
+            wallet payment for a purchase order
+            wallet payment for an return order """
+
     scp = info.serviceChargePercentage
-    transactions = [ [123451234512345, 'Aug 31 2019', 'Recharge', 2000, scp*2000],
-                     [123451234512345, 'Aug 31 2019', 'Payment', -1000, 0] ]
+    transactions = [ ['Wallet Recharge', 'Aug 31 2019', 2000, 100, 2000+100],
+                     ['Purchase Order using Wallet', 'Aug 31 2019', 750, 0, 750],
+                     ['Return Order Order using Wallet', 'Aug 31 2019', 750, 0, 750],
+                     ['Purchase Order Order using Cash', 'Aug 31 2019', 500, 25, 500+25],
+                     ['Return Order Order using Cash', 'Aug 31 2019', 500, 25, 500+25] ]
     result = ""
     if( len(transactions)==0 ):
         result = """<tr>
@@ -829,7 +907,7 @@ def generateWalletTableHTMLCustomer(request):
                      """.format( transactions[i][0], transactions[i][1], transactions[i][2], transactions[i][3], transactions[i][4])
     return result
 
-def genrateReviewTableHTML(request):
+def generateReviewTableHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT PRODUCT_ID, SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, REVIEW_DATE, RATING,
                     DESCRIPTION FROM REVIEW JOIN (SELECT PRODUCT_ID, SELLER_ID, NAME FROM PRODUCT) P
@@ -976,7 +1054,6 @@ def generatePendingDeliveryHTML(request):
         return result
 
 def generateManagedComplaintsHTML(request):
-    # TODO order id date customer name number complaint payment method amount status returned date
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT",
                     PAYMENT_METHOD, "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
@@ -1032,7 +1109,6 @@ def generateManagedComplaintsHTML(request):
         return result
 
 def generatePendingComplaintsHTML(request):
-    # TODO order id date customer name number complaint payment method amount
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT", PAYMENT_METHOD,
                     "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM

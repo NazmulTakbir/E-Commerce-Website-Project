@@ -24,6 +24,7 @@ My Account
         <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myWallet" type="radio" name="radioButton" value="myWallet"> Wallet</label>
         <br />
         <br />
+
         <div id='basicInfoForm'>
           <div class="container d-flex justify-content-center">
             <div class="col-lg-8">
@@ -151,79 +152,87 @@ My Account
           </div>
         </div>
 
-        <div id='offersForm'>
-          <div class="container d-flex justify-content-center">
-            <div class="col-lg-12">
-              <div class="row">
-                <h2 class="mb-3 font-weight-bold col-lg-12">Offers : </h2>
-                <br />
-                <div class="col-lg-12 overflow-auto">
-                  <table class="table table-hover table-bordered">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th style="width: 150px" scope="col">Product ID</th>
-                        <th style="width: 100px" scope="col">Start Date</th>
-                        <th style="width: 100px" scope="col">End Date</th>
-                        <th style="width: 100px" scope="col">Discount</th>
-                        <th style="width: 150px" scope="col">Minimum Quantity</th>
-                        <th style="width: 150px" scope="col">Force Ending</th>
-                      </tr>
-                    </thead>
-                    <tbody style="background-color: white">
-                      {% autoescape off %}
-                        {{offerTableHTML}}
-                      {% endautoescape %}
-                    </tbody>
-                  </table>
+        <form class="mt-3" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="formIdentity" value="delOfferForm">
+          <div id='offersForm'>
+            <div class="container d-flex justify-content-center">
+              <div class="col-lg-12">
+                <div class="row">
+                  <h2 class="mb-3 font-weight-bold col-lg-12">Offers : </h2>
+                  <br />
+                  <div class="col-lg-12 overflow-auto">
+                    <table class="table table-hover table-bordered">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th style="width: 150px" scope="col">Product ID</th>
+                          <th style="width: 100px" scope="col">Start Date</th>
+                          <th style="width: 100px" scope="col">End Date</th>
+                          <th style="width: 100px" scope="col">Discount</th>
+                          <th style="width: 150px" scope="col">Minimum Quantity</th>
+                          <th style="width: 150px" scope="col">Force Ending</th>
+                        </tr>
+                      </thead>
+                      <tbody style="background-color: white">
+                        {% autoescape off %}
+                          {{offerTableHTML}}
+                        {% endautoescape %}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-              <div class="d-flex justify-content-end">
-                <div class="col-lg-6">
-                  <div class="form-group">
-                    <button data-toggle="modal" data-target="#addOffer" type="button" class="btn btn-dark">Create New Offer</button>
+                <div class="d-flex justify-content-end">
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <button data-toggle="modal" data-target="#addOffer" type="button" class="btn btn-dark">Create New Offer</button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </form>
 
-        <div id='advertForm'>
-          <div class="container d-flex justify-content-center">
-            <div class="col-lg-12">
-              <div class="row">
-                <h2 class="mb-3 font-weight-bold col-lg-12">Advertisements : </h2>
-                <br />
-                <div class="col-lg-12 overflow-auto">
-                  <table class="table table-hover table-bordered">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th style="width: 150px; vertical-align: middle" scope="col">Product ID</th>
-                        <th style="width: 100px; vertical-align: middle" scope="col">Start Date</th>
-                        <th style="width: 100px; vertical-align: middle" scope="col">End Date</th>
-                        <th style="width: 75px; vertical-align: middle" scope="col">Cost</th>
-                        <th style="width: 300px; vertical-align: middle" scope="col">Picture</th>
-                        <th style="width: 150px; vertical-align: middle" scope="col">Force Ending</th>
-                      </tr>
-                    </thead>
-                    <tbody style="background-color: white">
-                      {% autoescape off %}
-                        {{advertTableHTML}}
-                      {% endautoescape %}
-                    </tbody>
-                  </table>
+        <form class="mt-3" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="formIdentity" value="delAdvertForm">
+          <div id='advertForm'>
+            <div class="container d-flex justify-content-center">
+              <div class="col-lg-12">
+                <div class="row">
+                  <h2 class="mb-3 font-weight-bold col-lg-12">Advertisements : </h2>
+                  <br />
+                  <div class="col-lg-12 overflow-auto">
+                    <table class="table table-hover table-bordered">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th style="width: 150px; vertical-align: middle" scope="col">Product ID</th>
+                          <th style="width: 100px; vertical-align: middle" scope="col">Start Date</th>
+                          <th style="width: 100px; vertical-align: middle" scope="col">End Date</th>
+                          <th style="width: 75px; vertical-align: middle" scope="col">Cost</th>
+                          <th style="width: 300px; vertical-align: middle" scope="col">Picture</th>
+                          <th style="width: 150px; vertical-align: middle" scope="col">Force Ending</th>
+                        </tr>
+                      </thead>
+                      <tbody style="background-color: white">
+                        {% autoescape off %}
+                          {{advertTableHTML}}
+                        {% endautoescape %}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-              <div class="d-flex justify-content-end">
-                <div class="col-lg-6">
-                  <div class="form-group">
-                    <button data-toggle="modal" data-target="#addAdvert" type="button" class="btn btn-dark">Create New Advertisement</button>
+                <div class="d-flex justify-content-end">
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <button data-toggle="modal" data-target="#addAdvert" type="button" class="btn btn-dark">Create New Advertisement</button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </form>
 
         <div id='walletForm'>
           <div class="container d-flex justify-content-center">
@@ -235,11 +244,11 @@ My Account
                   <table class="table table-hover table-bordered">
                     <thead class="thead-dark">
                       <tr>
-                        <th style="width: 70px" scope="col">Transaction ID</th>
+                        <th style="width: 70px" scope="col">Transaction Type</th>
                         <th style="width: 100px" scope="col">Date</th>
-                        <th style="width: 100px" scope="col">Type</th>
                         <th style="width: 100px" scope="col">Amount</th>
                         <th style="width: 100px" scope="col">Service Charge</th>
+                        <th style="width: 100px" scope="col">Total Amount</th>
                       </tr>
                     </thead>
                     <tbody style="background-color: white">
@@ -251,7 +260,7 @@ My Account
                 </div>
                 <div class="col-lg-12">
                   <div class="d-flex justify-content-end">
-                    <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Balance : {{accountBalance}}</h5>
+                    <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Wallet Balance : {{accountBalance}}</h5>
                   </div>
                 </div>
               </div>
