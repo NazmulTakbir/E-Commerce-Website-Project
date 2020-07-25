@@ -587,7 +587,7 @@ def loadProductData(request, products):
 def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating):
     showDiscount = 'none'
     hasOffer = "no"
-    if productDiscount > 0:
+    if float(productDiscount) > 0:
         showDiscount = 'inline'
         hasOffer = "yes"
     ratingVisibility = 'visible'
