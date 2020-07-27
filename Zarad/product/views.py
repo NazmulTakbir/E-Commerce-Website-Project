@@ -2,15 +2,14 @@ from django.shortcuts import render
 from django.db import connections
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import reverse
-from django.contrib.auth.decorators import login_required
 from PIL import Image
 from django.conf import settings
 import threading
 import math
 import io
 import random
+from datetime import timedelta, date
 
 def getAdverts(request):
     query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
@@ -205,25 +204,36 @@ def item_page(request, product_id, seller_id):
             imageFile.write( result[i][0].read() )
             imageFile.close()
             pictures.append(imagePath)
+        if( len(pictures)==1 ):
+            pictures.append( pictures[0] )
 
-        ratingHTML = "<span style='color: #d9534f'><strong> -- UNRATED</strong></span>"
+        query = "SELECT COUNT(*) FROM REVIEW WHERE PRODUCT_ID = :product_id AND SELLER_ID = :seller_id"
+        cursor.execute(query, {'product_id': product_id, 'seller_id': seller_id})
+        reviewCount = int( cursor.fetchall()[0][0] )
+
+        ratingHTML = '<h3 class="text-warning">'
         if rating is None:
             rating = 0
         rating = float(rating)
-        if rating > 0 :
-            r1 = ratingUtility(rating)
-            r2 = ratingUtility(rating-1)
-            r3 = ratingUtility(rating-2)
-            r4 = ratingUtility(rating-3)
-            r5 = ratingUtility(rating-4)
-            ratingHTML = """<h1>
-                                <span style='color: rgba(249, 146, 69, {})'>★ </span>
-                                <span style='color: rgba(249, 146, 69, {})'>★ </span>
-                                <span style='color: rgba(249, 146, 69, {})'>★ </span>
-                                <span style='color: rgba(249, 146, 69, {})'>★ </span>
-                                <span style='color: rgba(249, 146, 69, {})'>★ </span>
-                            </h1>
-                            <h6> {} out of 5 </h6>""".format(r1, r2, r3, r4, r5, rating)
+        temp = rating
+        count = 0
+        while temp>=1 :
+            ratingHTML += '\n<i class="fa fa-star" aria-hidden="true"></i>'
+            temp -= 1
+            count += 1
+        if temp>0 and temp<1:
+            ratingHTML += '\n<i class="fa fa-star-half-o" aria-hidden="true"></i>'
+            temp -= 1
+            count += 1
+        while count < 5:
+            ratingHTML += '\n<i class="fa fa-star-o" aria-hidden="true"></i>'
+            count += 1
+        if reviewCount == 1:
+            ratingHTML += '&nbsp;&nbsp;<span style="font-size: 12px">1 review</span>'
+        else:
+            ratingHTML += '&nbsp;&nbsp;<span style="font-size: 12px">{} reviews</span>'.format(reviewCount)
+        ratingHTML += '\n</h3>'
+
         featureListHTML = ""
         for feature in features:
             featureListHTML += "<li>"
@@ -240,18 +250,23 @@ def item_page(request, product_id, seller_id):
                 offerListHTML += """<span style='color: #0275d8; font-size: 20px;'><strong>{}% discount till {}.</strong></span>
                                     <br />
                                     Conditions: <br />
-                                    -- {} or more units bought""".format(offer[0], offer[1], offer[2])
+                                    <i class="fa fa-hand-o-right" aria-hidden="true"></i>&nbsp; {} or more units bought""".format(offer[0], offer[1], offer[2])
                 offerListHTML += "</li>"
 
-        inStockHTML = '<h4 style="color: {}"><strong>{}</strong></h4>'
+        inStockHTML = ''
         if int(inStock) > 0:
-            inStockHTML = '<h4 style="color: {}"><strong>{}</strong></h4>'.format('#5cb85c', inStock)
+            inStockHTML = """<h6 class="text-success">
+                                <i class="fa fa-check-circle" aria-hidden="true"></i> In Stock
+                                <small> {} units</small>
+                            </h6>""".format(inStock)
         else:
-            inStockHTML = '<h4 style="color: {}"><strong>{}</strong></h4>'.format('#d9534f', inStock)
+            inStockHTML = """<h6 class="text-danger">
+                                <i class="fa fa-times-circle" aria-hidden="true"></i> Out of Stock
+                            </h6>"""
 
         reviewsHTML = ""
         if len(reviews) == 0:
-            reviewsHTML = "<h4>Be the first one to review !!!</h4>"
+            reviewsHTML = """<h4 style="font-family: 'Vollkorn', serif; font-weight: 600">Be the first one to review !!!</h4>"""
         else:
             for review in reviews:
                 starHTML = ""
@@ -259,7 +274,7 @@ def item_page(request, product_id, seller_id):
                     starHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
                 for j in range(int(review[1])+1, 6):
                     starHTML += '<li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
-                reviewsHTML += """<li class="list-group-item">
+                reviewsHTML += """<li style="background-color: #f2f8f8;" class="list-group-item">
                                     <h6 class="card-title" style="color: #0275d8">{}</h6>
                                     <p class="card-text" style="margin-bottom: 2px;">{}</p>
                                     <ul class="rating" style="padding-left: 0;">
@@ -283,13 +298,26 @@ def item_page(request, product_id, seller_id):
                                        </div>""".format(pictures[i])
                 productImageHTML2 += '<li data-target="#carousel-1" data-slide-to="{}"></li>'.format(i)
 
-    data = {'iscustomerlogin': iscustomerlogin, 'isloggedin': isloggedin, 'accountType': acType, 'productName': productName,
-            'productDescription': productDescription, 'productCategory': productCategory,
-            'featureListHTML': featureListHTML, 'offerListHTML': offerListHTML, 'ratingHTML': ratingHTML,
-            'sellerName': sellerName, 'inStockHTML': inStockHTML, 'deliveryTime': deliveryTime,
-            'offerDisplay': offerDisplay, 'reviewsHTML': reviewsHTML, 'productImageHTML': productImageHTML,
+    verticalMargin = ''
+    if( rating > 0 ):
+        verticalMargin = '6.5px'
+    else:
+        verticalMargin = '9px'
+
+    adverts = getAdverts(request)
+
+    deliveryTime = date.today() + timedelta(days=int(deliveryTime))
+
+    data = {'iscustomerlogin': iscustomerlogin, 'isloggedin': isloggedin, 'accountType': acType,
+            'productName': productName, 'productDescription': productDescription,
+            'productCategory': productCategory, 'featureListHTML': featureListHTML,
+            'offerListHTML': offerListHTML, 'ratingHTML': ratingHTML, 'sellerName': sellerName,
+            'inStockHTML': inStockHTML, 'deliveryTime': deliveryTime, 'offerDisplay': offerDisplay,
+            'reviewsHTML': reviewsHTML, 'productImageHTML': productImageHTML,
             'productImageHTML2': productImageHTML2, 'productID': product_id, 'inStock': inStock,
-            'price': price}
+            'price': price, 'verticalMargin': verticalMargin, 'advert1': adverts[0], 'advert2': adverts[1],
+            'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4], 'advert6': adverts[5],
+            'advert7': adverts[6], 'advert8': adverts[7], 'extraBreak': len(productName)<57}
 
     return render(request, 'item.html', data)
 
@@ -303,6 +331,8 @@ def add_item_page(request):
             return HttpResponseRedirect(reverse('home_page'))
     else:
         return HttpResponseRedirect(reverse('home_page'))
+
+    adverts = getAdverts(request)
 
     if request.method == 'POST':
         id = request.POST.get("productID")
@@ -376,9 +406,15 @@ def add_item_page(request):
                     cursor.execute(query, {'id':id, 'email':request.session['useremail'], 'num':i+1, 'status':'Not Sold'})
                     cursor.execute("COMMIT")
 
-        return HttpResponseRedirect(reverse('accounts:myaccount'))
+        reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+        return HttpResponseRedirect(reverseStr)
 
-    return render(request, 'newProduct.html', {'isloggedin': isloggedin, 'accountType': acType})
+    data = {'isloggedin': isloggedin, 'accountType': acType, 'advert1': adverts[0],
+            'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+            'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+            'advert8': adverts[7]}
+
+    return render(request, 'newProduct.html', data)
 
 def check_category(category):
     query = "SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category"
@@ -396,7 +432,8 @@ def search_result(request, search_string):
         if i!='_':
             returnToHome = False
     if returnToHome:
-        return HttpResponseRedirect(reverse('home_page'))
+        previous_page = request.META['HTTP_REFERER']
+        return HttpResponseRedirect(previous_page)
 
     isloggedin = False
     acType = 'none'
@@ -493,6 +530,13 @@ def search_result(request, search_string):
                     temp[5] = temp[4]
                 products.append(temp)
         productHTML = loadProductData(request, products)
+
+        words = []
+        for i in search_string.split('_'):
+            if len(i)>0:
+                words.append(i)
+        words = ' '.join(words)
+
         data = {'isloggedin': isloggedin, 'accountType': acType, "productHTML": productHTML,
                 'searchString': words, 'showOffersOnly': False, 'advert1': adverts[0],
                 'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
@@ -552,8 +596,8 @@ def loadProductData(request, products):
     for i in range(0, total):
         productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
         productName = products[i][2]
-        if len(productName) >= 25:
-            productName = productName[:22] + "..."
+        if len(productName) > 24:
+            productName = productName[:21] + "..."
         productPrice = products[i][6]
         productDiscount = products[i][8]
         sellerName = products[i][7]
@@ -562,16 +606,37 @@ def loadProductData(request, products):
         ratingHTML = ""
 
         rating = float(products[i][3])
-        starCount = round(float(products[i][3]))
-        for j in range(1, starCount+1):
-            ratingHTML += '<li class="fa fa-star" style="color: #ffb300;"></li>'
-        for j in range(starCount+1, 6):
-            ratingHTML += '<li class="fa fa-star" style="color: rgb(100, 0, 0);"></li>'
+        temp = rating
+        ratingHTML = ""
+        starCount = 0
+        while temp>=1:
+            ratingHTML += '<i class="star fa fa-star text-warning"></i>'
+            temp -= 1
+            starCount += 1
+        if temp>0 and temp<1:
+            ratingHTML += '<i class="fa fa-star-half-o text-warning" aria-hidden="true"></i>'
+            starCount += 1
+        while starCount < 5:
+            ratingHTML += '<i class="fa fa-star-o text-warning" aria-hidden="true"></i>'
+            starCount += 1
 
         image1Path = "http://{}/static/images/productImages/{}_{}_1.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
         image2Path = "http://{}/static/images/productImages/{}_{}_2.jpg".format(request.META['HTTP_HOST'], products[i][0], products[i][1])
 
-        productHTML += htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating)
+        reviewCount = 0
+        with connections['oracle'].cursor() as cursor:
+            query = "SELECT COUNT(*) FROM REVIEW WHERE PRODUCT_ID = :product_id AND SELLER_ID = :seller_id"
+            cursor.execute(query, {'product_id': products[i][0], 'seller_id': products[i][1]})
+            reviewCount = int( cursor.fetchall()[0][0] )
+
+        inStock = 0
+        with connections['oracle'].cursor() as cursor:
+            query = """SELECT COUNT(*) FROM PRODUCT_UNIT WHERE PRODUCT_ID = :product_id AND
+                       SELLER_ID = :seller_id AND LOWER(STATUS) = 'not sold'"""
+            cursor.execute(query, {'product_id': products[i][0], 'seller_id': products[i][1]})
+            inStock = int( cursor.fetchall()[0][0] )
+
+        productHTML += htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating, reviewCount, inStock)
 
         imageFile1 = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_1.jpg".format(products[i][0], products[i][1]),'wb')
         imageFile2 = open(settings.BASE_DIR+"\\static\\images\\productImages\\{}_{}_2.jpg".format(products[i][0], products[i][1]),'wb')
@@ -584,38 +649,57 @@ def loadProductData(request, products):
 
     return productHTML
 
-def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating):
-    showDiscount = 'none'
+def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating, reviewCount, inStock):
     hasOffer = "no"
-    if productDiscount > 0:
-        showDiscount = 'inline'
+    if productDiscount>0:
         hasOffer = "yes"
-    ratingVisibility = 'visible'
-    if starCount == 0:
-        ratingVisibility = 'hidden'
-    return """<div class="productItems col-lg-3 col-md-6 col-sm-6" id="product{}" style="display: none; margin-bottom: 20px;">
-        <label class="searchRank" style="display:none">{}</label>
-        <label class="productRatings" style="display:none">{}</label>
-        <label class="hasOffer" style="display:none">{}</label>
-        <div class="product-grid7" style="background-color: white; padding: 5px">
-          <div class="product-image7">
-            <a href="{}">
-              <img class="pic-1" src="{}">
-              <img class="pic-2" src="{}">
-            </a>
-          </div>
-          <div class="caption">
-            <p class="group inner list-group-item-heading" style="margin-bottom: 0px;"><strong> <a href="{}" style="color:black">{}</a> </strong> </p>
-            <p class="group inner list-group-item-text" style="margin-bottom: 0px; color: black">  Seller -- <span class="sellerName">{}</span>  </p>
-            <p class="lead" style="margin-bottom: 0px;">
-                <span class="productPrices">{}</span> Tk
-                <span style="font-size: 80%; color: red; display: {}"> - - upto {}% off !!! </span>
-            </p>
-            <ul class="rating" style="visibility: {}">
-              <h5>
-                  {}
-              </h5>
-            </ul>
-          </div>
-        </div>
-      </div>""".format(i, i, rating, hasOffer, productURL, image1Path, image2Path, productURL, productName, sellerName, productPrice, showDiscount, productDiscount, ratingVisibility, ratingHTML) + "\n"
+    reviewText = 'reviews'
+    if reviewCount == 1:
+        reviewText = 'review'
+    stockIcon = '<i style="margin-left: 20px" class="text-danger fa fa-times-circle" aria-hidden="true"></i>'
+    discountIcon = '<i style="margin-left: 20px" class="text-danger fa fa-times-circle" aria-hidden="true"></i>'
+    if( productDiscount > 0 ):
+        discountIcon = '<i style="margin-left: 20px" class="text-success fa fa-check-circle" aria-hidden="true"></i>'
+    if( inStock > 0 ):
+        stockIcon = '<i style="margin-left: 20px" class="text-success fa fa-check-circle" aria-hidden="true"></i>'
+    return """<div class="productItems col-md-6 col-lg-3" id="product{}" style="display: none;">
+                <label class="searchRank" style="display:none">{}</label>
+                <label class="productRatings" style="display:none">{}</label>
+                <label class="hasOffer" style="display:none">{}</label>
+                <div class="card shadow border-light mb-4" style="background-color: #f2f8f8">
+                <div class="product-grid7" style="padding: 0.5px; background-color: rgba(31, 171, 136, 0.1);">
+                <div class="product-image7">
+                    <a href="{}">
+                        <img class="pic-1" src="{}">
+                        <img class="pic-2" src="{}">
+                    </a>
+                </div>
+                </div>
+                        <div style="padding: 10px; padding-top:5px;" class="card-body">
+                            <a href="{}">
+                                <p style="margin:0px; padding:0px" class="font-weight-normal">{}</p>
+                            </a>
+                            <div class="post-meta"><span class="small lh-120"><i class="fa fa-building" aria-hidden="true"></i> <span class="sellerName">{}</span></span></div>
+                            <div style="padding-top: 5px; padding-bottom: 5px">
+                                {} <span class="badge badge-pill badge-secondary ml-2">{}</span>
+                  <small class="text-info" style="font-size: 10px">&nbsp;{} {} </small>
+                </div>
+                            <div class="d-flex justify-content-between" style="padding-top: 0px">
+                                <div class="col pl-0" style="padding: 1px">
+                    <span class="text-muted font-small d-block">Price</span>
+                    <span class="text-dark font-weight-bold">
+                      <span style="font-size: 13px"><strong>৳</strong><span class="productPrices">{}</span></span>
+                    </span>
+                  </div>
+                                <div class="col" style="padding: 1px">
+                    <span class="text-muted font-small d-block">In Stock</span>
+                    {}
+                  </div>
+                                <div class="col pr-0" style="padding: 1px">
+                    <span class="text-muted font-small d-block">Discount</span>
+                    {}
+                  </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>""".format(i, i, rating, hasOffer, productURL, image1Path, image2Path, productURL, productName, sellerName, ratingHTML, rating, reviewCount, reviewText, productPrice, stockIcon, discountIcon) + "\n"

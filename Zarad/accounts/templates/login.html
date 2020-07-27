@@ -10,6 +10,7 @@ Login
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="{% static 'css/Login-screen.css' %}">
+<script type="text/javascript" src="{% static 'javascript/loginPage.js' %}"></script>
 {%endblock%}
 
 {% block content %}
@@ -18,19 +19,21 @@ Login
   <form class="login-one-form" method="POST">
     {% csrf_token %}
     {% if error %}
+    <div class="d-flex justify-content-center">
       <p class="mb-3 font-weight-bold" style="color:red">
-        Wrong Email & Password
+        Wrong Email / Password
       </p>
+    </div>
     {% endif %}
     <div class="col">
-      <div class="login-one-ico"><i class="fa fa-unlock-alt" id="lockico"></i></div>
+      <div class="login-one-ico"><i style="color: #1d5c4e;" class="fa fa-unlock-alt" id="lockico"></i></div>
       <div class="form-group">
         <div>
-            <h3 id="heading">Log in:</h3>
+            <h3 id="heading" style="color: #24876f;">Log in:</h3>
         </div>
-        <input name="Email" class="form-control" type="email" id="Email" placeholder="Email" required="">
-        <input name="Password" class="form-control" type="password" id="Password" placeholder="Password" required="">
-        <button class="btn btn-primary" id="button" style="background-color:#5cb85c;" type="submit">Log in</button>
+        <input name="Email" class="form-control customInput" type="email" id="Email" placeholder="Email" required="">
+        <input style="margin-top: 5px" name="Password" class="form-control customInput" type="password" id="Password" placeholder="Password" required="">
+        <button style="margin-left: 0px" class="btn customSuccess" id="button" type="submit">Log in</button>
       </div>
     </div>
   </form>

@@ -10,265 +10,291 @@ My Account
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="{% static 'css/elegant_registration_form.css' %}">
 <script type="text/javascript" src="{% static 'javascript/customerAccount.js' %}"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vollkorn:wght@400;500;600&display=swap" rel="stylesheet">
 {%endblock%}
 
 {% block content %}
-<div class="banner6 py-5" style="padding: 10px">
-  <div class="row">
-    <div class="container d-flex justify-content-center">
-      <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
-        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
-        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myCart" type="radio" name="radioButton" value="myCart"> Cart</label>
-        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myOrders" type="radio" name="radioButton" value="myOrders"> Orders</label>
-        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myWallet" type="radio" name="radioButton" value="myWallet"> Wallet</label>
-        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myReviews" type="radio" name="radioButton" value="myReviews"> Reviews</label>
-        <br />
-        <br />
-        <div id='basicInfoForm'>
-          <div class="container d-flex justify-content-center">
-            <div class="col-lg-8">
-              <div class="row">
-              <h2 class="mb-3 font-weight-bold col-lg-12">Basic Info : </h2>
-              <div class="col-lg-12">
-  				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
-      			  </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
-                </div>
-              </div>
-              <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
-              <div class="col-lg-12">
-    			     <h6 class="mb-3 font-weight-bold">Personal: </h6>
-        		  </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-        		    <div class="form-group">
-                  <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
-                </div>
-        		  </div>
-      			  <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-      			    <div class="form-group">
-                  <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
-                </div>
-      			  </div>
-      			  <div class="col-lg-12">
-      		      <h6 class="mb-3 font-weight-bold">Address: </h6>
-      			  </div>
-              <div class="col-lg-6">
-                 <div class="form-group">
-                   <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input name="customerRoad" class="form-control" type="text" placeholder="Road">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
-                 </div>
-               </div>
-               <div class="col-lg-12">
-                 <div class="form-group">
-                   <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
-                 </div>
-               </div>
-               <div class="col-lg-12">
-       		      <h6 class="mb-3 font-weight-bold col-lg-12">Profile Picture: </h6>
-       			   </div>
-             </div>
+<div class="row" style="margin-right: 10px">
+  <div class="col-lg-2" style="padding: 0px">
+    <div class="list-group" style="margin-top: 55px;">
+      <button onclick="basicInfo.click()" id="basicInfoSideButton" class="btn sideBarButton" data-toggle="list"><i class="fa fa-address-card-o" aria-hidden="true"></i> &nbsp;Basic Info</button>
+      <button onclick="myCart.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-shopping-cart" aria-hidden="true"></i> &nbsp;Cart</button>
+      <button onclick="myOrders.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-gift" aria-hidden="true"></i> &nbsp;Orders</button>
+      <button onclick="myWallet.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-money" aria-hidden="true"></i> &nbsp;Transactions</button>
+      <button onclick="myReviews.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-commenting-o" aria-hidden="true"></i> &nbsp;Reviews</button>
+    </div>
+  </div>
+  <div class="col-lg-10" style="margin-top: 0px; padding-top: 0px">
+    <div class="banner6 py-5" style="padding: 0px; margin: 0px">
+      <div class="row">
+        <div class="container d-flex justify-content-center">
+          <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
+            <div style="display: none">
+                <label id="firstPage">{{firstPage}}</label>
+                <label class="col-lg-2 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
+                <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myCart" type="radio" name="radioButton" value="myCart"> Cart</label>
+                <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myOrders" type="radio" name="radioButton" value="myOrders"> Orders</label>
+                <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myWallet" type="radio" name="radioButton" value="myWallet"> Wallet</label>
+                <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myReviews" type="radio" name="radioButton" value="myReviews"> Reviews</label>
             </div>
-          </div>
-        </div>
+            <div id='basicInfoForm'>
+              <div class="container d-flex justify-content-center">
+                <div class="col-lg-8">
+                  <div class="row">
+                  <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                    <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Basic Info </h2>
+                  </div>
+                  <div class="col-lg-12">
+      				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
+          			  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                    </div>
+                  </div>
+                  <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
+                  <div class="col-lg-12">
+        			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
+            		  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+            		    <div class="form-group">
+                      <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                    </div>
+            		  </div>
+          			  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+          			    <div class="form-group">
+                      <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                    </div>
+          			  </div>
+          			  <div class="col-lg-12">
+          		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
+          			  </div>
+                  <div class="col-lg-6">
+                     <div class="form-group">
+                       <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input name="customerRoad" class="form-control" type="text" placeholder="Road">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-12">
+                     <div class="form-group">
+                       <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-12">
+           		      <h6 class="mb-3 font-weight-bold col-lg-12"><i class="fa fa-picture-o" aria-hidden="true"></i>&nbsp; Profile Picture </h6>
+           			   </div>
+                 </div>
+                </div>
+              </div>
+            </div>
 
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="formIdentity" value="cartForm">
-            <div id='cartForm'>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="formIdentity" value="cartForm">
+                <div id='cartForm'>
+                  <div class="container d-flex justify-content-center">
+                    <div class="col-lg-12">
+                      <div class="row">
+                        <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                          <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Cart </h2>
+                        </div>
+                        <div class="col-lg-12 overflow-auto">
+                          <table class="table table-hover table-bordered">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th style="width: 20%; vertical-align: middle; background-color: #206b58" scope="col">Product Name</th>
+                                <th style="width: 15%; vertical-align: middle; background-color: #206b58" scope="col">Seller Name</th>
+                                <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Unit Price</th>
+                                <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Quantity</th>
+                                <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Max Discount</th>
+                                <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Total Price</th>
+                                <th style="width: 25%; vertical-align: middle; background-color: #206b58" scope="col">Order / Delete</th>
+                              </tr>
+                            </thead>
+                            <tbody style="background-color: white">
+                              {% autoescape off %}
+                                {{cartTableHTML}}
+                              {% endautoescape %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+
+              <div id='ordersForm'>
+                <div class="container d-flex justify-content-center">
+                  <div class="col-lg-12">
+                    <div class="row">
+                      <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                        <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Purchase Orders </h2>
+                      </div>
+                      <br />
+                      <div class="col-lg-12 overflow-auto" style="margin-bottom: 50px">
+                        <table class="table table-hover table-bordered">
+                          <thead class="thead-dark">
+                            <tr>
+                              <th style="width: 15%; vertical-align: middle; background-color: #206b58" scope="col">Order ID</th>
+                              <th style="width: 9%; vertical-align: middle; background-color: #206b58" scope="col">Order Date</th>
+                              <th style="width: 9%; vertical-align: middle; background-color: #206b58" scope="col">Payment Method</th>
+                              <th style="width: 9%; vertical-align: middle; background-color: #206b58" scope="col">Status</th>
+                              <th style="width: 14%; vertical-align: middle; background-color: #206b58" scope="col">Expected Delivery Date</th>
+                              <th style="width: 9%; vertical-align: middle; background-color: #206b58" scope="col">Delivered Date</th>
+                              <th style="width: 15%; vertical-align: middle; background-color: #206b58" scope="col">Delivery Guy Number</th>
+                              <th style="width: 20%; vertical-align: middle; background-color: #206b58" scope="col">Return / Cancel</th>
+                            </tr>
+                          </thead>
+                          <tbody style="background-color: white">
+                            {% autoescape off %}
+                              {{purchaseOrderHTML}}
+                            {% endautoescape %}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                        <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Return Orders </h2>
+                      </div>
+                      <br />
+                      <div class="col-lg-12 overflow-auto">
+                        <table class="table table-hover table-bordered">
+                          <thead class="thead-dark">
+                            <tr>
+                              <th style="width: 15%; vertical-align: middle; background-color: #206b58" scope="col">Order ID</th>
+                              <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Order Date</th>
+                              <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Complaint</th>
+                              <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Payment Method</th>
+                              <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Status</th>
+                              <th style="width: 10%; vertical-align: middle; background-color: #206b58" scope="col">Returned Date</th>
+                              <th style="width: 15%; vertical-align: middle; background-color: #206b58" scope="col">Customer Care Number</th>
+                              <th style="width: 20%; vertical-align: middle; background-color: #206b58" scope="col">Cancel</th>
+                            </tr>
+                          </thead>
+                          <tbody style="background-color: white">
+                            {% autoescape off %}
+                              {{returnOrderHTML}}
+                            {% endautoescape %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            <div id='walletForm'>
               <div class="container d-flex justify-content-center">
                 <div class="col-lg-12">
                   <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Cart : </h2>
+                    <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                      <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Transactions </h2>
+                    </div>
                     <br />
                     <div class="col-lg-12 overflow-auto">
                       <table class="table table-hover table-bordered">
                         <thead class="thead-dark">
                           <tr>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Product Name</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Seller Name</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Unit Price</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Quantity</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Max Discount</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Total Price</th>
-                            <th style="width: 100px; vertical-align: middle" scope="col">Order / Delete</th>
+                            <th style="width: 100px; background-color: #206b58" scope="col">Transaction Type</th>
+                            <th style="width: 100px; background-color: #206b58" scope="col">Date</th>
+                            <th style="width: 100px; background-color: #206b58" scope="col">Amount</th>
+                            <th style="width: 100px; background-color: #206b58" scope="col">Service Charge</th>
+                            <th style="width: 100px; background-color: #206b58" scope="col">Total Amount</th>
                           </tr>
                         </thead>
                         <tbody style="background-color: white">
                           {% autoescape off %}
-                            {{cartTableHTML}}
+                            {{walletTableHTML}}
                           {% endautoescape %}
                         </tbody>
                       </table>
+                    </div>
+                    <div class="col-lg-12">
+                      <div class="d-flex justify-content-end">
+                        <h5 class="mb-3 font-weight-bold" style="color: #206b58; background-color: white; padding: 20px">Wallet Balance : {{accountBalance}}</h5>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </form>
 
-          <div id='ordersForm'>
-            <div class="container d-flex justify-content-center">
-              <div class="col-lg-12">
-                <div class="row">
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Purchase Order: </h2>
-                  <br />
-                  <div class="col-lg-12 overflow-auto" style="margin-bottom: 50px">
-                    <table class="table table-hover table-bordered">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Date</th>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Payment Method</th>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Status</th>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Expected Delivery Date</th>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Delivered Date</th>
-                          <th style="width: 100px; vertical-align: middle" scope="col">Delivery Guy Number</th>
-                          <th style="width: 100px; vertical-align: middle" scope="col">Return / Cancel</th>
-                        </tr>
-                      </thead>
-                      <tbody style="background-color: white">
-                        {% autoescape off %}
-                          {{purchaseOrderHTML}}
-                        {% endautoescape %}
-                      </tbody>
-                    </table>
-                  </div>
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Return Orders: </h2>
-                  <br />
-                  <div class="col-lg-12 overflow-auto">
-                    <table class="table table-hover table-bordered">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Date</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Complaint</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Payment Method</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Status</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Returned Date</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Customer Care Number</th>
-                          <th style="width: 80px; vertical-align: middle" scope="col">Cancel</th>
-                        </tr>
-                      </thead>
-                      <tbody style="background-color: white">
-                        {% autoescape off %}
-                          {{returnOrderHTML}}
-                        {% endautoescape %}
-                      </tbody>
-                    </table>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="formIdentity" value="reviewForm">
+              <div id='reviewsForm'>
+                <div class="container d-flex justify-content-center">
+                  <div class="col-lg-12">
+                    <div class="row">
+                      <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                        <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Reviews </h2>
+                      </div>
+                      <br />
+                      <div class="col-lg-12 overflow-auto">
+                        <table class="table table-hover table-bordered">
+                          <thead class="thead-dark">
+                            <tr>
+                              <th style="width: 50px; background-color: #206b58" scope="col">Product Name</th>
+                              <th style="width: 50px; background-color: #206b58" scope="col">Seller Name</th>
+                              <th style="width: 50px; background-color: #206b58" scope="col">Date</th>
+                              <th style="width: 50px; background-color: #206b58" scope="col">Rating</th>
+                              <th style="width: 50px; background-color: #206b58" scope="col">Description</th>
+                              <th style="width: 50px; background-color: #206b58" scope="col">Delete</th>
+                            </tr>
+                          </thead>
+                          <tbody style="background-color: white">
+                            {% autoescape off %}
+                              {{reviewTableHTML}}
+                            {% endautoescape %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-        <div id='walletForm'>
-          <div class="container d-flex justify-content-center">
-            <div class="col-lg-12">
-              <div class="row">
-                <h2 class="mb-3 font-weight-bold col-lg-12">Transactions : </h2>
-                <br />
-                <div class="col-lg-12 overflow-auto">
-                  <table class="table table-hover table-bordered">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th style="width: 100px" scope="col">Transaction Type</th>
-                        <th style="width: 100px" scope="col">Date</th>
-                        <th style="width: 100px" scope="col">Amount</th>
-                        <th style="width: 100px" scope="col">Service Charge</th>
-                        <th style="width: 100px" scope="col">Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody style="background-color: white">
-                      {% autoescape off %}
-                        {{walletTableHTML}}
-                      {% endautoescape %}
-                    </tbody>
-                  </table>
-                </div>
-                <div class="col-lg-12">
-                  <div class="d-flex justify-content-end">
-                    <h5 class="mb-3 font-weight-bold" style="color: rgb(0, 196, 0); background-color: white; padding: 20px">Wallet Balance : {{accountBalance}}</h5>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </form>
           </div>
         </div>
-
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="formIdentity" value="reviewForm">
-          <div id='reviewsForm'>
-            <div class="container d-flex justify-content-center">
-              <div class="col-lg-12">
-                <div class="row">
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Reviews : </h2>
-                  <br />
-                  <div class="col-lg-12 overflow-auto">
-                    <table class="table table-hover table-bordered">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th style="width: 50px" scope="col">Product Name</th>
-                          <th style="width: 50px" scope="col">Seller Name</th>
-                          <th style="width: 50px" scope="col">Date</th>
-                          <th style="width: 50px" scope="col">Rating</th>
-                          <th style="width: 50px" scope="col">Description</th>
-                          <th style="width: 50px" scope="col">Delete</th>
-                        </tr>
-                      </thead>
-                      <tbody style="background-color: white">
-                        {% autoescape off %}
-                          {{reviewTableHTML}}
-                        {% endautoescape %}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
       </div>
     </div>
   </div>

@@ -6,6 +6,13 @@ window.onload=function(){
   const deliveredOrders = document.getElementById('deliveredOrders');
   const pendingDeliveries = document.getElementById('pendingDeliveries');
 
+  document.getElementById("searchText").addEventListener("keydown", function(event) {
+    if (event.keyCode == 13) {
+      event.preventDefault();
+      document.getElementById("searchIcon").click();
+    }
+  });
+  
   basicInfoForm.style.display = 'block'
   deliveredForm.style.display = 'none'
   pendingDeliveriesForm.style.display = 'none'

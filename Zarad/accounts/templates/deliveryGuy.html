@@ -13,171 +13,187 @@ My Account
 {%endblock%}
 
 {% block content %}
-<div class="banner6 py-5" style="padding: 10px">
-  <div class="row">
-    <div class="container d-flex justify-content-center">
-      <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
-        <form class="mt-3" method="POST" enctype="multipart/form-data">
-          {% csrf_token %}
-            <label class="col-lg-3 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
-            <label class="col-lg-3 mb-3 font-weight-bold"> <input id="deliveredOrders" type="radio" name="radioButton" value="deliveredOrders"> Delivered Items</label>
-            <label class="col-lg-3 mb-3 font-weight-bold"> <input id="pendingDeliveries" type="radio" name="radioButton" value="pendingDeliveries"> Pending Deliveries</label>
-            <br />
-            <br />
-
-            <div id='basicInfoForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-8">
-                  <div class="row">
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Basic Info : </h2>
-                  <div class="col-lg-12">
-      				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
-          			  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
-                    </div>
-                  </div>
-                  <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
-                  <div class="col-lg-12">
-        			     <h6 class="mb-3 font-weight-bold">Personal: </h6>
-            		  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-            		    <div class="form-group">
-                      <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
-                    </div>
-            		  </div>
-          			  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
-                    </div>
-                  </div>
-                  <div class="col-lg-6">
-          			    <div class="form-group">
-                      <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
-                    </div>
-          			  </div>
-          			  <div class="col-lg-12">
-          		      <h6 class="mb-3 font-weight-bold">Address: </h6>
-          			  </div>
-                  <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerRoad" class="form-control" type="text" placeholder="Road">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
-                     </div>
-                   </div>
-                   <div class="col-lg-12">
-                     <div class="form-group">
-                       <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
-                     </div>
-                   </div>
-                   <div class="col-lg-12">
-           		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
-           			   </div>
-                 </div>
+<div class="row" style="margin-right: 10px">
+  <div class="col-lg-2" style="padding: 0px">
+    <div class="list-group" style="margin-top: 75px;">
+      <button onclick="basicInfo.click()" id="basicInfoSideButton" class="btn sideBarButton" data-toggle="list"><i class="fa fa-address-card-o" aria-hidden="true"></i> &nbsp;Basic Info</button>
+      <button onclick="deliveredOrders.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-check" aria-hidden="true"></i> &nbsp;Delivered Items</button>
+      <button onclick="pendingDeliveries.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-clock-o" aria-hidden="true"></i> &nbsp;Pending Deliveries</button>
+    </div>
+  </div>
+  <div class="col-lg-10" style="margin-top: 0px; padding-top: 0px">
+    <div class="banner6 py-5" style="padding: 10px">
+      <div class="row">
+        <div class="container d-flex justify-content-center">
+          <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
+            <form class="mt-3" method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+                <div style="display:none">
+                  <label class="col-lg-3 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
+                  <label class="col-lg-3 mb-3 font-weight-bold"> <input id="deliveredOrders" type="radio" name="radioButton" value="deliveredOrders"> Delivered Items</label>
+                  <label class="col-lg-3 mb-3 font-weight-bold"> <input id="pendingDeliveries" type="radio" name="radioButton" value="pendingDeliveries"> Pending Deliveries</label>
                 </div>
-              </div>
-            </div>
-
-            <div id='deliveredForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-12">
-                  <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Delivered Items : </h2>
-                    <br />
-                    <div class="col-lg-12 overflow-auto">
-                      <table class="table table-hover table-bordered">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Customer Name</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Customer Phone</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Customer Address</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Expected Delivery Date</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Delivered Date</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Payment Method</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Total Payment</th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: white">
-                          {% autoescape off %}
-                            {{deliveredItemHTML}}
-                          {% endautoescape %}
-                        </tbody>
-                      </table>
+                <div id='basicInfoForm'>
+                  <div class="container d-flex justify-content-center">
+                    <div class="col-lg-8">
+                      <div class="row">
+                        <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                          <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Basic Info </h2>
+                        </div>
+                      <div class="col-lg-12">
+          				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
+              			  </div>
+                      <div class="col-lg-6">
+                        <div class="form-group">
+                          <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group">
+                          <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group">
+                          <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <div class="form-group">
+                          <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                        </div>
+                      </div>
+                      <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
+                      <div class="col-lg-12">
+            			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
+                		  </div>
+                      <div class="col-lg-6">
+                        <div class="form-group">
+                          <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+                		    <div class="form-group">
+                          <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                        </div>
+                		  </div>
+              			  <div class="col-lg-6">
+                        <div class="form-group">
+                          <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                        </div>
+                      </div>
+                      <div class="col-lg-6">
+              			    <div class="form-group">
+                          <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                        </div>
+              			  </div>
+              			  <div class="col-lg-12">
+              		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
+              			  </div>
+                      <div class="col-lg-6">
+                         <div class="form-group">
+                           <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                         </div>
+                       </div>
+                       <div class="col-lg-6">
+                         <div class="form-group">
+                           <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
+                         </div>
+                       </div>
+                       <div class="col-lg-6">
+                         <div class="form-group">
+                           <input name="customerRoad" class="form-control" type="text" placeholder="Road">
+                         </div>
+                       </div>
+                       <div class="col-lg-6">
+                         <div class="form-group">
+                           <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
+                         </div>
+                       </div>
+                       <div class="col-lg-12">
+                         <div class="form-group">
+                           <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
+                         </div>
+                       </div>
+                       <div class="col-lg-12">
+               		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-picture-o" aria-hidden="true"></i>&nbsp; Profile Picture </h6>
+               			   </div>
+                     </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div id='pendingDeliveriesForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-12">
-                  <div class="row">
-                    <h2 class="mb-3 font-weight-bold col-lg-12">Pending Deliveries : </h2>
-                    <br />
-                    <div class="col-lg-12 overflow-auto">
-                      <table class="table table-hover table-bordered">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Order ID</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Customer Name</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Customer Phone</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Customer Address</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Expected Delivery Date</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Payment Method</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Total Payment</th>
-                            <th style="width: 50px; vertical-align: middle" scope="col">Mark Delivered</th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: white">
-                          {% autoescape off %}
-                            {{pendingDeliveryItemHTML}}
-                          {% endautoescape %}
-                        </tbody>
-                      </table>
+                <div id='deliveredForm'>
+                  <div class="container d-flex justify-content-center">
+                    <div class="col-lg-12">
+                      <div class="row">
+                        <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                          <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Delivered Items </h2>
+                        </div>
+                        <br />
+                        <div class="col-lg-12 overflow-auto">
+                          <table class="table table-hover table-bordered">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Order ID</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Customer Name</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Customer Phone</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Customer Address</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Expected Delivery Date</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Delivered Date</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Payment Method</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Total Payment</th>
+                              </tr>
+                            </thead>
+                            <tbody style="background-color: white">
+                              {% autoescape off %}
+                                {{deliveredItemHTML}}
+                              {% endautoescape %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-        </form>
+                <div id='pendingDeliveriesForm'>
+                  <div class="container d-flex justify-content-center">
+                    <div class="col-lg-12">
+                      <div class="row">
+                        <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+                          <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Pending Deliveries</h2>
+                        </div>
+                        <br />
+                        <div class="col-lg-12 overflow-auto">
+                          <table class="table table-hover table-bordered">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Order ID</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Customer Name</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Customer Phone</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Customer Address</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Expected Delivery Date</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Payment Method</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Total Payment</th>
+                                <th style="width: 50px; vertical-align: middle; background-color: #206b58" scope="col">Mark Delivered</th>
+                              </tr>
+                            </thead>
+                            <tbody style="background-color: white">
+                              {% autoescape off %}
+                                {{pendingDeliveryItemHTML}}
+                              {% endautoescape %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>

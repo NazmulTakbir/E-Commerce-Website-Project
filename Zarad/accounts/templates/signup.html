@@ -13,371 +13,390 @@ Signup
 {%endblock%}
 
 {% block content %}
-<div class="banner6 py-5" style="padding: 10px">
-  <div class="row">
-    <div class="container d-flex justify-content-center">
-      <div class="col-lg-8 align-justify-center pr-4 pl-0 contact-form">
-        <form class="mt-3" method="POST" onsubmit="return formValidation()" enctype="multipart/form-data">
-          {% csrf_token %}
-          {% if emailExists %}
-            <h5 class="mb-3 font-weight-bold" style="color:red">
-              Email Address used by an existing account. Failed to create account.
-            </h5>
-            <br />
-            <br />
-          {% endif %}
-          <h2 class="mb-3 font-weight-bold">Register as : </h2>
-          <label class="col-lg-3 mb-3 font-weight-bold"> <input id="Customer_Button" type="radio" name="radioButton" value="Customer" checked> Customer</label>
-  	      <label class="col-lg-3 mb-3 font-weight-bold"> <input id="Seller_Button" type="radio" name="radioButton" value="Seller"> Seller</label>
-          {% if adminLogin %}
-            <label class="col-lg-3 mb-3 font-weight-bold"> <input id="Employee_Button" type="radio" name="radioButton" value="Employee"> Employee</label>
-          {% else %}
-            <label style="display:none" class="col-lg-3 mb-3 font-weight-bold"> <input id="Employee_Button" type="radio" name="radioButton" value="Employee"> Employee</label>
-          {% endif %}
-          <br />
-          <br />
+<div class="row" style="margin-right: 10px">
+  <div class="col-lg-2" style="padding: 0px">
+    <div class="list-group" style="margin-top: 55px;">
+      <h4 style="padding-left: 30px; margin-bottom: 0px; padding-bottom: 6px; padding-top: 6px; color: white; background-color: #24876f;">Register As</h4>
+      <button onclick="Customer_Button.click()" id="basicInfoSideButton" class="btn sideBarButton" data-toggle="list"><i class="fa fa-user-o" aria-hidden="true"></i> &nbsp;Customer</button>
+      <button onclick="Seller_Button.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-building-o" aria-hidden="true"></i> &nbsp;Seller</button>
+      {% if adminLogin %}
+        <button onclick="Employee_Button.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-industry" aria-hidden="true"></i> &nbsp;Employee</button>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-9" style="margin-top: 0px; padding-top: 0px">
+    <div class="banner6 py-5" style="padding: 10px">
+      <div class="row">
+        <div class="container d-flex justify-content-center">
+          <div class="col-lg-8 align-justify-center pr-4 pl-0 contact-form">
+            <form class="mt-3" method="POST" onsubmit="return formValidation()" enctype="multipart/form-data">
+              {% csrf_token %}
+              {% if emailExists %}
+                <h5 class="mb-3 font-weight-bold" style="color:red">
+                  Email Address used by an existing account. Failed to create account.
+                </h5>
+                <br />
+                <br />
+              {% endif %}
+              <!-- <h2 class="mb-3 font-weight-bold">Register as : </h2> -->
+              <div style="display: none">
+                <label class="col-lg-3 mb-3 font-weight-bold"> <input id="Customer_Button" type="radio" name="radioButton" value="Customer" checked> Customer</label>
+                <label class="col-lg-3 mb-3 font-weight-bold"> <input id="Seller_Button" type="radio" name="radioButton" value="Seller"> Seller</label>
+                {% if adminLogin %}
+                  <label class="col-lg-3 mb-3 font-weight-bold"> <input id="Employee_Button" type="radio" name="radioButton" value="Employee"> Employee</label>
+                {% else %}
+                  <label style="display:none" class="col-lg-3 mb-3 font-weight-bold"> <input id="Employee_Button" type="radio" name="radioButton" value="Employee"> Employee</label>
+                {% endif %}
+              </div>
 
 
 
-          <div id="Customer_Form">
-            <h2 class="mb-3 font-weight-bold">Customer Registration : </h2>
+              <div id="Customer_Form">
+                <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                  <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Customer Registration </h2>
+                </div>
+                <div class="row">
+                  <div class="col-lg-12">
+      				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
+          			  </div>
+                  <div class="col-lg-12">
+                    <div class="form-group">
+                      <input name="customerEmail" class="form-control customInput" type="email" placeholder="*Email Address" required="" maxlength="40">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" id="customerPassword" onkeyup='checkPassword();' name="customerPassword" class="form-control customInput" type="password" placeholder="*Password" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control customInput" type="password" placeholder="*Confirm Password" required="">
+                    </div>
+                  </div>
+                  <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
+                  <div class="col-lg-12">
+        			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
+            		  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="20" name="customerFirstName" class="form-control customInput" type="text" placeholder="*First Name" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+            		    <div class="form-group">
+                      <input maxlength="20" name="customerLastName" class="form-control customInput" type="text" placeholder="*Last Name" required="">
+                    </div>
+            		  </div>
+          			  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="customerDOB" class="form-control customInput" type="date" placeholder="*Date of Birth" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+          			    <div class="form-group">
+                      <input maxlength="14" name="customerPhNo" class="form-control customInput" type="text" placeholder="*Phone Number" required="">
+                    </div>
+          			  </div>
+          			  <div class="col-lg-12">
+          		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
+          			  </div>
+                  <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="10" name="customerApartment" class="form-control customInput" type="text" placeholder="Apartment">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="10" name="customerBuilding" class="form-control customInput" type="text" placeholder="Building">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="customerRoad" class="form-control customInput" type="text" placeholder="Road">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="customerArea" class="form-control customInput" type="text" placeholder="*Area" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="25" name="customerLatitude" class="form-control customInput" type="text" placeholder="*Latitude" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="25" name="customerLongitude" class="form-control customInput" type="text" placeholder="*Longitude" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="customerCity" class="form-control customInput" type="text" placeholder="*City" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                   </div>
+                   <div class="col-lg-12">
+           		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-picture-o" aria-hidden="true"></i> &nbsp;Profile Picture </h6>
+           			   </div>
+                   <div class="col-lg-12">
+                     <div class="form-group">
+                      <input type='file' accept='image/*' name='customerImage' id="cImgButton" onchange="uploadPicture(event)"/>
+                  	  <br /> <br />
+                  	  <img id="cImg" src="#" alt="your image" />
+                    </div>
+                  </div>
+                  </div>
+              </div>
+
+
+
+
+              <div id="Seller_Form">
+                <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                  <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Seller Registration </h2>
+                </div>
+                <div class="row">
+                  <div class="col-lg-12">
+      				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
+          			  </div>
+                  <div class="col-lg-12">
+                    <div class="form-group">
+                      <input maxlength="40" name="sellerEmail" class="form-control customInput" type="email" placeholder="*Email Address" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" id="sellerPassword" onkeyup='checkPassword();' name="sellerPassword" class="form-control customInput" type="password" placeholder="*Password" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" id="sellerPassword2" onkeyup='checkPassword();' name="sellerPassword2" class="form-control customInput" type="password" placeholder="*Confirm Password" required="">
+                    </div>
+                  </div>
+                  <p class="mb-3 font-weight-bold" style="color:red" id="sPassCheck">Passwords Did Not Match</p>
+                  <div class="col-lg-12">
+        			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-building" aria-hidden="true"></i> &nbsp;Company Details: </h6>
+            		  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="30" name="sellerName" class="form-control customInput" type="text" placeholder="*Company Name" required="">
+                    </div>
+                  </div>
+          			  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" name="sellerWebsite" class="form-control customInput" type="text" placeholder="Website">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+          			    <div class="form-group">
+                      <input maxlength="14" name="sellerPhNo" class="form-control customInput" type="text" placeholder="*Phone Number" required="">
+                    </div>
+          			  </div>
+                  <div id='sellerPhNo2' class="col-lg-6">
+          			    <div class="form-group">
+                      <input maxlength="14" name="sellerPhNo2" class="form-control customInput" type="text" placeholder="Additional Phone Number">
+                    </div>
+          			  </div>
+                  <div id='sellerPhNo3' class="col-lg-6">
+          			    <div class="form-group">
+                      <input maxlength="14" name="sellerPhNo3" class="form-control customInput" type="text" placeholder="Additional Phone Number">
+                    </div>
+          			  </div>
+                  <div id='sellerPhNo4' class="col-lg-6">
+          			    <div class="form-group">
+                      <input maxlength="14" name="sellerPhNo4" class="form-control customInput" type="text" placeholder="Additional Phone Number">
+                    </div>
+          			  </div>
+                  <div id='addPhoneButton' class="col-lg-6">
+          			    <div class="form-group">
+                      <button onclick='addPhone();' type="button" class="btn customButton3"><i class="fa fa-plus" aria-hidden="true"></i> &nbsp;Phone Number </button>
+                    </div>
+          			  </div>
+                  <p class="mb-3 font-weight-bold" style="color:#0275d8" id="phoneLimit">Maximum 4 Phone Numbers</p>
+          			  <div class="col-lg-12">
+          		            		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
+          			  </div>
+                  <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="10" name="sellerBuilding" class="form-control customInput" type="text" placeholder="Building">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="sellerRoad" class="form-control customInput" type="text" placeholder="Road">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="sellerArea" class="form-control customInput" type="text" placeholder="*Area" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="sellerCity" class="form-control customInput" type="text" placeholder="*City" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="25" name="sellerLatitude" class="form-control customInput" type="text" placeholder="*Latitude" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="25" name="sellerLongitude" class="form-control customInput" type="text" placeholder="*Longitude" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-12">
+           		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-picture-o" aria-hidden="true"></i> &nbsp;Company Logo </h6>
+           			   </div>
+                   <div class="col-lg-12">
+                     <div class="form-group">
+                      <input type='file' accept='image/*' name='sellerImage' id="sImgButton" onchange="uploadPicture(event)"/>
+                  	  <br /> <br />
+                  	  <img id="sImg" src="#" alt="your image" />
+                   </div>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+              <div id="Employee_Form">
+                <h2 class="mb-3 font-weight-bold">Employee Registration : </h2>
+                <div class="row">
+                  <div class="col-lg-12">
+      				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
+          			  </div>
+                  <div class="col-lg-12">
+                    <div class="form-group">
+                      <input maxlength="40" name="employeeEmail" class="form-control customInput" type="email" placeholder="*Email Address" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" id="employeePassword" onkeyup='checkPassword();' name="employeePassword" class="form-control customInput" type="password" placeholder="*Password" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="50" id="employeePassword2" onkeyup='checkPassword();' name="employeePassword2" class="form-control customInput" type="password" placeholder="*Confirm Password" required="">
+                    </div>
+                  </div>
+                  <p class="mb-3 font-weight-bold" style="color:red" id="ePassCheck">Passwords Did Not Match</p>
+                  <div class="col-lg-12">
+        			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
+            		  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input maxlength="20" name="employeeFirstName" class="form-control customInput" type="text" placeholder="*First Name" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+            		    <div class="form-group">
+                      <input maxlength="20" name="employeeLastName" class="form-control customInput" type="text" placeholder="*Last Name" required="">
+                    </div>
+            		  </div>
+          			  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="employeeDOB" class="form-control customInput" type="date" placeholder="*Date of Birth" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+          			    <div class="form-group">
+                      <input maxlength="14" name="employeePhNo" class="form-control customInput" type="text" placeholder="*Phone Number" required="">
+                    </div>
+          			  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <input name="employeeSalary" class="form-control customInput" type="number" placeholder="*Salary" required="">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                  </div>
+                  <div class="col-lg-12">
+                   <h6 class="mb-3 font-weight-bold">Employee Type: </h6>
+                  </div>
+                  <div class="col-lg-12">
+                    <input onclick='employeeTypeSelection();' type="radio" id="customerCare" name="employeeType" value="customerCare" checked>
+                    <label for="customerCare"> Customer Care</label>
+                    <input onclick='employeeTypeSelection();' type="radio" id="deliveryGuy" name="employeeType" value="deliveryGuy">
+                    <label for="deliveryGuy"> Delivery Guy</label>
+                  </div>
+          			  <div class="col-lg-12">
+          		            		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
+          			  </div>
+                  <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="10" name="employeeApartment" class="form-control customInput" type="text" placeholder="Apartment">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="10" name="employeeBuilding" class="form-control customInput" type="text" placeholder="Building">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="employeeRoad" class="form-control customInput" type="text" placeholder="Road">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="employeeArea" class="form-control customInput" type="text" placeholder="*Area" required="">
+                     </div>
+                   </div>
+                   <div id='employeeLatitudeDiv' class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="25" name="employeeLatitude" class="form-control customInput" type="text" placeholder="*Latitude">
+                     </div>
+                   </div>
+                   <div id='employeeLongitudeDiv' class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="25" name="employeeLongitude" class="form-control customInput" type="text" placeholder="*Longitude">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                     <div class="form-group">
+                       <input maxlength="30" name="employeeCity" class="form-control customInput" type="text" placeholder="*City" required="">
+                     </div>
+                   </div>
+                   <div class="col-lg-6">
+                   </div>
+                   <div class="col-lg-12">
+           		             		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-picture-o" aria-hidden="true"></i> &nbsp;Profile Picture </h6>
+           			   </div>
+                   <div class="col-lg-12">
+                     <div class="form-group">
+                      <input type='file' accept='image/*' name='employeeImage' id="eImgButton" onchange="uploadPicture(event)"/>
+                  	  <br /> <br />
+                  	  <img id="eImg" src="#" alt="your image" />
+                   </div>
+                  </div>
+                </div>
+              </div>
+
+
+              <div class="col-lg-12">
+                <button type="submit" class="btn btn-md btn-block bg text-white border-0 customSuccess" enable-gradients><span> Create Account</span></button>
+              </div>
+            </form>
             <div class="row">
-              <div class="col-lg-12">
-  				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
-      			  </div>
-              <div class="col-lg-12">
-                <div class="form-group">
-                  <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="" maxlength="40">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" id="customerPassword" onkeyup='checkPassword();' name="customerPassword" class="form-control" type="password" placeholder="*Password" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
-                </div>
-              </div>
-              <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
-              <div class="col-lg-12">
-    			     <h6 class="mb-3 font-weight-bold">Personal: </h6>
-        		  </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="20" name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-        		    <div class="form-group">
-                  <input maxlength="20" name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
-                </div>
-        		  </div>
-      			  <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="customerDOB" class="form-control" type="date" placeholder="*Date of Birth" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-      			    <div class="form-group">
-                  <input maxlength="14" name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
-                </div>
-      			  </div>
-      			  <div class="col-lg-12">
-      		      <h6 class="mb-3 font-weight-bold">Address: </h6>
-      			  </div>
-              <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="10" name="customerApartment" class="form-control" type="text" placeholder="Apartment">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="10" name="customerBuilding" class="form-control" type="text" placeholder="Building">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="customerRoad" class="form-control" type="text" placeholder="Road">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="25" name="customerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="25" name="customerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="customerCity" class="form-control" type="text" placeholder="*City" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-               </div>
-               <div class="col-lg-12">
-       		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
-       			   </div>
-               <div class="col-lg-12">
-                 <div class="form-group">
-                  <input type='file' accept='image/*' name='customerImage' id="cImgButton" onchange="uploadPicture(event)"/>
-              	  <br /> <br />
-              	  <img id="cImg" src="#" alt="your image" />
-                </div>
-              </div>
-              </div>
-          </div>
-
-
-
-
-          <div id="Seller_Form">
-            <h2 class="mb-3 font-weight-bold">Seller Registration : </h2>
-            <div class="row">
-              <div class="col-lg-12">
-  				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
-      			  </div>
-              <div class="col-lg-12">
-                <div class="form-group">
-                  <input maxlength="40" name="sellerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" id="sellerPassword" onkeyup='checkPassword();' name="sellerPassword" class="form-control" type="password" placeholder="*Password" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" id="sellerPassword2" onkeyup='checkPassword();' name="sellerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
-                </div>
-              </div>
-              <p class="mb-3 font-weight-bold" style="color:red" id="sPassCheck">Passwords Did Not Match</p>
-              <div class="col-lg-12">
-    			     <h6 class="mb-3 font-weight-bold">Company Details: </h6>
-        		  </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="30" name="sellerName" class="form-control" type="text" placeholder="*Company Name" required="">
-                </div>
-              </div>
-      			  <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" name="sellerWebsite" class="form-control" type="text" placeholder="Website">
-                </div>
-              </div>
-              <div class="col-lg-6">
-      			    <div class="form-group">
-                  <input maxlength="14" name="sellerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
-                </div>
-      			  </div>
-              <div id='sellerPhNo2' class="col-lg-6">
-      			    <div class="form-group">
-                  <input maxlength="14" name="sellerPhNo2" class="form-control" type="text" placeholder="Additional Phone Number">
-                </div>
-      			  </div>
-              <div id='sellerPhNo3' class="col-lg-6">
-      			    <div class="form-group">
-                  <input maxlength="14" name="sellerPhNo3" class="form-control" type="text" placeholder="Additional Phone Number">
-                </div>
-      			  </div>
-              <div id='sellerPhNo4' class="col-lg-6">
-      			    <div class="form-group">
-                  <input maxlength="14" name="sellerPhNo4" class="form-control" type="text" placeholder="Additional Phone Number">
-                </div>
-      			  </div>
-              <div id='addPhoneButton' class="col-lg-6">
-      			    <div class="form-group">
-                  <button onclick='addPhone();' type="button" class="btn btn-dark">Add Another Phone Number</button>
-                </div>
-      			  </div>
-              <p class="mb-3 font-weight-bold" style="color:#0275d8" id="phoneLimit">Maximum 4 Phone Numbers</p>
-      			  <div class="col-lg-12">
-      		      <h6 class="mb-3 font-weight-bold">Address: </h6>
-      			  </div>
-              <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="10" name="sellerBuilding" class="form-control" type="text" placeholder="Building">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="sellerRoad" class="form-control" type="text" placeholder="Road">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="sellerArea" class="form-control" type="text" placeholder="*Area" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="sellerCity" class="form-control" type="text" placeholder="*City" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="25" name="sellerLatitude" class="form-control" type="text" placeholder="*Latitude" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="25" name="sellerLongitude" class="form-control" type="text" placeholder="*Longitude" required="">
-                 </div>
-               </div>
-               <div class="col-lg-12">
-       		      <h6 class="mb-3 font-weight-bold">Company Logo: </h6>
-       			   </div>
-               <div class="col-lg-12">
-                 <div class="form-group">
-                  <input type='file' accept='image/*' name='sellerImage' id="sImgButton" onchange="uploadPicture(event)"/>
-              	  <br /> <br />
-              	  <img id="sImg" src="#" alt="your image" />
-               </div>
+              <div class="col-lg-12 text-center mt-4">
+                Already have an account? <a href="#" class="text-info">Log In</a>
               </div>
             </div>
-          </div>
-
-
-
-
-          <div id="Employee_Form">
-            <h2 class="mb-3 font-weight-bold">Employee Registration : </h2>
-            <div class="row">
-              <div class="col-lg-12">
-  				      <h6 class="mb-3 font-weight-bold">Log In Details: </h6>
-      			  </div>
-              <div class="col-lg-12">
-                <div class="form-group">
-                  <input maxlength="40" name="employeeEmail" class="form-control" type="email" placeholder="*Email Address" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" id="employeePassword" onkeyup='checkPassword();' name="employeePassword" class="form-control" type="password" placeholder="*Password" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="50" id="employeePassword2" onkeyup='checkPassword();' name="employeePassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
-                </div>
-              </div>
-              <p class="mb-3 font-weight-bold" style="color:red" id="ePassCheck">Passwords Did Not Match</p>
-              <div class="col-lg-12">
-    			     <h6 class="mb-3 font-weight-bold">Personal: </h6>
-        		  </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input maxlength="20" name="employeeFirstName" class="form-control" type="text" placeholder="*First Name" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-        		    <div class="form-group">
-                  <input maxlength="20" name="employeeLastName" class="form-control" type="text" placeholder="*Last Name" required="">
-                </div>
-        		  </div>
-      			  <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="employeeDOB" class="form-control" type="date" placeholder="*Date of Birth" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-      			    <div class="form-group">
-                  <input maxlength="14" name="employeePhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
-                </div>
-      			  </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <input name="employeeSalary" class="form-control" type="number" placeholder="*Salary" required="">
-                </div>
-              </div>
-              <div class="col-lg-6">
-              </div>
-              <div class="col-lg-12">
-               <h6 class="mb-3 font-weight-bold">Employee Type: </h6>
-              </div>
-              <div class="col-lg-12">
-                <input onclick='employeeTypeSelection();' type="radio" id="customerCare" name="employeeType" value="customerCare" checked>
-                <label for="customerCare"> Customer Care</label>
-                <input onclick='employeeTypeSelection();' type="radio" id="deliveryGuy" name="employeeType" value="deliveryGuy">
-                <label for="deliveryGuy"> Delivery Guy</label>
-              </div>
-      			  <div class="col-lg-12">
-      		      <h6 class="mb-3 font-weight-bold">Address: </h6>
-      			  </div>
-              <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="10" name="employeeApartment" class="form-control" type="text" placeholder="Apartment">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="10" name="employeeBuilding" class="form-control" type="text" placeholder="Building">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="employeeRoad" class="form-control" type="text" placeholder="Road">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="employeeArea" class="form-control" type="text" placeholder="*Area" required="">
-                 </div>
-               </div>
-               <div id='employeeLatitudeDiv' class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="25" name="employeeLatitude" class="form-control" type="text" placeholder="*Latitude">
-                 </div>
-               </div>
-               <div id='employeeLongitudeDiv' class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="25" name="employeeLongitude" class="form-control" type="text" placeholder="*Longitude">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-                 <div class="form-group">
-                   <input maxlength="30" name="employeeCity" class="form-control" type="text" placeholder="*City" required="">
-                 </div>
-               </div>
-               <div class="col-lg-6">
-               </div>
-               <div class="col-lg-12">
-       		      <h6 class="mb-3 font-weight-bold">Profile Picture: </h6>
-       			   </div>
-               <div class="col-lg-12">
-                 <div class="form-group">
-                  <input type='file' accept='image/*' name='employeeImage' id="eImgButton" onchange="uploadPicture(event)"/>
-              	  <br /> <br />
-              	  <img id="eImg" src="#" alt="your image" />
-               </div>
-              </div>
-            </div>
-          </div>
-
-
-          <div class="col-lg-12">
-            <button type="submit" class="btn btn-md btn-block bg-success text-white border-0" enable-gradients><span> Create Account</span></button>
-          </div>
-        </form>
-        <div class="row">
-          <div class="col-lg-12 text-center mt-4">
-            Already have an account? <a href="#" class="text-info">Log In</a>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block script %}

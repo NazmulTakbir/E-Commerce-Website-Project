@@ -33,3 +33,159 @@
 .rating > label:active {
     position:relative;
 }
+
+.customInput:focus { 
+    outline: none !important;
+    border-color: #24876f;
+    box-shadow: 0 0 10px #24876f;
+}
+
+
+.customSuccess{
+	background-color: #21c2ae; 
+	color: white;
+}
+
+.customSuccess:hover {
+	background-color: #24ab9a;
+	color: white;
+}
+
+.customSuccess:focus {
+	outline: none !important;
+	box-shadow: 0 0 10px #24ab9a;
+	background-color: #24ab9a;
+}
+
+.customButton3{
+	background-color: #206b58; 
+	color: white;
+}
+
+.customButton3:hover {
+	background-color: #1c4f42;
+	color: white;
+}
+
+.customButton3:focus {
+	outline: none !important;
+	box-shadow: 0 0 10px #1c4f42;
+	background-color: #1c4f42;
+}
+
+.sideBarButton {
+	background-color: #1fab89; 
+	color: white; 
+	font-weight: bold;
+	border: solid 0.5px #24876f;
+	border-radius: 0px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	padding-left: 35px;
+	text-align: left;
+}
+
+.sideBarButton:hover {
+	outline: none !important;
+	background-color: #218069;
+	color: #4a5154;
+}
+
+.sideBarButton:focus {
+	box-shadow: none;
+	outline: none !important;
+	background-color: #218069;
+	color: black;
+}
+
+.customDanger{
+	background-color: #ff5f40; 
+	color: white;
+}
+
+.customDanger:hover {
+	background-color: #de543a;
+	color: white;
+}
+
+.customDanger:focus {
+	outline: none !important;
+	box-shadow: 0 0 10px #de543a;
+	background-color: #de543a;
+}
+
+.customButton:hover {
+	background-color: #24876f;
+}
+
+.customButton:active {
+	box-shadow: 0 0 10px #24876f;
+	background-color: #24876f;
+}
+
+.customButton:focus {
+	outline: none !important;
+	box-shadow: 0 0 10px #24876f;
+	background-color: #24876f;
+}
+
+.customButton2{
+	outline: none !important;
+	border: none;
+	border-color: #1fab89;
+}
+
+.customButton2:focus{
+	outline: none !important;
+	border: none;
+	border-color: #1fab89;
+}
+
+.customButton2:active{
+	outline: none !important;
+	border: none;
+	border-color: #1fab89;
+}
+
+.carousel-indicators .active{
+    background-color: black;
+}
+
+.carousel-indicators li {
+    display: inline-block;
+    text-indent: 0;
+    cursor: pointer;
+    border: none;
+    background-color: black; 
+}
+.carousel-indicators .active {
+    background-color: black;
+}
+
+.custom-radio .custom-control-label::before {
+    background-color: white;  /* orange */
+	height: 13px;
+	width: 13px;
+}
+
+/* This is the checked state */
+.custom-radio .custom-control-input:checked~.custom-control-label::before,
+.custom-radio .custom-control-input:checked~.custom-control-label::after {
+    background-color: #24876f;  /* green */
+    /* this bg image SVG is just a white circle, you can replace it with any valid SVG code */
+    background-image: url(data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3' fill='%23fff'/%3E%3C/svg%3E); 
+    border-radius: 50%;
+	height: 13px;
+	width: 13px;
+}
+
+/* active state i.e. displayed while the mouse is being pressed down */
+.custom-radio .custom-control-input:active ~ .custom-control-label::before {
+    color: #24876f;
+    background-color: #24876f; /* red */
+}
+    
+/* the shadow; displayed while the element is in focus */
+.custom-radio .custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(36, 135, 111, 0.25); /* pink, 25% opacity */
+}

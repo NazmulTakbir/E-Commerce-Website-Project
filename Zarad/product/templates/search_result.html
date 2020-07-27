@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "header_footer.html" %}
 
 {% load staticfiles%}
 
@@ -11,14 +11,14 @@ Search Result
 <script type="text/javascript" src="{% static 'javascript/search_result.js' %}"></script>
 {%endblock%}
 
-{% block content2 %}
-<div class="container">
+{% block content %}
+<div class="container" style="padding-right: 0px; padding-left: 0px">
   <div class="row" style="padding-top: 20px; padding-bottom: 50px;">
-    <div class="col-md-4 col-lg-2" style="border-right: solid 2px rgba(0,0,0,0.2);">
-      <h4>Filters: </h4>
+    <div class="col-md-4 col-lg-2">
+      <h3 style="font-family: 'Vollkorn', serif;"><i class="fa fa-filter" aria-hidden="true"></i> Filters </h3>
       <br />
       <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button style="background-color: #24876f" class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Sort By
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -29,50 +29,66 @@ Search Result
       </div>
       <br />
       <br />
-      <h6>Sellers: </h6>
-      <input type="radio" id="allSellers" name="sellerSelection" checked><label for="allSellers">&nbspAll Sellers</label><br>
-      <div id="seller1Div" style="display: none">
-        <input type="radio" id="seller1" name="sellerSelection"><label for="seller1"></label><br>
+      <h5 style="font-family: 'Vollkorn', serif;"><i class="fa fa-building-o" aria-hidden="true"></i> &nbsp;Sellers </h5>
+      <div class="custom-control custom-radio">
+        <input class="custom-control-input" type="radio" id="allSellers" name="sellerSelection" checked><label  class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="allSellers">&nbspAll Sellers</label><br>
       </div>
-      <div id="seller2Div" style="display: none">
-        <input type="radio" id="seller2" name="sellerSelection"><label for="seller2"></label><br>
+      <div class="custom-control custom-radio">
+        <div id="seller1Div" style="display: none">
+          <input class="custom-control-input" type="radio" id="seller1" name="sellerSelection"><label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="seller1"></label><br>
+        </div>
       </div>
-      <div id="seller3Div" style="display: none">
-        <input type="radio" id="seller3" name="sellerSelection"><label for="seller3"></label><br>
+      <div class="custom-control custom-radio">
+        <div id="seller2Div" style="display: none">
+          <input class="custom-control-input" type="radio" id="seller2" name="sellerSelection"><label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="seller2"></label><br>
+        </div>
       </div>
-      <div id="seller4Div" style="display: none">
-        <input type="radio" id="seller4" name="sellerSelection"><label for="seller4"></label><br>
+      <div class="custom-control custom-radio">
+        <div id="seller3Div" style="display: none">
+          <input class="custom-control-input" type="radio" id="seller3" name="sellerSelection"><label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="seller3"></label><br>
+        </div>
       </div>
-      <div id="seller5Div" style="display: none">
-        <input type="radio" id="seller5" name="sellerSelection"><label for="seller5"></label>
+      <div class="custom-control custom-radio">
+        <div id="seller4Div" style="display: none">
+          <input class="custom-control-input" type="radio" id="seller4" name="sellerSelection"><label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="seller4"></label><br>
+        </div>
+      </div>
+      <div class="custom-control custom-radio">
+        <div id="seller5Div" style="display: none">
+          <input class="custom-control-input" type="radio" id="seller5" name="sellerSelection"><label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="seller5"></label>
+        </div>
       </div>
       <br />
       <br />
       {% if showOffersOnly %}
-        <h6>Offers Only: </h6>
-        <input onclick="offersOnlyFunc()" type="radio" id="offersYes" name="offersOnly" value="offersYes">
-        <label for="offersYes"> Yes</label><br>
-        <input onclick="notOffersOnlyFunc()" type="radio" id="offersNo" name="offersOnly" value="offersNo" checked>
-        <label for="offersNo"> No</label><br>
+        <h5 style="font-family: 'Vollkorn', serif;"><i class="fa fa-gift" aria-hidden="true"></i>&nbsp; Offers Only</h5>
+        <div class="custom-control custom-radio">
+          <input class="custom-control-input" onclick="offersOnlyFunc()" type="radio" id="offersYes" name="offersOnly" value="offersYes">
+          <label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="offersYes"> Yes</label><br>
+        </div>
+        <div class="custom-control custom-radio">
+          <input class="custom-control-input" onclick="notOffersOnlyFunc()" type="radio" id="offersNo" name="offersOnly" value="offersNo" checked>
+          <label class="custom-control-label" style="font-family: 'Vollkorn', serif;" for="offersNo"> No</label><br>
+        </div>
         <br />
         <br />
       {% endif %}
     </div>
     <div class="col-md-8 col-lg-10">
-      <h6>Search Result For: <span style="color: #0275d8">{{searchString}}</span></h6>
+      <h6 style="font-family: 'Vollkorn', serif;"><span style="color: #24876f;">{{searchString}}</span>&nbsp; <i class="fa fa-search-plus" aria-hidden="true"></i></h6>
       <div class="row">
         <div class="col-lg-8 d-flex justify-content-end" style="margin-top:15px">
-          <strong id="pageCount">Page 1 of 5</strong>
+          <strong id="pageCount" style="display: none">Page 1 of 5</strong>
         </div>
         <div class="col-lg-4 d-flex justify-content-end" style="margin-top:10px;">
-          <ul class="pagination">
-            <li class="page-item page-link" id="pprevious"><span aria-hidden="true">«</span></li>
-            <li class="page-item page-link" id="p1">1</li>
-            <li class="page-item page-link" id="p2">2</li>
-            <li class="page-item page-link" id="p3">3</li>
-            <li class="page-item page-link" id="p4">4</li>
-            <li class="page-item page-link" id="p5">5</li>
-            <li class="page-item page-link" id="pnext"><span aria-hidden="true">»</span></li>
+          <ul class="pagination" style="border-radius: 5px; box-shadow: 3px 3px 4px rgba(0,0,0,0.2);">
+            <li style="color: #24876f;" class="page-item page-link" id="pprevious"><span aria-hidden="true">«</span></li>
+            <li style="color: #24876f;" class="page-item page-link" id="p1">1</li>
+            <li style="color: #24876f;" class="page-item page-link" id="p2">2</li>
+            <li style="color: #24876f;" class="page-item page-link" id="p3">3</li>
+            <li style="color: #24876f;" class="page-item page-link" id="p4">4</li>
+            <li style="color: #24876f;" class="page-item page-link" id="p5">5</li>
+            <li style="color: #24876f;" class="page-item page-link" id="pnext"><span aria-hidden="true">»</span></li>
           </ul>
         </div>
       </div>
@@ -99,4 +115,5 @@ Search Result
 {%endblock%}
 
 {% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/js/all.min.js"></script>
 {%endblock%}

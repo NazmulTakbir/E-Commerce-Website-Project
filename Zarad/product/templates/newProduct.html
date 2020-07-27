@@ -23,36 +23,39 @@ Add Item
             <div id='errorMessageDiv' class="col-lg-12" style="display: none">
               <h6 id='errorMessage' style="color: red" class="mb-3 font-weight-bold"></h6>
             </div>
-            <div class="col-lg-12">
-              <h6 class="mb-3 font-weight-bold">Product ID ( If Product Already Available From Another Seller ) : </h6>
+            <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
+              <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">New Product</h2>
+            </div>
+            <div class="col-lg-12" style="margin-top: 20px">
+              <h6 class="mb-3 font-weight-bold"><i class="fa fa-id-badge" aria-hidden="true"></i> &nbsp;Product ID ( If Product Already Available From Another Seller ) </h6>
             </div>
             <div class="col-lg-12">
               <div class="form-group">
-                <input maxlength="20" name="productID" class="form-control" type="number" placeholder="Product ID">
+                <input maxlength="20" name="productID" class="form-control customInput" type="number" placeholder="Product ID">
               </div>
             </div>
-            <div class="col-lg-12">
-              <h6 class="mb-3 font-weight-bold">Product Details : </h6>
+            <div class="col-lg-12" style="margin-top: 20px">
+              <h6 class="mb-3 font-weight-bold"><i class="fa fa-search" aria-hidden="true"></i> &nbsp;Product Details </h6>
             </div>
             <div class="col-lg-12">
               <div class="form-group">
-                <input maxlength="150" name="productName" class="form-control" type="text" placeholder="*Product Name" required="">
+                <input maxlength="150" name="productName" class="form-control customInput" type="text" placeholder="*Product Name" required="">
               </div>
             </div>
             <div class="col-lg-6">
               <div class="form-group">
-                <input max="1000000000" name="productPrice" class="form-control" type="number" placeholder="*Product Price" required="">
+                <input max="1000000000" name="productPrice" class="form-control customInput" type="number" placeholder="*Product Price" required="">
               </div>
             </div>
             <div class="col-lg-6">
               <div class="form-group">
-                <input max="365" name="deliveryTime" class="form-control" type="number" placeholder="*Expected Delivery Time ( Days )" required="">
+                <input max="365" name="deliveryTime" class="form-control customInput" type="number" placeholder="*Expected Delivery Time ( Days )" required="">
               </div>
             </div>
             <div class="col-lg-6">
               <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Category</button>
+                  <button class="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Category</button>
                   <div class="dropdown-menu">
                     <div class="overflow-auto" style='height: 250px;'>
                       <h6 onclick="dropDownSelection(event)" class="dropdown-item">Electronic Appliances</h6>
@@ -76,65 +79,65 @@ Add Item
                     </div>
                   </div>
                 </div>
-                <input name="chosenCategory" id="chosenCategory" type="text" class="form-control" aria-label="Text input with dropdown button" value="Select From Dropdown" disabled>
+                <input name="chosenCategory" id="chosenCategory" type="text" class="form-control customInput" aria-label="Text input with dropdown button" value="Select From Dropdown" disabled>
               </div>
             </div>
             <div class="col-lg-6">
               <div class="form-group">
-                <input max="1000000" name="quantityInStock" class="form-control" type="number" placeholder="*Quantity in Stock" required="">
+                <input max="1000000" name="quantityInStock" class="form-control customInput" type="number" placeholder="*Quantity in Stock" required="">
               </div>
             </div>
-            <div class="col-lg-12">
-              <h6 class="mb-3 font-weight-bold">*Product Description : </h6>
+            <div class="col-lg-12" style="margin-top: 20px">
+              <h6 class="mb-3 font-weight-bold"><i class="fa fa-book" aria-hidden="true"></i> &nbsp;*Product Description </h6>
             </div>
             <div class="col-lg-12">
               <div class="form-group">
-                <textarea maxlength="2000" class="form-control" rows="8" name="description" id="description" required=""></textarea>
+                <textarea maxlength="2000" class="form-control customInput" rows="8" name="description" id="description" required=""></textarea>
               </div>
             </div>
-            <div class="col-lg-12">
-              <h6 class="mb-3 font-weight-bold">Features : </h6>
+            <div class="col-lg-12" style="margin-top: 20px">
+              <h6 class="mb-3 font-weight-bold"><i class="fa fa-info-circle" aria-hidden="true"></i> &nbsp;Features </h6>
             </div>
             <div class="col-lg-12">
               <div class="form-group">
-                <input maxlength="100" name="feature1" class="form-control" type="text" placeholder="Feature 1">
-              </div>
-            </div>
-            <div class="col-lg-12">
-              <div class="form-group">
-                <input maxlength="100" name="feature2" class="form-control" type="text" placeholder="Feature 2">
+                <input maxlength="100" name="feature1" class="form-control customInput" type="text" placeholder="Feature 1">
               </div>
             </div>
             <div class="col-lg-12">
               <div class="form-group">
-                <input maxlength="100" name="feature3" class="form-control" type="text" placeholder="Feature 3">
+                <input maxlength="100" name="feature2" class="form-control customInput" type="text" placeholder="Feature 2">
+              </div>
+            </div>
+            <div class="col-lg-12">
+              <div class="form-group">
+                <input maxlength="100" name="feature3" class="form-control customInput" type="text" placeholder="Feature 3">
               </div>
             </div>
             <div id="feature4" style="display: none" class="col-lg-12">
               <div class="form-group">
-                <input maxlength="100" name="feature4" class="form-control" type="text" placeholder="Feature 4">
+                <input maxlength="100" name="feature4" class="form-control customInput" type="text" placeholder="Feature 4">
               </div>
             </div>
             <div id="feature5" style="display: none" class="col-lg-12">
               <div class="form-group">
-                <input maxlength="100" name="feature5" class="form-control" type="text" placeholder="Feature 5">
+                <input maxlength="100" name="feature5" class="form-control customInput" type="text" placeholder="Feature 5">
               </div>
             </div>
             <div style="display: none" id="feature6" class="col-lg-12">
               <div class="form-group">
-                <input maxlength="100" name="feature6" class="form-control" type="text" placeholder="Feature 6">
+                <input maxlength="100" name="feature6" class="form-control customInput" type="text" placeholder="Feature 6">
               </div>
             </div>
             <div id='featureButton' class="col-lg-6">
               <div class="form-group">
-                  <button onclick='addFeature();' type="button" class="btn btn-dark">Add Another Feature</button>
+                  <button onclick='addFeature();' type="button" class="btn btn-info">Add Another Feature</button>
               </div>
             </div>
             <div id='featureLimit' class="col-lg-6" style="display: none">
               <p class="mb-3 font-weight-bold" style="color:#0275d8;">Maximum 6 Features</p>
             </div>
-            <div class="col-lg-12">
-              <h6 class="mb-3 font-weight-bold">Product Pictures - You Can Add Between 1 and 4 : </h6>
+            <div class="col-lg-12" style="margin-top: 20px">
+              <h6 class="mb-3 font-weight-bold"><i class="fa fa-picture-o" aria-hidden="true"></i> &nbsp;Product Pictures - You Can Add Between 1 and 4 </h6>
             </div>
             <div class="col-lg-12">
               <div class="form-group">
@@ -154,7 +157,7 @@ Add Item
             </div>
           </div>
           <div class="col-lg-12">
-            <button type="submit" class="btn btn-md btn-block bg-success text-white border-0" enable-gradients><span> Add Product</span></button>
+            <button type="submit" class="btn btn-md btn-block customSuccess text-white border-0" enable-gradients><span> Add Product</span></button>
           </div>
         </form>
       </div>

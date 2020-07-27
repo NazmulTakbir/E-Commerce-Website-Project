@@ -1,5 +1,5 @@
 .product-grid7 {
-  font-family: 'Roboto Slab',serif;
+  font-family: 'Vollkorn', serif;
   position: relative;
   z-index: 1;
 }
@@ -146,8 +146,8 @@
 }
 
 .shopping-grid h2 {
-  font-family: 'Roboto';
-  font-size: 42px;
+  font-family: 'Vollkorn', serif;
+  font-size: 34px;
   margin-bottom: 40px;
   padding-top: 40px;
 }

@@ -10,6 +10,13 @@ window.onload=function(){
   const myWallet = document.getElementById('myWallet');
   const myReviews = document.getElementById('myReviews');
 
+  document.getElementById("searchText").addEventListener("keydown", function(event) {
+    if (event.keyCode == 13) {
+      event.preventDefault();
+      document.getElementById("searchIcon").click();
+    }
+  });
+
   basicInfoForm.style.display = 'block'
   cartForm.style.display = 'none'
   ordersForm.style.display = 'none'
@@ -55,4 +62,8 @@ window.onload=function(){
     walletForm.style.display = 'none'
     reviewsForm.style.display = 'block'
   })
+
+  if( document.getElementById('firstPage').innerText == 'cart' ) {
+    document.getElementById('myCart').click()
+  }
 }

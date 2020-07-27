@@ -6,8 +6,31 @@ from PIL import Image
 from django.conf import settings
 import io
 import info
+import random
 
 # Create your views here.
+def getAdverts(request):
+    query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
+               WHERE END_DATE>SYSDATE"""
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        imagePaths = []
+        for result in results:
+            imagePath = "http://{}/static/images/productImages/advert{}_{}_{}.jpg".format(request.META['HTTP_HOST'], result[0], result[1], result[2])
+            imageFile = open(settings.BASE_DIR+"\\static\\images\\productImages\\advert{}_{}_{}.jpg".format(result[0], result[1], result[2]),'wb')
+            imageFile.write( result[3].read() )
+            imageFile.close()
+            imagePaths.append(imagePath)
+        if len(imagePaths)<4:
+            placeHolder = "http://{}/static/images/productImages/{}".format(request.META['HTTP_HOST'], 'advertisementPlaceholder.jpg')
+            imagePaths.append(placeHolder)
+        adverts = []
+        for i in range(8):
+            index = random.randrange(0, len(imagePaths))
+            adverts.append(imagePaths[index])
+        return adverts
+
 def check_productID(product_id, seller_id):
     with connections['oracle'].cursor() as cursor:
         query = "SELECT PRODUCT_ID FROM PRODUCT WHERE ( PRODUCT_ID = :product_id AND SELLER_ID = :seller_id )"
@@ -101,16 +124,16 @@ def make_image_square(img):
     new_img.paste(img, (int((size - width) / 2), int((size - height) / 2)))
     return new_img
 
-def make_16_9(img):
+def make_9_2(img):
     width, height = img.size
-    if width > height*1.78:
+    if width > height*4.5:
         newwidth = width
-        newheight = int(width * 9/16)
+        newheight = int(width * 2/9)
         new_img = Image.new('RGB', (newwidth, newheight), (255, 255, 255))
         new_img.paste(img, (int((newwidth - width) / 2), int((newheight - height) / 2)))
         return new_img
     else:
-        newwidth = int(height*(16/9))
+        newwidth = int(height*(9/2))
         newheight = height
         new_img = Image.new('RGB', (newwidth, newheight), (255, 255, 255))
         new_img.paste(img, (int((newwidth - width) / 2), int((newheight - height) / 2)))
@@ -127,6 +150,8 @@ def signup_page(request):
             accountType = 'admin'
         else:
             return HttpResponseRedirect(reverse('home_page'))
+
+    adverts = getAdverts(request)
 
     if request.method == 'POST':
         if request.POST.get("radioButton", "empty") == 'Customer':
@@ -147,7 +172,11 @@ def signup_page(request):
             location = latitude+ ','+ longitude
 
             if email_taken(email) == True :
-                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
+                data = {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin,
+                        'accountType': accountType,'advert1': adverts[0], 'advert2': adverts[1],
+                        'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
+                        'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
+                return render(request, 'signup.html', data)
             else:
                 if 'customerImage' in request.FILES:
                     imgFile = request.FILES['customerImage']
@@ -259,7 +288,11 @@ def signup_page(request):
                 phno.append(phno4)
 
             if email_taken(email) == True :
-                return render(request, 'signup.html', {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
+                data = {'emailExists': True, 'adminLogin': adminLogin, 'isloggedin': isloggedin,
+                        'accountType': accountType,'advert1': adverts[0], 'advert2': adverts[1],
+                        'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
+                        'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
+                return render(request, 'signup.html', data)
             else:
                 if 'sellerImage' in request.FILES:
                     imgFile = request.FILES['sellerImage']
@@ -298,15 +331,25 @@ def signup_page(request):
                             cursor.execute("COMMIT")
                 return HttpResponseRedirect(reverse('accounts:login'))
 
-    return render(request, 'signup.html', {'emailExists': False, 'adminLogin': adminLogin, 'isloggedin': isloggedin, 'accountType': accountType})
+    data = {'emailExists': False, 'adminLogin': adminLogin, 'isloggedin': isloggedin,
+            'accountType': accountType,'advert1': adverts[0], 'advert2': adverts[1], 'advert3': adverts[2],
+            'advert4': adverts[3], 'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+            'advert8': adverts[7]}
+    return render(request, 'signup.html', data)
 
 def login_page(request):
     isloggedin = False
     accountType = 'none'
     if request.session.has_key('useremail'):
         return HttpResponseRedirect(reverse('home_page'))
+
+    adverts = getAdverts(request)
+
     if request.method == 'GET':
-        return render(request, 'login.html', {'error': False, 'isloggedin': isloggedin, 'accountType': accountType})
+        data = {'error': False, 'isloggedin': isloggedin, 'accountType': accountType, 'advert1': adverts[0],
+                'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
+                'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
+        return render(request, 'login.html', data)
     elif request.method == 'POST':
         email = request.POST.get("Email", "empty")
         password = request.POST.get("Password", "empty")
@@ -315,7 +358,10 @@ def login_page(request):
             request.session['useremail'] = email
             return HttpResponseRedirect(reverse('home_page'))
         else:
-            return render(request, 'login.html', {'error': True, 'isloggedin': isloggedin, 'accountType': accountType})
+            data = {'error': True, 'isloggedin': isloggedin, 'accountType': accountType, 'advert1': adverts[0],
+                    'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
+                    'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
+            return render(request, 'login.html', data)
 
 def logout_page(request):
     if request.session.has_key('useremail'):
@@ -331,19 +377,24 @@ def accountBalance(email, type):
             balance = cursor.fetchall()[0][0]
             if balance == None:
                 return 0
+            else:
+                return balance
         elif type == 'seller':
             cursor.execute("SELECT WALLET_BALANCE(SELLER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
             balance = cursor.fetchall()[0][0]
             if balance == None:
                 return 0
+            else:
+                return balance
 
-
-def myaccount(request):
+def myaccount(request, firstPage):
     isloggedin = False
     acType = 'none'
     if request.session.has_key('useremail'):
         isloggedin = True
         acType = accountType(request.session['useremail'])
+
+        adverts = getAdverts(request)
 
         if acType == 'customer':
             # TODO extract the basic info details
@@ -368,7 +419,9 @@ def myaccount(request):
                     elif action == 'DEL':
                         #TODO nawmi delete cart item
                         pass
-                return HttpResponseRedirect(reverse('accounts:myaccount'))
+
+                reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+                return HttpResponseRedirect(reverseStr)
 
             cartTableHTML = generateCartTableHTML(request)
             orderTableHTML = generateOrderTableHTML(request)
@@ -381,7 +434,10 @@ def myaccount(request):
             data = {'isloggedin': isloggedin, 'accountType': acType, 'cartTableHTML': cartTableHTML,
                     'purchaseOrderHTML': purchaseOrderHTML, 'returnOrderHTML': returnOrderHTML,
                     'walletTableHTML': walletTableHTML, 'reviewTableHTML': reviewTableHTML,
-                    'accountBalance': acBal}
+                    'accountBalance': acBal, 'advert1': adverts[0], 'advert2': adverts[1],
+                    'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
+                    'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7],
+                    'firstPage': firstPage}
 
             return render(request, 'customerAccount.html', data)
 
@@ -427,7 +483,7 @@ def myaccount(request):
                     if 'advertImage' in request.FILES:
                         imgFile = request.FILES['advertImage']
                         img = Image.open(imgFile)
-                        img = make_16_9(img)
+                        img = make_9_2(img)
                         img.save(blob, 'jpeg')
                         blob.seek(0)
 
@@ -464,7 +520,8 @@ def myaccount(request):
                     seller_id = request.POST.get('delAdvertButton').split('+')[1]
                     advertNumber = request.POST.get('delAdvertButton').split('+')[2]
 
-                return HttpResponseRedirect(reverse('accounts:myaccount'))
+                reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+                return HttpResponseRedirect(reverseStr)
 
             productTableHTML = generateProductTableHTML(request)
             offerTableHTML = generateOfferTableHTML(request)
@@ -476,7 +533,9 @@ def myaccount(request):
             data = {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML,
                     'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML,
                     'walletTableHTML': walletTableHTML, 'accountBalance': acBal, 'advertCost': advertCost,
-                    'buyAdvert': acBal>=advertCost or True}
+                    'buyAdvert': acBal>=advertCost or True, 'advert1': adverts[0], 'advert2': adverts[1],
+                    'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
+                    'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
 
             return render(request, 'sellerAccount.html', data)
 
@@ -484,13 +543,30 @@ def myaccount(request):
             # TODO extract the basic info details
             deliveredItemHTML = generateDeliveredItemHTML(request)
             pendingDeliveryItemHTML = generatePendingDeliveryHTML(request)
-            return render(request, 'deliveryGuy.html', {'isloggedin': isloggedin, 'accountType': acType, 'deliveredItemHTML': deliveredItemHTML, 'pendingDeliveryItemHTML': pendingDeliveryItemHTML})
+
+            data = {'isloggedin': isloggedin, 'accountType': acType,
+                    'deliveredItemHTML': deliveredItemHTML,
+                    'pendingDeliveryItemHTML': pendingDeliveryItemHTML, 'advert1': adverts[0],
+                    'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+                    'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+                    'advert8': adverts[7]}
+
+            return render(request, 'deliveryGuy.html', data)
 
         elif acType == 'customerCare':
             # TODO extract the basic info details
             managedComplaintsHTML = generateManagedComplaintsHTML(request)
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
-            return render(request, 'customerCare.html', {'isloggedin': isloggedin, 'accountType': acType, 'managedComplaintsHTML': managedComplaintsHTML, 'pendingComplaintsHTML': pendingComplaintsHTML})
+
+            data = {'isloggedin': isloggedin, 'accountType': acType,
+                    'managedComplaintsHTML': managedComplaintsHTML,
+                    'pendingComplaintsHTML': pendingComplaintsHTML, 'advert1': adverts[0],
+                    'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+                    'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+                    'advert8': adverts[7]}
+
+            return render(request, 'customerCare.html', data)
+
         elif acType == 'admin':
             if request.method == 'POST':
                 # TODO nawmi
@@ -511,9 +587,14 @@ def myaccount(request):
                     withdrawAmount = request.POST.get('withdrawAmount')
                     print(accountID, withdrawAmount)
 
-                return HttpResponseRedirect(reverse('accounts:myaccount'))
+                reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+                return HttpResponseRedirect(reverseStr)
 
-            data = {'isloggedin': isloggedin, 'accountType': acType}
+            data = {'isloggedin': isloggedin, 'accountType': acType, 'advert1': adverts[0],
+                    'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+                    'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+                    'advert8': adverts[7]}
+
             return render(request, 'adminAccount.html', data)
     else:
         return HttpResponseRedirect(reverse('home_page'))
@@ -574,7 +655,7 @@ def generateProductTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
+                                <td style="text-align: center">{}</td>
                             </tr>
                          """.format( productURL, products[i][0], products[i][1], products[i][2], products[i][3], products[i][4], editButton)
         return result
@@ -610,7 +691,7 @@ def generateOfferTableHTML(request):
         else:
             for i in range( len(offers) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], offers[i][0], sellerID)
-                endOfferButton = """<button name="delOfferBtn" type="submit" value="{}" class="btn btn-danger" style="margin: 5px">
+                endOfferButton = """<button name="delOfferBtn" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
                                     Delete
                                     </button>""".format(str(offers[i][0])+"+"+str(sellerID)+"+"+str(offers[i][5]))
                 result += """<tr>
@@ -619,7 +700,7 @@ def generateOfferTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
+                                <td style="text-align: center">{}</td>
                             </tr>
                          """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], endOfferButton)
         return result
@@ -637,7 +718,8 @@ def generateAdvertTableHTML(request):
                 temp.append(table[i][j])
             adverts.append(temp)
 
-        sellerID = adverts[i][5]
+        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {'email':request.session['useremail']})
+        sellerID = cursor.fetchall()[0][0]
 
         result = ""
         if( len(adverts)==0 ):
@@ -658,7 +740,7 @@ def generateAdvertTableHTML(request):
                 imageFile.close()
 
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], adverts[i][0], sellerID)
-                endAdvertButton = """<button name="delAdvertButton" type="submit" value="{}" class="btn btn-danger" style="margin: 5px">
+                endAdvertButton = """<button name="delAdvertButton" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
                                     Delete
                                     </button>""".format(str(adverts[i][0])+"+"+str(adverts[i][5])+"+"+str(adverts[i][6]))
                 result += """<tr>
@@ -748,10 +830,10 @@ def generateCartTableHTML(request):
             for i in range( len(cartItems) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
                 totalPrice = float(cartItems[i][5])*float(cartItems[i][4]) * (1-float(cartItems[i][6])/100)
-                orderButton = """<button name="CartBtn" type="submit" value="{}" class="btn btn-success" style="margin: 5px">
+                orderButton = """<button name="CartBtn" type="submit" value="{}" class="btn customSuccess" style="margin: 5px;">
                                     Order
                                   </button>""".format("ORDER+"+str(cartItems[i][0])+"+"+str(cartItems[i][1]))
-                deleteButton = """<button name="CartBtn" type="submit" value="{}" class="btn btn-danger" style="margin: 5px">
+                deleteButton = """<button name="CartBtn" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
                                     Delete
                                   </button>""".format("DEL+"+str(cartItems[i][0])+"+"+str(cartItems[i][1]))
                 result += """<tr>
@@ -761,7 +843,7 @@ def generateCartTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{} {}</td>
+                                <td style="vertical-align: middle; text-align: center">{} {}</td>
                             </tr>
                          """.format( productURL, cartItems[i][2], cartItems[i][3], cartItems[i][5], cartItems[i][4], cartItems[i][6], totalPrice, orderButton, deleteButton)
         return result
@@ -803,7 +885,7 @@ def generateOrderTableHTML(request):
         else:
             for i in range( len(purchaseOrder) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
-                orderAlterButton = '<button type="button" class="btn btn-danger">{}</button>'
+                orderAlterButton = '<button type="button" class="btn customDanger">{}</button>'
                 if( purchaseOrder[i][3] == 'Delivered' ):
                     orderAlterButton = orderAlterButton.format("Return")
                 elif( purchaseOrder[i][3] == 'Not Delivered' ):
@@ -851,7 +933,7 @@ def generateOrderTableHTML(request):
         else:
             for i in range( len(returnOrder) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
-                orderAlterButton = '<button type="button" class="btn btn-danger" style="display: {}">Cancel</button>'
+                orderAlterButton = '<button type="button" class="btn customDanger" style="display: {}">Cancel</button>'
                 if( returnOrder[i][4] == 'Approved' ):
                     orderAlterButton = orderAlterButton.format('none')
                 else:
@@ -937,7 +1019,7 @@ def generateReviewTableHTML(request):
                      """
         else:
             for i in range( len(reviews) ):
-                deleteReview = """<button name="delRevBtn" value="{}" type="submit" class="btn btn-danger">
+                deleteReview = """<button name="delRevBtn" value="{}" type="submit" class="btn customDanger">
                                     Delete
                                   </button>""".format( str(reviews[i][0])+"+"+str(reviews[i][1]) )
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], reviews[i][0], reviews[i][1])
@@ -1038,7 +1120,7 @@ def generatePendingDeliveryHTML(request):
                      """
         else:
             for i in range( len(orderedItems) ):
-                markDelivered = '<button type="button" class="btn btn-info">Delivered</button>'
+                markDelivered = '<button type="button" class="btn customSuccess">Delivered</button>'
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
@@ -1048,7 +1130,7 @@ def generatePendingDeliveryHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
+                                <td style="vertical-align: middle">{}</td>
                             </tr>
                          """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
         return result
@@ -1091,9 +1173,9 @@ def generateManagedComplaintsHTML(request):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
                 color = ""
                 if( complaints[i][7] == 'Approved' ):
-                    color = '#5cb85c'
+                    color = '#21c2ae'
                 elif( complaints[i][7] == 'Rejected' ):
-                    color = "#d9534f"
+                    color = "#ff5f40"
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
                                 <td >{}</td>
@@ -1143,10 +1225,10 @@ def generatePendingComplaintsHTML(request):
             for i in range( len(complaints) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
                 approve = """<a href={}>
-                                <i style="color: #5cb85c; margin-right: 10px; margin-left: 5px" class="fa fa-check-square fa-2x" aria-hidden="true"></i>
+                                <i style="color: #21c2ae; margin-right: 10px; margin-left: 5px" class="fa fa-check-square fa-2x" aria-hidden="true"></i>
                              </a>""".format(orderURL)
                 reject = """<a href={}>
-                                <i style="color: #d9534f" class="fa fa-window-close fa-2x" aria-hidden="true"></i>
+                                <i style="color: #ff5f40" class="fa fa-window-close fa-2x" aria-hidden="true"></i>
                             </a>""".format(orderURL)
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
@@ -1156,7 +1238,7 @@ def generatePendingComplaintsHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{} {}</td>
+                                <td style="text-align: center; vertical-align: middle">{} {}</td>
                             </tr>
                          """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], approve, reject)
         return result

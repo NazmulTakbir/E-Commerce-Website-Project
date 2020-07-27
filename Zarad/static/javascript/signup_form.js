@@ -6,6 +6,13 @@ window.onload=function(){
   const sellerButton = document.getElementById('Seller_Button');
   const employeeButton = document.getElementById('Employee_Button');
 
+  document.getElementById("searchText").addEventListener("keydown", function(event) {
+    if (event.keyCode == 13) {
+      event.preventDefault();
+      document.getElementById("searchIcon").click();
+    }
+  });
+  
   customerForm.style.display = 'block'
   sellerForm.style.display = 'none'
   employeeForm.style.display = 'none'

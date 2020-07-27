@@ -10,6 +10,13 @@ window.onload=function(){
   const myAdverts = document.getElementById('myAdverts');
   const myWallet = document.getElementById('myWallet');
 
+  document.getElementById("searchText").addEventListener("keydown", function(event) {
+    if (event.keyCode == 13) {
+      event.preventDefault();
+      document.getElementById("searchIcon").click();
+    }
+  });
+  
   basicInfoForm.style.display = 'block'
   productsForm.style.display = 'none'
   offersForm.style.display = 'none'
