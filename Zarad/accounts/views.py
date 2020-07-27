@@ -40,6 +40,7 @@ def check_productID(product_id, seller_id):
             return False
         else:
             return True
+
 def email_taken(email):
     with connections['oracle'].cursor() as cursor:
         cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {"email": email})
@@ -378,14 +379,30 @@ def accountBalance(email, type):
             if balance == None:
                 return 0
             else:
-                return balance
+                return float(balance)
         elif type == 'seller':
             cursor.execute("SELECT WALLET_BALANCE(SELLER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
             balance = cursor.fetchall()[0][0]
             if balance == None:
                 return 0
             else:
-                return balance
+                return float(balance)
+def acoountBalance_id(id, type):
+    with connections['oracle'].cursor() as cursor:
+        if type == 'customer':
+            cursor.execute("SELECT WALLET_BALANCE(CUSTOMER_ID , 'CUSTOMER') FROM CUSTOMER WHERE CUSTOMER_ID = :id", {'id':id})
+            balance = cursor.fetchall()[0][0]
+            if balance == None:
+                return 0
+            else:
+                return float(balance)
+        elif type == 'seller':
+            cursor.execute("SELECT WALLET_BALANCE(SELLER_ID , 'SELLER') FROM SELLER WHERE SELLER_ID =:id", {'id':id})
+            balance = cursor.fetchall()[0][0]
+            if balance == None:
+                return 0
+            else:
+                return float(balance)
 
 def myaccount(request, firstPage):
     isloggedin = False
@@ -417,8 +434,12 @@ def myaccount(request, firstPage):
                     if action == 'ORDER':
                         pass
                     elif action == 'DEL':
-                        #TODO nawmi delete cart item
-                        pass
+                        with connections['oracle'].cursor() as cursor:
+                            query = """DELETE FROM CART_ITEM WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND CUSTOMER_ID =
+                                      (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
+                            data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -509,16 +530,25 @@ def myaccount(request, firstPage):
                             cursor.execute("COMMIT")
 
                 elif formIdentity == 'delOfferForm':
-                    # TODO nawmi change end date to today
                     product_id = request.POST.get('delOfferBtn').split('+')[0]
                     seller_id = request.POST.get('delOfferBtn').split('+')[1]
                     offerNumber = request.POST.get('delOfferBtn').split('+')[2]
+                    query = "UPDATE OFFER SET END_DATE = SYSDATE WHERE PRODUCT_ID = :pID AND SELLER_ID = :sID AND OFFER_NUMBER = :offnum "
+                    data = {'pID' : product_id , 'sID':seller_id , 'offnum':offerNumber}
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
 
                 elif formIdentity == 'delAdvertForm':
-                    # TODO nawmi change end date to yesterday delAdvertButton
                     product_id = request.POST.get('delAdvertButton').split('+')[0]
                     seller_id = request.POST.get('delAdvertButton').split('+')[1]
                     advertNumber = request.POST.get('delAdvertButton').split('+')[2]
+                    query = "UPDATE ADVERTISEMENT SET END_DATE = SYSDATE WHERE PRODUCT_ID = :pID AND SELLER_ID = :sID AND ADVERTISEMENT_NUMBER = :addnum "
+                    data = {'pID' : product_id , 'sID':seller_id , 'addnum':advertNumber}
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query, data)
+                        cursor.execute("COMMIT")
+
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -569,23 +599,76 @@ def myaccount(request, firstPage):
 
         elif acType == 'admin':
             if request.method == 'POST':
-                # TODO nawmi
+                # TODO nawmi??????done
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'rechargeForm':
                     acType = request.POST.get('acType')
                     accountID = request.POST.get('accountID')
-                    rechargeAmount = request.POST.get('rechargeAmount')
+                    rechargeAmount = int(request.POST.get('rechargeAmount'))
 
                     if acType == 'customer':
-                        pass
+                        query = "SELECT CUSTOMER_ID FROM CUSTOMER WHERE CUSTOMER_ID = :ID"
+                        with connections['oracle'].cursor() as cursor:
+                            cursor.execute(query, {'ID': accountID})
+                            result = cursor.fetchall()
+                            if( len(result)==1 ):
+                                query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
+                                cursor.execute(query)
+                                tranID = cursor.fetchall()
+
+                                query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
+                                data = {'id':accountID, 'amount': rechargeAmount - rechargeAmount * info.serviceChargePercentage , 'charge': 100 * info.serviceChargePercentage}
+                                cursor.execute(query, data)
+
+                                query = """INSERT INTO CUSTOMER_WALLET_RECHARGE VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
+                                data = {'ID':tranID, 'ID2':accountID}
+                                cursor.execute(query, data)
+                                cursor.execute("COMMIT")
+
                     elif acType == 'seller':
-                        pass
+                        query = "SELECT SELLER_ID FROM SELLER WHERE SELLER_ID = :ID"
+                        with connections['oracle'].cursor() as cursor:
+                            cursor.execute(query, {'ID': accountID})
+                            result = cursor.fetchall()[0][0]
+                            if( len(result)==1 ):
+                                query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
+                                cursor.execute(query)
+                                tranID = cursor.fetchall()[0][0]
+
+                                query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
+                                data = {'id':accountID, 'amount': rechargeAmount - rechargeAmount * info.serviceChargePercentage , 'charge': 100 * info.serviceChargePercentage}
+                                cursor.execute(query, data)
+
+                                query = """INSERT INTO CUSTOMER_WALLET_RECHARGE VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
+                                data = {'ID':tranID, 'ID2':accountID}
+                                cursor.execute(query, data)
+                                cursor.execute("COMMIT")
 
                 elif formIdentity == 'withdrawForm':
-                    acBal = 'sth'
                     accountID = request.POST.get('accountID')
-                    withdrawAmount = request.POST.get('withdrawAmount')
-                    print(accountID, withdrawAmount)
+                    withdrawAmount = int(request.POST.get('withdrawAmount'))
+
+                    query = "SELECT SELLER_ID FROM SELLER WHERE SELLER_ID = :accountID"
+                    result = [[]]
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query, {'accountID', int(accountID)})
+                        result = cursor.fetchall()
+
+                    if( len(result)==1 ):
+                        acBal = accountBalance(accountID, 'seller')
+                        with connections['oracle'].cursor() as cursor:
+                            query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
+                            cursor.execute(query)
+                            tranID = cursor.fetchall()[0][0]
+
+                            query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
+                            data = {'id':accountID, 'amount':(-1)* withdrawAmount  , 'charge': 100 * info.serviceChargePercentage}
+                            cursor.execute(query, data)
+
+                            query = """INSERT INTO SELLER_TRANSACTION VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
+                            data = {'ID':tranID, 'ID2':accountID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -664,7 +747,7 @@ def generateOfferTableHTML(request):
     with connections['oracle'].cursor() as cursor:
         query = """SELECT PRODUCT_ID, START_DATE, END_DATE, PERCENTAGE_DISCOUNT DISCOUNT,
                    MINIMUM_QUANTITY_PURCHASED MINIMUM_QUANTITY, OFFER_NUMBER FROM OFFER
-                   WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
+                   WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) """
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         offers = []
@@ -713,12 +796,12 @@ def generateAdvertTableHTML(request):
         table = cursor.fetchall()
         adverts = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             adverts.append(temp)
 
-        cursor.execute("SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email", {'email':request.session['useremail']})
+        cursor.execute('SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email', {'email':request.session['useremail']})
         sellerID = cursor.fetchall()[0][0]
 
         result = ""
@@ -755,40 +838,108 @@ def generateAdvertTableHTML(request):
         return result
 
 def generateWalletTableHTML(request):
-    # TODO nawmi
-    """ seller can have five types of transactions :
-            wallet Recharge
-            wallet withdraw
-            pay for advertisement
-            revenue from purchase order
-            loss from return order """
-    sellerID = 1
-    scp = info.serviceChargePercentage
-    transactions = [ ['Wallet Recharge', 'Aug 31 2019', 2000, 100, 2100],
-                ['Revenue From Sales', 'Aug 31 2019', 5000, 0, 5000],
-                ['Loss From Returned Items', 'Sept 31 2019', 1000, 0, 1000],
-                ['Payment For Advertisement', 'Oct 31 2019', 2000, 0, 2000],
-                ['Withdraw From Wallet', 'Dec 31 2019', 2100-100, 100, 2100] ]
-    result = ""
-    if( len(transactions)==0 ):
-        result = """<tr>
-                        <th scope="row"></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                 """
-    else:
-        for i in range( len(transactions) ):
-            result += """<tr>
-                            <th scope="row">{}</th>
-                            <td >{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
-                            <td>{}</td>
+    with connections['oracle'].cursor() as cursor:
+        transactions = []
+        query = """SELECT TRANSACTIONS_DATE, AMOUNT, AMOUNT * SERVICE_CHARGE_PERCENTAGE * 1/100,
+                   (AMOUNT + AMOUNT * SERVICE_CHARGE_PERCENTAGE * 1/100) TOTAL FROM TRANSACTIONS
+                   JOIN SELLER_TRANSACTION USING (TRANSACTION_ID) WHERE
+                   SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) AND
+                   AMOUNT >= 0"""
+
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Wallet Recharge']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            transactions.append(temp)
+
+        query = """SELECT TRANSACTIONS_DATE, -AMOUNT, (-AMOUNT) * SERVICE_CHARGE_PERCENTAGE *1/100,
+                   (-AMOUNT -(-AMOUNT)* SERVICE_CHARGE_PERCENTAGE*1/100) TOTAL FROM TRANSACTIONS
+                   JOIN SELLER_TRANSACTION USING(TRANSACTION_ID) WHERE
+                   SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)
+                   AND AMOUNT < 0"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Withdraw From Wallet']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            transactions.append(temp)
+
+        query = """SELECT ORDER_DATE, ORDER_TOTAL(ORDER_ID) TOTAL FROM CUSTOMER_ORDER A JOIN
+                   PURCHASE_ORDER B USING(ORDER_ID) WHERE LOWER(PAYMENT_METHOD) = 'wallet'
+                   AND SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email);"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result = cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Revenue From Sales']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
+        query = """SELECT DELIVERED_DATE, ORDER_TOTAL(ORDER_ID) TOTAL FROM CUSTOMER_ORDER A JOIN
+                   PURCHASE_ORDER B USING(ORDER_ID) WHERE LOWER(PAYMENT_METHOD) = 'cash'
+                   AND LOWER(DELIVERY_STATUS) = 'delivered' AND
+                   SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email);"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result = cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Revenue From Sales']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
+        query = """SELECT RETURN_DATE, ORDER_TOTAL(ORDER_ID) FROM RETURN_ORDER A JOIN
+                   CUSTOMER_ORDER B USING(ORDER_ID)  WHERE LOWER(APPROVAL_STATUS) =  'approved'
+                   AND SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email);"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Loss From Returned Items']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
+        query = """SELECT START_DATE, COST_FOR_SELLER FROM ADVERTISEMENT WHERE
+                   SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Payment For Advertisement']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
+        query = "SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email"
+        cursor.execute(query, {'email':request.session['useremail']})
+        sellerID = cursor.fetchall()[0][0]
+
+        result = ""
+        if( len(transactions)==0 ):
+            result = """<tr>
+                            <th scope="row"></th>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
-                     """.format( transactions[i][0], transactions[i][1], transactions[i][2], transactions[i][3], transactions[i][4])
-    return result
+                     """
+        else:
+            for i in range( len(transactions) ):
+                result += """<tr>
+                                <th scope="row">{}</th>
+                                <td >{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                                <td>{}</td>
+                            </tr>
+                         """.format( transactions[i][0], transactions[i][1], transactions[i][2], transactions[i][3], transactions[i][4])
+        return result
 
 def generateCartTableHTML(request):
     with connections['oracle'].cursor() as cursor:
@@ -852,10 +1003,10 @@ def generateOrderTableHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER)
                     EXPECTED_DELIVERY_DATE, DELIVERED_DATE, PHONE_NUMBER DELIVERY_GUY_NUMBER FROM
-                    CUSTOMER_ORDER JOIN PURCHASE_ORDER P USING(ORDER_ID)
-                    JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON (PH.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID)
-                    JOIN (SELECT ORDER_ID, PRODUCT_ID, SELLER_ID FROM ORDERED_ITEMS) USING(ORDER_ID) JOIN
-                    (SELECT PRODUCT_ID, SELLER_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID, SELLER_ID)
+                    CUSTOMER_ORDER C JOIN PURCHASE_ORDER P USING(ORDER_ID)
+                    JOIN EMPLOYEE E ON ( E.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID )
+                    JOIN ORDERED_ITEMS OI USING(ORDER_ID)
+                    JOIN PRODUCT PR ON ( PR.PRODUCT_ID = OI.PRODUCT_ID AND PR.SELLER_ID = OI.SELLER_ID )
                     WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)
                     GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, DELIVERED_DATE, PHONE_NUMBER"""
         cursor.execute(query, {'email':request.session['useremail']})
@@ -902,11 +1053,11 @@ def generateOrderTableHTML(request):
                             </tr>
                          """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
 
-        query =  """SELECT ORDER_ID, ORDER_DATE,COMPLAINT_DES, PAYMENT_METHOD, APPROVAL_STATUS, RETURN_DATE,
-                    PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER JOIN RETURN_ORDER P USING(ORDER_ID)
-                    JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON
-                    (PH.EMPLOYEE_ID = P.CUSTOMER_CARE_EMPLOYEE_ID)
-                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+        query =  """SELECT ORDER_ID, ORDER_DATE, COMPLAINT_DES, APPROVAL_STATUS, RETURN_DATE,
+                    PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER JOIN RETURN_ORDER P
+                    USING(ORDER_ID) JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON
+                    (PH.EMPLOYEE_ID = P.CUSTOMER_CARE_EMPLOYEE_ID) WHERE
+                    CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         returnOrder = []
@@ -914,8 +1065,8 @@ def generateOrderTableHTML(request):
             temp= []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
-            if table[i][5] == None:
-                table[i][5] = 0
+            if table[i][4] == None:
+                table[i][4] = ''
             returnOrder.append(temp)
 
         if( len(returnOrder)==0 ):
@@ -948,30 +1099,68 @@ def generateOrderTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                             </tr>
-                         """.format( orderURL, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], returnOrder[i][6], orderAlterButton)
+                         """.format( orderURL, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], 'Wallet', returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], orderAlterButton)
 
 
         return [pHTML, rHTML]
 
 def generateWalletTableHTMLCustomer(request):
-    # TODO nawmi
-    """ customer can have five types of transactions :
-            wallet Recharge
-            cash payment for a purchase order
-            cash payment for a return order
-            wallet payment for a purchase order
-            wallet payment for an return order """
+    with connections['oracle'].cursor() as cursor:
+        transactions = []
+        query = """SELECT TRANSACTIONS_DATE, AMOUNT, AMOUNT * SERVICE_CHARGE_PERCENTAGE *1/100,
+                   (AMOUNT + AMOUNT * SERVICE_CHARGE_PERCENTAGE *1/100) TOTAL FROM TRANSACTIONS
+                   JOIN CUSTOMER_WALLET_RECHARGE USING(TRANSACTION_ID) WHERE
+                   CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Wallet Recharge']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            transactions.append(temp)
 
-    scp = info.serviceChargePercentage
-    transactions = [ ['Wallet Recharge', 'Aug 31 2019', 2000, 100, 2000+100],
-                     ['Purchase Order using Wallet', 'Aug 31 2019', 750, 0, 750],
-                     ['Return Order Order using Wallet', 'Aug 31 2019', 750, 0, 750],
-                     ['Purchase Order Order using Cash', 'Aug 31 2019', 500, 25, 500+25],
-                     ['Return Order Order using Cash', 'Aug 31 2019', 500, 25, 500+25] ]
+        query = """SELECT ORDER_DATE, ORDER_TOTAL(ORDER_ID) AMOUNT FROM CUSTOMER_ORDER JOIN
+                   PURCHASE_ORDER USING(ORDER_ID) WHERE PAYMENT_METHOD = 'Wallet' AND
+                   CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID =:email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Purchase Order using Wallet']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
+        query = """SELECT DELIVERED_DATE, ORDER_TOTAL(ORDER_ID) AMOUNT FROM
+                   CUSTOMER_ORDER JOIN PURCHASE_ORDER USING(ORDER_ID) WHERE
+                   LOWER(PAYMENT_METHOD) = 'cash' AND LOWER(DELIVERY_STATUS) = 'delivered' AND
+                   CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID =:email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Purchase Order using Cash']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
+        query = """SELECT RETURN_DATE,ORDER_TOTAL(ORDER_ID) AMOUNT FROM CUSTOMER_ORDER JOIN
+                   RETURN_ORDER USING (ORDER_ID) WHERE LOWER(APPROVAL_STATUS) = 'approved' AND
+                   CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+        cursor.execute(query, {'email':request.session['useremail']})
+        result =  cursor.fetchall()
+        for i in range(len(result)):
+            temp = ['Return Order using Wallet']
+            for j in range(len(result[i])):
+                temp.append(result[i][j])
+            temp = temp + [0, temp[2]]
+            transactions.append(temp)
+
     result = ""
     if( len(transactions)==0 ):
         result = """<tr>
                         <th scope="row"></th>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>

@@ -651,7 +651,7 @@ def loadProductData(request, products):
 
 def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sellerName, ratingHTML, image1Path, image2Path, starCount, rating, reviewCount, inStock):
     hasOffer = "no"
-    if productDiscount>0:
+    if float(productDiscount)>0:
         hasOffer = "yes"
     reviewText = 'reviews'
     if reviewCount == 1:
