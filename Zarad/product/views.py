@@ -658,6 +658,9 @@ def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sel
         reviewText = 'review'
     stockIcon = '<i style="margin-left: 20px" class="text-danger fa fa-times-circle" aria-hidden="true"></i>'
     discountIcon = '<i style="margin-left: 20px" class="text-danger fa fa-times-circle" aria-hidden="true"></i>'
+    if productDiscount is None:
+        productDiscount = 0
+    productDiscount = int(productDiscount)    
     if( productDiscount > 0 ):
         discountIcon = '<i style="margin-left: 20px" class="text-success fa fa-check-circle" aria-hidden="true"></i>'
     if( inStock > 0 ):

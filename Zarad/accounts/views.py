@@ -387,6 +387,7 @@ def accountBalance(email, type):
                 return 0
             else:
                 return float(balance)
+
 def acoountBalance_id(id, type):
     with connections['oracle'].cursor() as cursor:
         if type == 'customer':
@@ -614,10 +615,10 @@ def myaccount(request, firstPage):
                             if( len(result)==1 ):
                                 query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
                                 cursor.execute(query)
-                                tranID = cursor.fetchall()
+                                tranID = cursor.fetchall()[0][0]
 
                                 query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
-                                data = {'id':accountID, 'amount': rechargeAmount - rechargeAmount * info.serviceChargePercentage , 'charge': 100 * info.serviceChargePercentage}
+                                data = {'id':tranID, 'amount': rechargeAmount - rechargeAmount * info.serviceChargePercentage , 'charge': 100 * info.serviceChargePercentage}
                                 cursor.execute(query, data)
 
                                 query = """INSERT INTO CUSTOMER_WALLET_RECHARGE VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
@@ -629,17 +630,17 @@ def myaccount(request, firstPage):
                         query = "SELECT SELLER_ID FROM SELLER WHERE SELLER_ID = :ID"
                         with connections['oracle'].cursor() as cursor:
                             cursor.execute(query, {'ID': accountID})
-                            result = cursor.fetchall()[0][0]
+                            result = cursor.fetchall()
                             if( len(result)==1 ):
                                 query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
                                 cursor.execute(query)
                                 tranID = cursor.fetchall()[0][0]
 
                                 query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
-                                data = {'id':accountID, 'amount': rechargeAmount - rechargeAmount * info.serviceChargePercentage , 'charge': 100 * info.serviceChargePercentage}
+                                data = {'id':tranID, 'amount': rechargeAmount - rechargeAmount * info.serviceChargePercentage , 'charge': 100 * info.serviceChargePercentage}
                                 cursor.execute(query, data)
 
-                                query = """INSERT INTO CUSTOMER_WALLET_RECHARGE VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
+                                query = """INSERT INTO SELLER_TRANSACTION VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
                                 data = {'ID':tranID, 'ID2':accountID}
                                 cursor.execute(query, data)
                                 cursor.execute("COMMIT")
@@ -649,26 +650,26 @@ def myaccount(request, firstPage):
                     withdrawAmount = int(request.POST.get('withdrawAmount'))
 
                     query = "SELECT SELLER_ID FROM SELLER WHERE SELLER_ID = :accountID"
-                    result = [[]]
+
                     with connections['oracle'].cursor() as cursor:
-                        cursor.execute(query, {'accountID', int(accountID)})
+                        cursor.execute(query, {'accountID': int(accountID)})
                         result = cursor.fetchall()
 
-                    if( len(result)==1 ):
-                        acBal = accountBalance(accountID, 'seller')
-                        with connections['oracle'].cursor() as cursor:
-                            query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
-                            cursor.execute(query)
-                            tranID = cursor.fetchall()[0][0]
+                        if( len(result)==1 ):
+                            acBal = acoountBalance_id(accountID, 'seller')
+                            if float(acBal >= withdrawAmount):
+                                query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
+                                cursor.execute(query)
+                                tranID = cursor.fetchall()[0][0]
 
-                            query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
-                            data = {'id':accountID, 'amount':(-1)* withdrawAmount  , 'charge': 100 * info.serviceChargePercentage}
-                            cursor.execute(query, data)
+                                query = """INSERT INTO TRANSACTIONS VALUES(TO_NUMBER(:id),SYSDATE,:amount , :charge )"""
+                                data = {'id':tranID, 'amount':(-1)* withdrawAmount  , 'charge': 100 * info.serviceChargePercentage}
+                                cursor.execute(query, data)
 
-                            query = """INSERT INTO SELLER_TRANSACTION VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
-                            data = {'ID':tranID, 'ID2':accountID}
-                            cursor.execute(query, data)
-                            cursor.execute("COMMIT")
+                                query = """INSERT INTO SELLER_TRANSACTION VALUES(TO_NUMBER(:ID), TO_NUMBER(:ID2))"""
+                                data = {'ID':tranID, 'ID2':accountID}
+                                cursor.execute(query, data)
+                                cursor.execute("COMMIT")
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -840,8 +841,8 @@ def generateAdvertTableHTML(request):
 def generateWalletTableHTML(request):
     with connections['oracle'].cursor() as cursor:
         transactions = []
-        query = """SELECT TRANSACTIONS_DATE, AMOUNT, AMOUNT * SERVICE_CHARGE_PERCENTAGE * 1/100,
-                   (AMOUNT + AMOUNT * SERVICE_CHARGE_PERCENTAGE * 1/100) TOTAL FROM TRANSACTIONS
+        query = """SELECT TRANSACTIONS_DATE, AMOUNT, AMOUNT / ( 1 -SERVICE_CHARGE_PERCENTAGE *1/100 ) - AMOUNT,
+                    AMOUNT / ( 1 -SERVICE_CHARGE_PERCENTAGE *1/100 ) TOTAL FROM TRANSACTIONS
                    JOIN SELLER_TRANSACTION USING (TRANSACTION_ID) WHERE
                    SELLER_ID = (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) AND
                    AMOUNT >= 0"""
@@ -1107,8 +1108,8 @@ def generateOrderTableHTML(request):
 def generateWalletTableHTMLCustomer(request):
     with connections['oracle'].cursor() as cursor:
         transactions = []
-        query = """SELECT TRANSACTIONS_DATE, AMOUNT, AMOUNT * SERVICE_CHARGE_PERCENTAGE *1/100,
-                   (AMOUNT + AMOUNT * SERVICE_CHARGE_PERCENTAGE *1/100) TOTAL FROM TRANSACTIONS
+        query = """SELECT TRANSACTIONS_DATE, AMOUNT, AMOUNT / ( 1 -SERVICE_CHARGE_PERCENTAGE *1/100 ) - AMOUNT,
+                   AMOUNT / ( 1 -SERVICE_CHARGE_PERCENTAGE *1/100 ) TOTAL FROM TRANSACTIONS
                    JOIN CUSTOMER_WALLET_RECHARGE USING(TRANSACTION_ID) WHERE
                    CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
         cursor.execute(query, {'email':request.session['useremail']})
