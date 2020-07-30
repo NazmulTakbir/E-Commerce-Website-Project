@@ -189,3 +189,11 @@
 .custom-radio .custom-control-input:focus ~ .custom-control-label::before {
     box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(36, 135, 111, 0.25); /* pink, 25% opacity */
 }
+
+td {
+    background-color: #f2f8f8
+}
+
+th {
+    background-color: #f2f8f8
+}

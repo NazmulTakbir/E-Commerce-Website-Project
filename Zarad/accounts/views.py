@@ -130,13 +130,13 @@ def make_9_2(img):
     if width > height*4.5:
         newwidth = width
         newheight = int(width * 2/9)
-        new_img = Image.new('RGB', (newwidth, newheight), (255, 255, 255))
+        new_img = Image.new('RGB', (newwidth, newheight), (242, 247, 228))
         new_img.paste(img, (int((newwidth - width) / 2), int((newheight - height) / 2)))
         return new_img
     else:
         newwidth = int(height*(9/2))
         newheight = height
-        new_img = Image.new('RGB', (newwidth, newheight), (255, 255, 255))
+        new_img = Image.new('RGB', (newwidth, newheight), (242, 247, 228))
         new_img.paste(img, (int((newwidth - width) / 2), int((newheight - height) / 2)))
         return new_img
 
@@ -564,7 +564,7 @@ def myaccount(request, firstPage):
             data = {'isloggedin': isloggedin, 'accountType': acType, 'productTableHTML': productTableHTML,
                     'offerTableHTML': offerTableHTML, 'advertTableHTML': advertTableHTML,
                     'walletTableHTML': walletTableHTML, 'accountBalance': acBal, 'advertCost': advertCost,
-                    'buyAdvert': acBal>=advertCost or True, 'advert1': adverts[0], 'advert2': adverts[1],
+                    'buyAdvert': acBal>=advertCost, 'advert1': adverts[0], 'advert2': adverts[1],
                     'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
                     'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
 
@@ -719,11 +719,11 @@ def generateProductTableHTML(request):
         if( len(products)==0 ):
             result = """<tr>
                             <th scope="row"></th>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
                         </tr>
                      """
         else:
@@ -734,12 +734,12 @@ def generateProductTableHTML(request):
                                 </a>
                              """.format(productURL)
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
-                                <td >{}</td>
-                                <td>{}</td>
-                                <td>{}</td>
-                                <td>{}</td>
-                                <td style="text-align: center">{}</td>
+                                <th style="background-color: #f2f8f8" scope="row"><a href={}>{}</a></th>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="text-align: center; background-color: #f2f8f8">{}</td>
                             </tr>
                          """.format( productURL, products[i][0], products[i][1], products[i][2], products[i][3], products[i][4], editButton)
         return result
@@ -764,12 +764,12 @@ def generateOfferTableHTML(request):
         result = ""
         if( len(offers)==0 ):
             result = """<tr>
-                            <th scope="row"></th>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <th style="background-color: #f2f8f8" scope="row"></th>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
+                            <td style="background-color: #f2f8f8"></td>
                         </tr>
                      """
         else:
@@ -779,12 +779,12 @@ def generateOfferTableHTML(request):
                                     Delete
                                     </button>""".format(str(offers[i][0])+"+"+str(sellerID)+"+"+str(offers[i][5]))
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
-                                <td >{}</td>
-                                <td>{}</td>
-                                <td>{}</td>
-                                <td>{}</td>
-                                <td style="text-align: center">{}</td>
+                                <th style="background-color: #f2f8f8" scope="row"><a href={}>{}</a></th>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="text-align: center; background-color: #f2f8f8">{}</td>
                             </tr>
                          """.format( productURL, offers[i][0], offers[i][1], offers[i][2], offers[i][3], offers[i][4], endOfferButton)
         return result
@@ -828,12 +828,12 @@ def generateAdvertTableHTML(request):
                                     Delete
                                     </button>""".format(str(adverts[i][0])+"+"+str(adverts[i][5])+"+"+str(adverts[i][6]))
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
-                                <td >{}</td>
-                                <td>{}</td>
-                                <td>{}</td>
-                                <td><img src="{}" alt="Advertisement Picture" style="width:100%; height:auto"></td>
-                                <td>{}</td>
+                                <th style="background-color: #f2f8f8" scope="row"><a href={}>{}</a></th>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8">{}</td>
+                                <td style="background-color: #f2f8f8"><img src="{}" alt="Advertisement Picture" style="width:100%; height:auto"></td>
+                                <td style="text-align: center; vertical-align: middle; background-color: #f2f8f8">{}</td>
                             </tr>
                          """.format( productURL, adverts[i][0], adverts[i][1], adverts[i][2], adverts[i][3], imagePath, endAdvertButton)
         return result

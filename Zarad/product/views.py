@@ -11,6 +11,23 @@ import io
 import random
 from datetime import timedelta, date
 
+def accountBalance(email, type):
+    with connections['oracle'].cursor() as cursor:
+        if type == 'customer':
+            cursor.execute("SELECT WALLET_BALANCE(CUSTOMER_ID , 'CUSTOMER') FROM CUSTOMER WHERE EMAIL_ID = :email", {'email':email})
+            balance = cursor.fetchall()[0][0]
+            if balance == None:
+                return 0
+            else:
+                return float(balance)
+        elif type == 'seller':
+            cursor.execute("SELECT WALLET_BALANCE(SELLER_ID , 'SELLER') FROM SELLER WHERE EMAIL_ID = :email", {'email': email})
+            balance = cursor.fetchall()[0][0]
+            if balance == None:
+                return 0
+            else:
+                return float(balance)
+
 def getAdverts(request):
     query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
                WHERE END_DATE>SYSDATE"""
@@ -90,16 +107,19 @@ def item_page(request, product_id, seller_id):
     isloggedin = False
     acType = 'none'
     iscustomerlogin = False
+    acBal = 0
     if request.session.has_key('useremail'):
         isloggedin = True
         acType = accountType(request.session['useremail'])
         if acType == 'customer':
             iscustomerlogin = True
+            acBal = accountBalance(request.session['useremail'], acType)
 
     if request.method == 'POST'and iscustomerlogin:
         formIdentity = request.POST.get('formIdentity')
         if formIdentity == 'orderForm':
             orderQuantity = int( request.POST.get('orderQuantity') )
+            # TODO nawmi
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'reviewForm':
             rating = request.POST.get("starRating")
@@ -247,10 +267,12 @@ def item_page(request, product_id, seller_id):
         else:
             for offer in offers:
                 offerListHTML += "<li style='margin-bottom:8px'>"
-                offerListHTML += """<span style='color: #0275d8; font-size: 20px;'><strong>{}% discount till {}.</strong></span>
+                offerListHTML += """<span style='color: #0275d8; font-size: 20px;'>
+                                    <strong>
+                                    <span name="discountPercentage">{}</span>% discount till {}.</strong></span>
                                     <br />
                                     Conditions: <br />
-                                    <i class="fa fa-hand-o-right" aria-hidden="true"></i>&nbsp; {} or more units bought""".format(offer[0], offer[1], offer[2])
+                                    <i class="fa fa-hand-o-right" aria-hidden="true"></i>&nbsp; <span name="minQuan">{}</span> or more units bought""".format(offer[0], offer[1], offer[2])
                 offerListHTML += "</li>"
 
         inStockHTML = ''
@@ -317,7 +339,8 @@ def item_page(request, product_id, seller_id):
             'productImageHTML2': productImageHTML2, 'productID': product_id, 'inStock': inStock,
             'price': price, 'verticalMargin': verticalMargin, 'advert1': adverts[0], 'advert2': adverts[1],
             'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4], 'advert6': adverts[5],
-            'advert7': adverts[6], 'advert8': adverts[7], 'extraBreak': len(productName)<57}
+            'advert7': adverts[6], 'advert8': adverts[7], 'extraBreak': len(productName)<57,
+            'acBal': acBal}
 
     return render(request, 'item.html', data)
 
@@ -660,7 +683,7 @@ def htmlGenerator(i, productURL, productName, productPrice, productDiscount, sel
     discountIcon = '<i style="margin-left: 20px" class="text-danger fa fa-times-circle" aria-hidden="true"></i>'
     if productDiscount is None:
         productDiscount = 0
-    productDiscount = int(productDiscount)    
+    productDiscount = int(productDiscount)
     if( productDiscount > 0 ):
         discountIcon = '<i style="margin-left: 20px" class="text-success fa fa-check-circle" aria-hidden="true"></i>'
     if( inStock > 0 ):

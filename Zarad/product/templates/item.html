@@ -51,7 +51,7 @@ Item
           <ul class="list-group">
             <li class="list-group-item" style="border: none; background-color: #f2f7e4; padding-top: {{verticalMargin}}; padding-bottom: {{verticalMargin}}">
               <h2 style="color: black; margin-bottom: 0px">{{productName}}</h2>
-              <h1><span style="font-size:50px"> ৳</span>{{price}}</h1>
+              <h1><span style="font-size:50px"> ৳</span><span id="productPrice">{{price}}</span></h1>
               {% autoescape off %}
                 {{ratingHTML}}
               {% endautoescape %}
@@ -223,16 +223,56 @@ Item
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form class="mt-3" method="POST">
+        <form class="mt-3" method="POST" onsubmit="return formValidation()">
           {% csrf_token %}
           <div class="modal-body">
-            <label for="orderQuantity"><strong>No. of Units : &nbsp;</strong></label>
+            <label for="orderQuantity"><strong>No. of Units &nbsp;</strong></label>
             <input style="width: 120px;" type="number" id="orderQuantity" name="orderQuantity" min="1" max="{{inStock}}" oninput="validity.valid||(value='');" required="">
+            <br />
+            <h6 style="margin-top: 20px"><strong>Payment Method</strong>
+              <div style="margin-left: 30px; margin-right: 40px" class="custom-control custom-radio custom-control-inline">
+                <input type="radio" id="paymentMethod1" name="paymentMethod" value="cash" class="custom-control-input" checked>
+                <label class="custom-control-label" for="paymentMethod1">Cash</label>
+              </div>
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" id="paymentMethod2" name="paymentMethod" class="custom-control-input" value="wallet">
+                <label class="custom-control-label" for="paymentMethod2">Wallet</label>
+              </div>
+            </h6>
+            <h6 style="margin-top: 20px; margin-bottom: 0px"><strong>Total Payment</strong>&nbsp;&nbsp;
+            <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+            <input style="margin-top: 10px; color: #24ab9a; width: 100px" type="number" disabled name="totalPayment" id="totalPayment" value="0"></h6>
+            <div id='maxDiscountDiv' style="display: none; margin-top: 30px">
+              <h6 style="margin-top: 20px; margin-bottom: 0px"><strong>Available Discount</strong>&nbsp;&nbsp;
+                <br /><span style="margin-top: 10px; color: #24ab9a; font-size: 18px">%</span>
+                <input style="margin-top: 10px; color: #24ab9a; width: 100px" type="number" disabled name="maxDiscount" id="maxDiscount" value="0">
+              </h6>
+            </div>
+            <div id='netPaymentDiv' style="display: none">
+              <h6 style="margin-top: 20px; margin-bottom: 0px"><strong>Total Payment After Discount</strong>&nbsp;&nbsp;
+                <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+                <input style="margin-top: 10px; color: #24ab9a; width: 100px" type="number" disabled name="netPayment" id="netPayment" value="0">
+              </h6>
+            </div>
+          </div>
+          <div class="container" style="margin-bottom: 15px">
+            <div id='notEnoughBalance' class="toast hide" style="z-index: 10000;" data-delay="5000">
+              <div class="toast-header" style="background-color: #de543a; color: white">
+                <span class="mr-auto">Not Enough Balance</span>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div style="background-color: #f2f8f8" class="toast-body">
+                Your Wallet Balance is {{acBal}}
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn customSuccess">Confirm</button>
             <button type="button" class="btn customDanger" data-dismiss="modal">Cancel</button>
             <input type="hidden" name="formIdentity" value="orderForm">
+            <input type="hidden" id="walletBalance" value="{{acBal}}">
           </div>
         </form>
       {% else %}
@@ -304,4 +344,8 @@ Item
 {%endblock%}
 
 {% block script %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 {%endblock%}

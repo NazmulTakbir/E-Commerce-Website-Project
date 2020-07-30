@@ -13,77 +13,91 @@ My Account
 {%endblock%}
 
 {% block content %}
-<div class="banner6 py-5" style="padding: 10px">
-  <div class="row">
-    <div class="container d-flex justify-content-center">
-      <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
-        <label class="col-lg-2 mb-3 font-weight-bold"> <input id="rechargeRadio" type="radio" name="radioButton" value="basicInfo" checked> Wallet Recharge</label>
-        <label class="col-lg-3 mb-3 font-weight-bold"> <input id="withdrawRadio" type="radio" name="radioButton" value="myProducts"> Wallet Withdrawal</label>
-        <br />
-        <br />
+<div class="row" style="margin-right: 10px">
+  <div class="col-lg-2" style="padding: 0px">
+    <div class="list-group" style="margin-top: 55px;">
+      <button onclick="rechargeRadio.click()" id="basicInfoSideButton" class="btn sideBarButton" data-toggle="list"><i class="fa fa-university" aria-hidden="true"></i> &nbsp;Recharge</button>
+      <button onclick="withdrawRadio.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-money" aria-hidden="true"></i> &nbsp;Withdraw</button>
+    </div>
+  </div>
+  <div class="col-lg-10" style="margin-top: 0px; padding-top: 0px">
+    <div class="banner6 py-5" style="padding: 10px">
+      <div class="row">
+        <div class="container d-flex justify-content-center">
+          <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
+            <div style="display: none">
+              <label class="col-lg-2 mb-3 font-weight-bold"> <input id="rechargeRadio" type="radio" name="radioButton" value="basicInfo" checked> Wallet Recharge</label>
+              <label class="col-lg-3 mb-3 font-weight-bold"> <input id="withdrawRadio" type="radio" name="radioButton" value="myProducts"> Wallet Withdrawal</label>
+            </div>
 
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="formIdentity" value="rechargeForm">
-          <div id='walletRechargeForm'>
-            <div class="container d-flex justify-content-center">
-              <div class="col-lg-8">
-                <div class="row">
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Wallet Recharge : </h2>
-                  <div class="col-lg-12" style="margin-top: 25px">
-                    <h6 class="mb-3 font-weight-bold">Account Type: </h6>
-                    <label style="margin-right: 100px">
-                      <input type="radio" name="acType" value="customer" checked>
-                      Customer
-                    </label>
-                    <label>
-                      <input type="radio" name="acType" value="seller">
-                      Seller
-                    </label>
-                  </div>
-                  <div class="col-lg-6" style="margin-top: 25px">
-                    <h6 class="mb-3 font-weight-bold">Account ID: </h6>
-                    <input type="number" min="0" step="1" name="accountID" required="">
-                  </div>
-                  <div class="col-lg-6" style="margin-top: 25px">
-                    <h6 class="mb-3 font-weight-bold" >Recharge Amount: </h6>
-                    <input type="number" min="0" step="1" name="rechargeAmount" required="">
-                  </div>
-                  <div class="col-lg-12" style="margin-top: 15px">
-                    <button type="submit" class="btn btn-md btn-block bg-success text-white border-0" enable-gradients><span> Recharge Account</span></button>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="formIdentity" value="rechargeForm">
+              <div id='walletRechargeForm'>
+                <div class="container d-flex justify-content-center">
+                  <div class="col-lg-8">
+                    <div class="row">
+                      <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                        <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Wallet Recharge </h2>
+                      </div>
+                      <div class="col-lg-12">
+                        <h6 class="mb-3 font-weight-bold">Account Type: </h6>
+                        <div style="margin-right: 50px" class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="customRadioInline1" name="acType" value="customer" class="custom-control-input" checked>
+                          <label class="custom-control-label" for="customRadioInline1">Customer</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                          <input type="radio" id="customRadioInline2" name="acType" class="custom-control-input" value="seller">
+                          <label class="custom-control-label" for="customRadioInline2">Seller</label>
+                        </div>
+                      </div>
+                      <div class="col-lg-6" style="margin-top: 25px">
+                        <h6 class="mb-3 font-weight-bold">Account ID: </h6>
+                        <input type="number" min="0" step="1" name="accountID" required="">
+                      </div>
+                      <div class="col-lg-6" style="margin-top: 25px">
+                        <h6 class="mb-3 font-weight-bold" >Recharge Amount: </h6>
+                        <input type="number" min="0" step="1" name="rechargeAmount" required="">
+                      </div>
+                      <div class="col-lg-12" style="margin-top: 15px">
+                        <button type="submit" class="btn btn-md btn-block customSuccess text-white border-0" enable-gradients><span> Recharge Account</span></button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </form>
+            </form>
 
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="formIdentity" value="withdrawForm">
-          <div id='walletWithdrawForm'>
-            <div class="container d-flex justify-content-center">
-              <div class="col-lg-8">
-                <div class="row">
-                  <h2 class="mb-3 font-weight-bold col-lg-12">Wallet Withdrawal : </h2>
-                  <div class="col-lg-6" style="margin-top: 25px">
-                    <h6 class="mb-3 font-weight-bold">Account ID: </h6>
-                    <input type="number" min="0" step="1" name="accountID" required="">
-                  </div>
-                  <div class="col-lg-6" style="margin-top: 25px">
-                    <h6 class="mb-3 font-weight-bold">Withdrawal Amount: </h6>
-                    <input type="number" min="0" step="1" name="withdrawAmount" required="">
-                  </div>
-                  <div class="col-lg-12" style="margin-top: 15px">
-                    <button type="submit" class="btn btn-md btn-block bg-success text-white border-0" enable-gradients><span> Withdraw From Account</span></button>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="formIdentity" value="withdrawForm">
+              <div id='walletWithdrawForm'>
+                <div class="container d-flex justify-content-center">
+                  <div class="col-lg-8">
+                    <div class="row">
+                      <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                        <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Wallet Withdrawal  </h2>
+                      </div>
+                      <div class="col-lg-6" >
+                        <h6 class="mb-3 font-weight-bold">Seller ID: </h6>
+                        <input type="number" min="0" step="1" name="accountID" required="">
+                      </div>
+                      <div class="col-lg-6">
+                        <h6 class="mb-3 font-weight-bold">Withdrawal Amount: </h6>
+                        <input type="number" min="0" step="1" name="withdrawAmount" required="">
+                      </div>
+                      <div class="col-lg-12" style="margin-top: 15px">
+                        <button type="submit" class="btn btn-md btn-block customSuccess text-white border-0" enable-gradients><span> Withdraw From Account</span></button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </form>
+
+
           </div>
-        </form>
-
-
+        </div>
       </div>
     </div>
   </div>
