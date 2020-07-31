@@ -8,7 +8,6 @@ import io
 import info
 import random
 
-# Create your views here.
 def getAdverts(request):
     query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
                WHERE END_DATE>SYSDATE"""
@@ -578,6 +577,15 @@ def myaccount(request, firstPage):
 
         elif acType == 'deliveryGuy':
             # TODO extract the basic info details
+            if request.method == 'POST':
+                formIdentity = request.POST.get('formIdentity')
+                if formIdentity == 'pendingDeliveriesForm':
+                    orderID = request.POST.get('deliveredButton')
+                    # TODO nawmi
+
+                reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+                return HttpResponseRedirect(reverseStr)
+
             deliveredItemHTML = generateDeliveredItemHTML(request)
             pendingDeliveryItemHTML = generatePendingDeliveryHTML(request)
 
@@ -1248,7 +1256,7 @@ def generateDeliveredItemHTML(request):
         table = cursor.fetchall()
         orderedItems = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             orderedItems.append(temp)
@@ -1268,9 +1276,33 @@ def generateDeliveredItemHTML(request):
                      """
         else:
             for i in range( len(orderedItems) ):
-                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                # query = """SELECT PRODUCT_ID, SELLER_ID, NAME, ITEM_NUMBER FROM ORDERED_ITEMS JOIN
+                #            PRODUCT USING(PRODUCT_ID, SELLER_ID) WHERE ORDER_ID = TO_NUMBER(:order_id)"""
+                # cursor.execute(query, orderedItems[i][0])
+                # orderDetails = cursor.fetchall()
+                orderDetails = [ [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 1],
+                                 [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 2] ]
+                productID = orderDetails[0][0]
+                sellerID = orderDetails[0][1]
+                name = orderDetails[0][2]
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], productID, sellerID)
+                numbers = ''
+                for j in range( len(orderDetails) ):
+                    numbers += str(orderDetails[j][3]) + '+'
+                numbers = numbers[:-1]
+
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <th scope="row">
+                                    <a href="#" data-toggle="modal" data-target="#orderedItemsModal" onclick="return fetchData(event)">
+                                        {}
+                                    </a>
+                                </th>
                                 <td >{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
@@ -1279,7 +1311,7 @@ def generateDeliveredItemHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                             </tr>
-                         """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
+                         """.format(orderedItems[i][0], productURL, productID, sellerID, name, numbers, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
         return result
 
 def generatePendingDeliveryHTML(request):
@@ -1302,7 +1334,8 @@ def generatePendingDeliveryHTML(request):
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             orderedItems.append(temp)
-        orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000] ]
+        orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000],
+                         [999990000011111, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000] ]
         result = ""
         if( len(orderedItems)==0 ):
             result = """<tr>
@@ -1318,19 +1351,45 @@ def generatePendingDeliveryHTML(request):
                      """
         else:
             for i in range( len(orderedItems) ):
-                markDelivered = '<button type="button" class="btn customSuccess">Delivered</button>'
-                orderURL = "http://{}".format(request.META['HTTP_HOST'])
+                # query = """SELECT PRODUCT_ID, SELLER_ID, NAME, ITEM_NUMBER FROM ORDERED_ITEMS JOIN
+                #            PRODUCT USING(PRODUCT_ID, SELLER_ID) WHERE ORDER_ID = TO_NUMBER(:order_id)"""
+                # cursor.execute(query, orderedItems[i][0])
+                # orderDetails = cursor.fetchall()
+                orderDetails = [ [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 1],
+                                 [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 2] ]
+                productID = orderDetails[0][0]
+                sellerID = orderDetails[0][1]
+                name = orderDetails[0][2]
+                productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], productID, sellerID)
+                numbers = ''
+                for j in range( len(orderDetails) ):
+                    numbers += str(orderDetails[j][3]) + '+'
+                numbers = numbers[:-1]
+
+                markDelivered = """<button value="{}" name="deliveredButton" type="submit" class="btn customSuccess">
+                                      Delivered
+                                   </button>""".format(orderedItems[i][0])
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
-                                <td >{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
+                                <th scope="row">
+                                    <a href="#" data-toggle="modal" data-target="#orderedItemsModal" onclick="return fetchData(event)">
+                                        {}
+                                    </a>
+                                </th>
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td style="vertical-align: middle">{}</td>
+                                <td>{}</td>
+                                <td style="text-align: center; vertical-align: middle">{}</td>
                             </tr>
-                         """.format( orderURL, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
+                         """.format(orderedItems[i][0], productURL, productID, sellerID, name, numbers, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
         return result
 
 def generateManagedComplaintsHTML(request):

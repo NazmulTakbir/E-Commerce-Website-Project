@@ -1,4 +1,5 @@
 window.onload=function(){
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   const basicInfoForm = document.getElementById('basicInfoForm');
   const deliveredForm = document.getElementById('deliveredForm');
   const pendingDeliveriesForm = document.getElementById('pendingDeliveriesForm');
@@ -12,7 +13,7 @@ window.onload=function(){
       document.getElementById("searchIcon").click();
     }
   });
-  
+
   basicInfoForm.style.display = 'block'
   deliveredForm.style.display = 'none'
   pendingDeliveriesForm.style.display = 'none'
@@ -34,4 +35,20 @@ window.onload=function(){
     deliveredForm.style.display = 'none'
     pendingDeliveriesForm.style.display = 'block'
   })
+}
+
+var fetchData = function(event) {
+  var numbers = event.target.parentElement.previousElementSibling.innerText.split('+')
+  var name = event.target.parentElement.previousElementSibling.previousElementSibling.innerText
+  var sellerID = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.innerText
+  var productID = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
+  var productURL = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
+  var orderID = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
+
+  document.getElementById('orderID').innerText = orderID
+  document.getElementById('productID').innerText = productID
+  document.getElementById('sellerID').innerText = sellerID
+  document.getElementById('productName').innerText = name
+  document.getElementById('productName').href = productURL
+  document.getElementById('itemNumbers').innerHTML = numbers.join("&nbsp;&nbsp;")
 }

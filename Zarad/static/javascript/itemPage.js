@@ -20,39 +20,41 @@ window.onload=function(){
 
   totalQuantity = 0
 
-  document.getElementById('orderQuantity').addEventListener("keyup", event => {
-    tq = document.getElementById('orderQuantity').value
-    if (tq.length == 0) {
-      totalQuantity = 0
-    }
-    else {
-      totalQuantity = parseInt(tq)
-    }
-    productPrice = parseFloat(document.getElementById('productPrice').innerText)
-    totalPayment = totalQuantity * productPrice
-    maxDiscount = 0
-    for( var i=0; i<offers.length; i++ ) {
-      if( totalQuantity >= offers[i][0] ) {
-        if( offers[i][1] >= maxDiscount ) {
-          maxDiscount = offers[i][1]
+  if( document.getElementById('orderQuantity') ) {
+    document.getElementById('orderQuantity').addEventListener("keyup", event => {
+      tq = document.getElementById('orderQuantity').value
+      if (tq.length == 0) {
+        totalQuantity = 0
+      }
+      else {
+        totalQuantity = parseInt(tq)
+      }
+      productPrice = parseFloat(document.getElementById('productPrice').innerText)
+      totalPayment = totalQuantity * productPrice
+      maxDiscount = 0
+      for( var i=0; i<offers.length; i++ ) {
+        if( totalQuantity >= offers[i][0] ) {
+          if( offers[i][1] >= maxDiscount ) {
+            maxDiscount = offers[i][1]
+          }
         }
       }
-    }
-    document.getElementById('totalPayment').value = totalPayment
-    document.getElementById('maxDiscount').value = maxDiscount
-    document.getElementById('netPayment').value = parseInt((1-maxDiscount/100) * totalPayment)
-    
-    netPayment = parseInt((1-maxDiscount/100) * totalPayment)
+      document.getElementById('totalPayment').value = totalPayment
+      document.getElementById('maxDiscount').value = maxDiscount
+      document.getElementById('netPayment').value = parseInt((1-maxDiscount/100) * totalPayment)
 
-    if( maxDiscount > 0 ) {
-      document.getElementById('maxDiscountDiv').style.display = 'block'
-      document.getElementById('netPaymentDiv').style.display = 'block'
-    }
-    else {
-      document.getElementById('maxDiscountDiv').style.display = 'none'
-      document.getElementById('netPaymentDiv').style.display = 'none'
-    }
-  })
+      netPayment = parseInt((1-maxDiscount/100) * totalPayment)
+
+      if( maxDiscount > 0 ) {
+        document.getElementById('maxDiscountDiv').style.display = 'block'
+        document.getElementById('netPaymentDiv').style.display = 'block'
+      }
+      else {
+        document.getElementById('maxDiscountDiv').style.display = 'none'
+        document.getElementById('netPaymentDiv').style.display = 'none'
+      }
+    })
+  }
   $("#notEnoughBalance").toast('hide');
 }
 
