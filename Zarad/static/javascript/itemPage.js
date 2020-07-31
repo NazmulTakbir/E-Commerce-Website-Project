@@ -41,7 +41,7 @@ window.onload=function(){
     document.getElementById('totalPayment').value = totalPayment
     document.getElementById('maxDiscount').value = maxDiscount
     document.getElementById('netPayment').value = parseInt((1-maxDiscount/100) * totalPayment)
-
+    
     netPayment = parseInt((1-maxDiscount/100) * totalPayment)
 
     if( maxDiscount > 0 ) {

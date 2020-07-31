@@ -441,6 +441,12 @@ def myaccount(request, firstPage):
                             data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
                             cursor.execute(query, data)
                             cursor.execute("COMMIT")
+                elif formIdentity == 'orderForm':
+                    productID = request.POST.get('productID')
+                    sellerID = request.POST.get('sellerID')
+                    quantity = request.POST.get('quantity')
+                    paymentMethod = request.POST.get('paymentMethod')
+                    # TODO nawmi
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -949,9 +955,11 @@ def generateCartTableHTML(request):
                     ( SELECT PRODUCT_ID, SELLER_ID, QUANTITY FROM CART_ITEM
                     WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) ) X
                     LEFT OUTER JOIN
-                    (SELECT PRODUCT_ID, SELLER_ID, PERCENTAGE_DISCOUNT, MINIMUM_QUANTITY_PURCHASED FROM OFFER) Y
+                    (SELECT PRODUCT_ID, SELLER_ID, PERCENTAGE_DISCOUNT, MINIMUM_QUANTITY_PURCHASED,
+                    END_DATE FROM OFFER) Y
                     ON (X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                    WHERE ( QUANTITY>=MINIMUM_QUANTITY_PURCHASED OR MINIMUM_QUANTITY_PURCHASED IS NULL )
+                    WHERE ( QUANTITY>=MINIMUM_QUANTITY_PURCHASED AND END_DATE>SYSDATE ) OR
+                    ( MINIMUM_QUANTITY_PURCHASED IS NULL AND END_DATE IS NULL )
                     GROUP BY X.PRODUCT_ID, X.SELLER_ID, QUANTITY ) Q
                     JOIN PRODUCT P ON ( P.PRODUCT_ID=Q.PRODUCT_ID AND P.SELLER_ID=Q.SELLER_ID )
                     JOIN SELLER S ON ( S.SELLER_ID=Q.SELLER_ID );"""
@@ -981,8 +989,8 @@ def generateCartTableHTML(request):
         else:
             for i in range( len(cartItems) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], cartItems[i][0], cartItems[i][1])
-                totalPrice = float(cartItems[i][5])*float(cartItems[i][4]) * (1-float(cartItems[i][6])/100)
-                orderButton = """<button name="CartBtn" type="submit" value="{}" class="btn customSuccess" style="margin: 5px;">
+                totalPrice = int(float(cartItems[i][5])*float(cartItems[i][4]) * (1-float(cartItems[i][6])/100))
+                orderButton = """<button value="{}" onClick="displayOrder(event);" name="CartBtn" type="button" data-toggle="modal" data-target="#orderModal" class="btn customSuccess" style="margin: 5px;">
                                     Order
                                   </button>""".format("ORDER+"+str(cartItems[i][0])+"+"+str(cartItems[i][1]))
                 deleteButton = """<button name="CartBtn" type="submit" value="{}" class="btn customDanger" style="margin: 5px">

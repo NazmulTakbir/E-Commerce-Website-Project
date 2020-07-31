@@ -1,3 +1,6 @@
+var walletBalance;
+var finalPayment;
+
 window.onload=function(){
   const basicInfoForm = document.getElementById('basicInfoForm');
   const cartForm = document.getElementById('cartForm');
@@ -66,4 +69,57 @@ window.onload=function(){
   if( document.getElementById('firstPage').innerText == 'cart' ) {
     document.getElementById('myCart').click()
   }
+
+  walletBalance = parseFloat( document.getElementById('walletBalance').innerText )
+
+  $("#notEnoughBalance").toast('hide');
+}
+
+var displayOrder = function(event) {
+  var netPayment = event.target.parentNode.previousElementSibling ;
+  var discount = netPayment.previousElementSibling;
+  var quantity = discount.previousElementSibling;
+  var unitPrice = quantity.previousElementSibling;
+
+  var productURL = unitPrice.previousElementSibling.previousElementSibling.firstChild.href;
+  var productID = productURL.substring(productURL.length-32, productURL.length-17)
+  var sellerID = productURL.substring(productURL.length-16, productURL.length-1)
+  document.getElementById('productID').value = productID
+  document.getElementById('sellerID').value = sellerID
+
+  netPayment = parseInt(netPayment.innerText)
+  discount = parseFloat(discount.innerText)
+  quantity = parseInt(quantity.innerText)
+  unitPrice = parseFloat(unitPrice.innerText)
+
+  document.getElementById('quantity').value = quantity
+
+  document.getElementById('totalPayment').value = unitPrice * quantity
+  document.getElementById('maxDiscount').value = discount
+  document.getElementById('netPayment').value = netPayment
+
+  finalPayment = netPayment;
+
+  if( discount > 0 ) {
+    document.getElementById('maxDiscountDiv').style.display = 'block'
+    document.getElementById('netPaymentDiv').style.display = 'block'
+  }
+  else {
+    document.getElementById('maxDiscountDiv').style.display = 'none'
+    document.getElementById('netPaymentDiv').style.display = 'none'
+  }
+}
+
+var orderFormValidation = function(){
+  if( document.getElementById('paymentMethod2').checked ) {
+    walletBalance = parseFloat(document.getElementById('walletBalance').innerText)
+    if( walletBalance >= finalPayment ) {
+      return true;
+    }
+    else {
+      $('#notEnoughBalance').toast('show');
+      return false;
+    }
+  }
+  return true;
 }

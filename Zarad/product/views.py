@@ -119,6 +119,7 @@ def item_page(request, product_id, seller_id):
         formIdentity = request.POST.get('formIdentity')
         if formIdentity == 'orderForm':
             orderQuantity = int( request.POST.get('orderQuantity') )
+            paymentMethod = request.POST.get('paymentMethod')
             # TODO nawmi
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'reviewForm':
