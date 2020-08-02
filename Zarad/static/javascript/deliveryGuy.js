@@ -44,6 +44,8 @@ var fetchData = function(event) {
   var productID = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
   var productURL = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
   var orderID = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
+  var deliveryCharge = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
+  var totalPrice = event.target.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.innerText
 
   document.getElementById('orderID').innerText = orderID
   document.getElementById('productID').innerText = productID
@@ -51,4 +53,6 @@ var fetchData = function(event) {
   document.getElementById('productName').innerText = name
   document.getElementById('productName').href = productURL
   document.getElementById('itemNumbers').innerHTML = numbers.join("&nbsp;&nbsp;")
+  document.getElementById('deliveryCharge').innerText = deliveryCharge+' Tk'
+  document.getElementById('totalPrice').innerText = totalPrice+' Tk'
 }

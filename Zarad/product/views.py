@@ -10,6 +10,10 @@ import math
 import io
 import random
 from datetime import timedelta, date
+import info
+
+def deliveryEmployeeSelection():
+    return '100000000000001'
 
 def accountBalance(email, type):
     with connections['oracle'].cursor() as cursor:
@@ -118,9 +122,52 @@ def item_page(request, product_id, seller_id):
     if request.method == 'POST'and iscustomerlogin:
         formIdentity = request.POST.get('formIdentity')
         if formIdentity == 'orderForm':
-            orderQuantity = int( request.POST.get('orderQuantity') )
+            quantity = int( request.POST.get('orderQuantity') )
             paymentMethod = request.POST.get('paymentMethod')
-            # TODO nawmi
+
+            query = """SELECT ITEM_NUMBER FROM PRODUCT_UNIT WHERE PRODUCT_ID = TO_NUMBER(:pid)
+                       AND SELLER_ID = TO_NUMBER(:sid) AND LOWER(STATUS) = 'not sold'"""
+            data = {'pid': product_id, 'sid': seller_id}
+
+            with connections['oracle'].cursor() as cursor:
+                cursor.execute(query, data)
+                itemNumbers = cursor.fetchall()
+                if( len(itemNumbers) >= int(quantity) ):
+                    for i in range( int(quantity) ):
+                        inum = itemNumbers[i][0]
+                        query = """UPDATE PRODUCT_UNIT SET STATUS = 'Sold' WHERE
+                                   PRODUCT_ID = TO_NUMBER(:pid) AND SELLER_ID = TO_NUMBER(:sid)
+                                   AND ITEM_NUMBER = TO_NUMBER(:inum)"""
+                        data = {'pid': product_id, 'sid': seller_id, 'inum': inum}
+                        cursor.execute(query, data)
+
+                    query = "SELECT ORDER_ID_SEQ.NEXTVAL FROM DUAL"
+                    cursor.execute(query)
+                    orderID = cursor.fetchall()[0][0]
+
+                    query = """INSERT INTO CUSTOMER_ORDER VALUES(TO_NUMBER(:oid),
+                               (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email),
+                               SYSDATE, TO_NUMBER(:sid) )"""
+                    data = { 'oid': orderID, 'sid': seller_id,
+                             'email': request.session['useremail'] }
+                    cursor.execute(query, data)
+
+                    query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
+                              TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
+                    data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(),
+                             'pm': paymentMethod }
+                    cursor.execute(query, data)
+
+                    for i in range( int(quantity) ):
+                        inum = itemNumbers[i][0]
+                        query = """INSERT INTO ORDERED_ITEMS VALUES(TO_NUMBER(:pid),
+                                   TO_NUMBER(:sid), TO_NUMBER(:oid), TO_NUMBER(:inum)) """
+                        data = {'pid': product_id, 'sid': seller_id, 'oid': orderID,
+                                'inum': inum}
+                        cursor.execute(query, data)
+
+                    cursor.execute("commit")
+
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
         elif formIdentity == 'reviewForm':
             rating = request.POST.get("starRating")
@@ -341,7 +388,7 @@ def item_page(request, product_id, seller_id):
             'price': price, 'verticalMargin': verticalMargin, 'advert1': adverts[0], 'advert2': adverts[1],
             'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4], 'advert6': adverts[5],
             'advert7': adverts[6], 'advert8': adverts[7], 'extraBreak': len(productName)<57,
-            'acBal': acBal}
+            'acBal': acBal, 'deliveryCharge': info.serviceChargePercentage}
 
     return render(request, 'item.html', data)
 

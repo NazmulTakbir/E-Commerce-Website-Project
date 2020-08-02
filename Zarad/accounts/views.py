@@ -8,6 +8,9 @@ import io
 import info
 import random
 
+def deliveryEmployeeSelection():
+    return '100000000000001'
+
 def getAdverts(request):
     query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
                WHERE END_DATE>SYSDATE"""
@@ -440,12 +443,62 @@ def myaccount(request, firstPage):
                             data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
                             cursor.execute(query, data)
                             cursor.execute("COMMIT")
+
                 elif formIdentity == 'orderForm':
                     productID = request.POST.get('productID')
                     sellerID = request.POST.get('sellerID')
                     quantity = request.POST.get('quantity')
                     paymentMethod = request.POST.get('paymentMethod')
-                    # TODO nawmi
+
+                    query = """SELECT ITEM_NUMBER FROM PRODUCT_UNIT WHERE PRODUCT_ID = TO_NUMBER(:pid)
+                               AND SELLER_ID = TO_NUMBER(:sid) AND LOWER(STATUS) = 'not sold'"""
+                    data = {'pid': productID, 'sid': sellerID}
+
+                    with connections['oracle'].cursor() as cursor:
+                        cursor.execute(query, data)
+                        itemNumbers = cursor.fetchall()
+                        if( len(itemNumbers) >= int(quantity) ):
+                            for i in range( int(quantity) ):
+                                inum = itemNumbers[i][0]
+                                query = """UPDATE PRODUCT_UNIT SET STATUS = 'Sold' WHERE
+                                           PRODUCT_ID = TO_NUMBER(:pid) AND SELLER_ID = TO_NUMBER(:sid)
+                                           AND ITEM_NUMBER = TO_NUMBER(:inum)"""
+                                data = {'pid': productID, 'sid': sellerID, 'inum': inum}
+                                cursor.execute(query, data)
+
+                            query = "SELECT ORDER_ID_SEQ.NEXTVAL FROM DUAL"
+                            cursor.execute(query)
+                            orderID = cursor.fetchall()[0][0]
+
+                            query = """INSERT INTO CUSTOMER_ORDER VALUES(TO_NUMBER(:oid),
+                                       (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email),
+                                       SYSDATE, TO_NUMBER(:sid) )"""
+                            data = { 'oid': orderID, 'sid': sellerID,
+                                     'email': request.session['useremail'] }
+                            cursor.execute(query, data)
+
+                            query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
+                                      TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
+                            data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(),
+                                     'pm': paymentMethod }
+                            cursor.execute(query, data)
+
+                            for i in range( int(quantity) ):
+                                inum = itemNumbers[i][0]
+                                query = """INSERT INTO ORDERED_ITEMS VALUES(TO_NUMBER(:pid),
+                                           TO_NUMBER(:sid), TO_NUMBER(:oid), TO_NUMBER(:inum)) """
+                                data = {'pid': productID, 'sid': sellerID, 'oid': orderID,
+                                        'inum': inum}
+                                cursor.execute(query, data)
+
+                            query = """DELETE FROM CART_ITEM WHERE (PRODUCT_ID = :product_id AND
+                                       SELLER_ID = :seller_id AND CUSTOMER_ID = (SELECT CUSTOMER_ID
+                                       FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
+                            data = { 'product_id' :productID, 'seller_id':sellerID,
+                                     'email':request.session['useremail'] }
+                            cursor.execute(query, data)
+
+                            cursor.execute("commit")
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -464,7 +517,7 @@ def myaccount(request, firstPage):
                     'accountBalance': acBal, 'advert1': adverts[0], 'advert2': adverts[1],
                     'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
                     'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7],
-                    'firstPage': firstPage}
+                    'firstPage': firstPage, 'deliveryCharge': info.serviceChargePercentage}
 
             return render(request, 'customerAccount.html', data)
 
@@ -581,7 +634,37 @@ def myaccount(request, firstPage):
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'pendingDeliveriesForm':
                     orderID = request.POST.get('deliveredButton')
-                    # TODO nawmi
+                    with connections['oracle'].cursor() as cursor:
+                        try:
+                            query = """SELECT PAYMENT_METHOD FROM PURCHASE_ORDER WHERE
+                                       ORDER_ID = TO_NUMBER(:oid)"""
+                            cursor.execute(query, {'oid': orderID})
+                            paymentMethod = cursor.fetchall()[0][0]
+
+                            if paymentMethod.lower() == 'cash':
+                                query = "SELECT TRANSACTION_ID_SEQ.NEXTVAL FROM DUAL"
+                                cursor.execute(query)
+                                tranID = cursor.fetchall()[0][0]
+
+                                query = """INSERT INTO TRANSACTIONS VALUES(:tranID, SYSDATE,
+                                           ORDER_TOTAL(TO_NUMBER(:oid)), TO_NUMBER(:scp))"""
+                                data = { 'tranID': tranID, 'oid': orderID,
+                                         'scp': info.serviceChargePercentage*100 }
+                                cursor.execute(query, data)
+
+                                query = """INSERT INTO CUSTOMER_CASH_TRANSACTION VALUES(TO_NUMBER(:tranID),
+                                           TO_NUMBER(:oid))"""
+                                cursor.execute(query, {'tranID': tranID, 'oid': orderID})
+
+                            query = """UPDATE PURCHASE_ORDER SET DELIVERED_DATE = SYSDATE,
+                                       DELIVERY_STATUS = 'Delivered' WHERE ORDER_ID = TO_NUMBER(:oid)"""
+                            cursor.execute(query, {'oid': orderID})
+
+                        except Exception as e:
+                            print(e)
+                            cursor.execute("ROLLBACK")
+                        else:
+                            cursor.execute("COMMIT")
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -614,7 +697,6 @@ def myaccount(request, firstPage):
 
         elif acType == 'admin':
             if request.method == 'POST':
-                # TODO nawmi??????done
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'rechargeForm':
                     acType = request.POST.get('acType')
@@ -712,7 +794,7 @@ def generateProductTableHTML(request):
                     FROM (SELECT PRODUCT_ID FROM PRODUCT WHERE SELLER_ID = (SELECT SELLER_ID FROM SELLER
                     WHERE EMAIL_ID = :email))P
                     LEFT OUTER JOIN (SELECT PRODUCT_ID, STATUS FROM PRODUCT_UNIT)S
-                    ON(P.PRODUCT_ID = S.PRODUCT_ID AND S.STATUS = 'Sold')
+                    ON(P.PRODUCT_ID = S.PRODUCT_ID AND LOWER(S.STATUS) = 'sold')
                     GROUP BY P.PRODUCT_ID)
                     USING(PRODUCT_ID);"""
 
@@ -1018,7 +1100,7 @@ def generateCartTableHTML(request):
 
 def generateOrderTableHTML(request):
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER)
+        query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, TO_CHAR(MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER), 'MONTH DD, YYYY')
                     EXPECTED_DELIVERY_DATE, DELIVERED_DATE, PHONE_NUMBER DELIVERY_GUY_NUMBER FROM
                     CUSTOMER_ORDER C JOIN PURCHASE_ORDER P USING(ORDER_ID)
                     JOIN EMPLOYEE E ON ( E.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID )
@@ -1030,11 +1112,11 @@ def generateOrderTableHTML(request):
         table = cursor.fetchall()
         purchaseOrder = []
         for i in range(len(table)):
-            temp= []
+            temp = []
             for j in range(len(table[i])):
                 temp.append(table[i][j])
-            if temp[i][5] == None:
-                temp[i][5] = ''
+            if temp[5] == None:
+                temp[5] = ''
             purchaseOrder.append(temp)
         pHTML = rHTML = ""
 
@@ -1066,7 +1148,7 @@ def generateOrderTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
+                                <td style="text-align: center; vertical-align: middle">{}</td>
                             </tr>
                          """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
 
@@ -1137,7 +1219,7 @@ def generateWalletTableHTMLCustomer(request):
             transactions.append(temp)
 
         query = """SELECT ORDER_DATE, ORDER_TOTAL(ORDER_ID) AMOUNT FROM CUSTOMER_ORDER JOIN
-                   PURCHASE_ORDER USING(ORDER_ID) WHERE PAYMENT_METHOD = 'Wallet' AND
+                   PURCHASE_ORDER USING(ORDER_ID) WHERE LOWER(PAYMENT_METHOD) = 'wallet' AND
                    CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID =:email)"""
         cursor.execute(query, {'email':request.session['useremail']})
         result =  cursor.fetchall()
@@ -1243,12 +1325,12 @@ def generateReviewTableHTML(request):
 def generateDeliveredItemHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS",
-                    MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER) EXPECTED_DELIVERY_DATE , DELIVERED_DATE, PAYMENT_METHOD,
+                    TO_CHAR(MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER), 'MONTH DD, YYYY') EXPECTED_DELIVERY_DATE , DELIVERED_DATE, PAYMENT_METHOD,
                     ORDER_TOTAL(ORDER_ID) TOTAL_PAYMENT FROM (SELECT * FROM PURCHASE_ORDER JOIN CUSTOMER_ORDER USING(ORDER_ID)
                     WHERE DELIVERY_EMPLOYEE_ID = (SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email)
-                    AND DELIVERY_STATUS = 'Delivered' ) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
+                    AND LOWER(DELIVERY_STATUS) = 'delivered' ) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
                     CUSTOMER_NAME, PHONE_NUMBER "CUSTOMER PHONE",('Apartment : '|| APARTMENT_NUMBER||', Building : '
-                    ||BUILDING_NUMBER||', Road : '||ROAD||' , '||AREA||' , '||CITY) "CUSTOMER ADDRESS",
+                    ||BUILDING_NUMBER||', Road : '||ROAD||', '||AREA||', '||CITY) "CUSTOMER ADDRESS",
                     CUSTOMER_ID FROM CUSTOMER) USING (CUSTOMER_ID) JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS)
                     USING(ORDER_ID) JOIN (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
                     GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD"""
@@ -1260,7 +1342,6 @@ def generateDeliveredItemHTML(request):
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             orderedItems.append(temp)
-        orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Oct 09 2020', 'Cash', 5000] ]
         result = ""
         if( len(orderedItems)==0 ):
             result = """<tr>
@@ -1276,12 +1357,10 @@ def generateDeliveredItemHTML(request):
                      """
         else:
             for i in range( len(orderedItems) ):
-                # query = """SELECT PRODUCT_ID, SELLER_ID, NAME, ITEM_NUMBER FROM ORDERED_ITEMS JOIN
-                #            PRODUCT USING(PRODUCT_ID, SELLER_ID) WHERE ORDER_ID = TO_NUMBER(:order_id)"""
-                # cursor.execute(query, orderedItems[i][0])
-                # orderDetails = cursor.fetchall()
-                orderDetails = [ [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 1],
-                                 [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 2] ]
+                query = """SELECT PRODUCT_ID, SELLER_ID, NAME, ITEM_NUMBER FROM ORDERED_ITEMS JOIN
+                           PRODUCT USING(PRODUCT_ID, SELLER_ID) WHERE ORDER_ID = TO_NUMBER(:order_id)"""
+                cursor.execute(query, {'order_id':orderedItems[i][0]})
+                orderDetails = cursor.fetchall()
                 productID = orderDetails[0][0]
                 sellerID = orderDetails[0][1]
                 name = orderDetails[0][2]
@@ -1291,7 +1370,15 @@ def generateDeliveredItemHTML(request):
                     numbers += str(orderDetails[j][3]) + '+'
                 numbers = numbers[:-1]
 
+                totalPrice = orderedItems[i][7]
+                deliveryCharge = 0
+                if orderedItems[i][6].lower() == 'cash':
+                    orderedItems[i][7] = int(float(orderedItems[i][7]) * (1+info.serviceChargePercentage))
+                    deliveryCharge = float(totalPrice)*info.serviceChargePercentage
+
                 result += """<tr>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
                                 <td style="display:none">{}</td>
                                 <td style="display:none">{}</td>
                                 <td style="display:none">{}</td>
@@ -1311,18 +1398,18 @@ def generateDeliveredItemHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                             </tr>
-                         """.format(orderedItems[i][0], productURL, productID, sellerID, name, numbers, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
+                         """.format(totalPrice, deliveryCharge, orderedItems[i][0], productURL, productID, sellerID, name, numbers, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], orderedItems[i][7])
         return result
 
 def generatePendingDeliveryHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS",
-                    MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER) EXPECTED_DELIVERY_DATE, PAYMENT_METHOD,
+                    TO_CHAR(MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER), 'MONTH DD, YYYY') EXPECTED_DELIVERY_DATE, PAYMENT_METHOD,
                     ORDER_TOTAL(ORDER_ID) TOTAL_PAYMENT FROM (SELECT * FROM PURCHASE_ORDER JOIN CUSTOMER_ORDER USING(ORDER_ID)
                     WHERE DELIVERY_EMPLOYEE_ID = (SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email)
-                    AND DELIVERY_STATUS = 'Not Delivered' ) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
+                    AND LOWER(DELIVERY_STATUS) = 'not delivered' ) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
                     CUSTOMER_NAME, PHONE_NUMBER "CUSTOMER PHONE",('Apartment : '|| APARTMENT_NUMBER||', Building : '
-                    ||BUILDING_NUMBER||', Road : '||ROAD||' , '||AREA||' , '||CITY) "CUSTOMER ADDRESS",
+                    ||BUILDING_NUMBER||', Road : '||ROAD||', '||AREA||', '||CITY) "CUSTOMER ADDRESS",
                     CUSTOMER_ID FROM CUSTOMER) USING (CUSTOMER_ID) JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS)
                     USING(ORDER_ID) JOIN (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
                     GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD"""
@@ -1334,8 +1421,7 @@ def generatePendingDeliveryHTML(request):
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             orderedItems.append(temp)
-        orderedItems = [ [123451234512345, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000],
-                         [999990000011111, 'Fatima Nawmi', '01722345467', 'BUET Chattri Hall', 'Oct 04 2020', 'Cash', 5000] ]
+
         result = ""
         if( len(orderedItems)==0 ):
             result = """<tr>
@@ -1351,12 +1437,10 @@ def generatePendingDeliveryHTML(request):
                      """
         else:
             for i in range( len(orderedItems) ):
-                # query = """SELECT PRODUCT_ID, SELLER_ID, NAME, ITEM_NUMBER FROM ORDERED_ITEMS JOIN
-                #            PRODUCT USING(PRODUCT_ID, SELLER_ID) WHERE ORDER_ID = TO_NUMBER(:order_id)"""
-                # cursor.execute(query, orderedItems[i][0])
-                # orderDetails = cursor.fetchall()
-                orderDetails = [ [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 1],
-                                 [100000000000031, 100000000000021, 'Day Cream Drops Of Youth', 2] ]
+                query = """SELECT PRODUCT_ID, SELLER_ID, NAME, ITEM_NUMBER FROM ORDERED_ITEMS JOIN
+                           PRODUCT USING(PRODUCT_ID, SELLER_ID) WHERE ORDER_ID = TO_NUMBER(:order_id)"""
+                cursor.execute(query, {'order_id':orderedItems[i][0]})
+                orderDetails = cursor.fetchall()
                 productID = orderDetails[0][0]
                 sellerID = orderDetails[0][1]
                 name = orderDetails[0][2]
@@ -1366,10 +1450,18 @@ def generatePendingDeliveryHTML(request):
                     numbers += str(orderDetails[j][3]) + '+'
                 numbers = numbers[:-1]
 
+                totalPrice = orderedItems[i][6]
+                deliveryCharge = 0
+                if orderedItems[i][5].lower() == 'cash':
+                    orderedItems[i][6] = int(float(orderedItems[i][6]) * (1+info.serviceChargePercentage))
+                    deliveryCharge = float(totalPrice)*info.serviceChargePercentage
+
                 markDelivered = """<button value="{}" name="deliveredButton" type="submit" class="btn customSuccess">
                                       Delivered
                                    </button>""".format(orderedItems[i][0])
                 result += """<tr>
+                                <td style="display:none">{}</td>
+                                <td style="display:none">{}</td>
                                 <td style="display:none">{}</td>
                                 <td style="display:none">{}</td>
                                 <td style="display:none">{}</td>
@@ -1389,7 +1481,7 @@ def generatePendingDeliveryHTML(request):
                                 <td>{}</td>
                                 <td style="text-align: center; vertical-align: middle">{}</td>
                             </tr>
-                         """.format(orderedItems[i][0], productURL, productID, sellerID, name, numbers, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
+                         """.format(totalPrice, deliveryCharge, orderedItems[i][0], productURL, productID, sellerID, name, numbers, orderedItems[i][0], orderedItems[i][1], orderedItems[i][2], orderedItems[i][3], orderedItems[i][4], orderedItems[i][5], orderedItems[i][6], markDelivered)
         return result
 
 def generateManagedComplaintsHTML(request):
@@ -1453,7 +1545,7 @@ def generatePendingComplaintsHTML(request):
                     "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
                     (SELECT ORDER_ID, COMPLAINT_DES,ORDER_TOTAL(ORDER_ID)"TOTAL AMOUNT",APPROVAL_STATUS STATUS,
                     RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
-                    FROM EMPLOYEE WHERE EMAIL_ID = :email)AND APPROVAL_STATUS = 'Not Approved') JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN
+                    FROM EMPLOYEE WHERE EMAIL_ID = :email) AND LOWER(APPROVAL_STATUS) = 'not approved') JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN
                     (SELECT (FIRST_NAME||' '||LAST_NAME)"CUSTOMER NAME",PHONE_NUMBER "CUSTOMER PHONE",
                     CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID);"""
         cursor.execute(query, {'email':request.session['useremail']})

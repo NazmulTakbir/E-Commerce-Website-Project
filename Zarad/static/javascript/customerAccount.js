@@ -1,7 +1,12 @@
 var walletBalance;
-var finalPayment;
+var afterDiscountPayment;
+var deliveryCharge;
 
 window.onload=function(){
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  deliveryCharge = parseFloat(document.getElementById('deliveryChargeInfo').innerText)
+
   const basicInfoForm = document.getElementById('basicInfoForm');
   const cartForm = document.getElementById('cartForm');
   const ordersForm = document.getElementById('ordersForm');
@@ -96,24 +101,43 @@ var displayOrder = function(event) {
 
   document.getElementById('totalPayment').value = unitPrice * quantity
   document.getElementById('maxDiscount').value = discount
-  document.getElementById('netPayment').value = netPayment
-
-  finalPayment = netPayment;
+  document.getElementById('paymentAfterDiscount').value = netPayment
+  afterDiscountPayment = netPayment;
+  document.getElementById('deliveryCharge').value = afterDiscountPayment * deliveryCharge
+  document.getElementById('netPayment').value = parseInt( afterDiscountPayment * (1+deliveryCharge) )
 
   if( discount > 0 ) {
     document.getElementById('maxDiscountDiv').style.display = 'block'
-    document.getElementById('netPaymentDiv').style.display = 'block'
+    document.getElementById('paymentAfterDiscountDiv').style.display = 'block'
   }
   else {
     document.getElementById('maxDiscountDiv').style.display = 'none'
+    document.getElementById('paymentAfterDiscountDiv').style.display = 'none'
+  }
+
+  document.getElementById('paymentMethod1').click()
+}
+
+var determineDeliveryCharge = function(){
+  if( document.getElementById('paymentMethod2').checked ) {
+    document.getElementById('deliveryChargeDiv').style.display = 'none'
     document.getElementById('netPaymentDiv').style.display = 'none'
+    document.getElementById('finalPayment').value = afterDiscountPayment;
+  }
+  else {
+    $("#notEnoughBalance").toast('hide');
+    document.getElementById('deliveryChargeDiv').style.display = 'block'
+    document.getElementById('netPaymentDiv').style.display = 'block'
+    document.getElementById('deliveryCharge').value = afterDiscountPayment * deliveryCharge
+    document.getElementById('netPayment').value = parseInt( afterDiscountPayment * (1+deliveryCharge) )
+    document.getElementById('finalPayment').value = parseInt( afterDiscountPayment * (1+deliveryCharge) )
   }
 }
 
 var orderFormValidation = function(){
   if( document.getElementById('paymentMethod2').checked ) {
     walletBalance = parseFloat(document.getElementById('walletBalance').innerText)
-    if( walletBalance >= finalPayment ) {
+    if( walletBalance >= afterDiscountPayment ) {
       return true;
     }
     else {

@@ -14,6 +14,7 @@ My Account
 {%endblock%}
 
 {% block content %}
+<span id='deliveryChargeInfo' style="display: none">{{deliveryCharge}}</span>
 <div class="row" style="margin-right: 10px">
   <div class="col-lg-2" style="padding: 0px">
     <div class="list-group" style="margin-top: 55px;">
@@ -313,29 +314,50 @@ My Account
         <div class="modal-body" style="background-color: #f2f8f8">
           <h6 style="margin-top: 20px"><strong>Payment Method</strong>
             <div style="margin-left: 30px; margin-right: 40px" class="custom-control custom-radio custom-control-inline">
-              <input type="radio" id="paymentMethod1" name="paymentMethod" value="cash" class="custom-control-input" checked>
+              <input onclick="determineDeliveryCharge()" type="radio" id="paymentMethod1" name="paymentMethod" value="cash" class="custom-control-input" checked>
               <label class="custom-control-label" for="paymentMethod1">Cash</label>
             </div>
             <div class="custom-control custom-radio custom-control-inline">
-              <input type="radio" id="paymentMethod2" name="paymentMethod" class="custom-control-input" value="wallet">
+              <input onclick="determineDeliveryCharge()" type="radio" id="paymentMethod2" name="paymentMethod" class="custom-control-input" value="wallet">
               <label class="custom-control-label" for="paymentMethod2">Wallet</label>
             </div>
           </h6>
-          <h6 style="margin-top: 20px; margin-bottom: 0px"><strong>Total Payment</strong>&nbsp;&nbsp;
-            <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
-            <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="totalPayment" id="totalPayment" value="0">
+          <h6 style="margin-top: 20px; margin-bottom: 40px"><strong>Net Payment</strong>&nbsp;&nbsp;
+            &nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+            <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="finalPayment" id="finalPayment" value="0">
           </h6>
-          <div id='maxDiscountDiv' style="display: none; margin-top: 30px">
-            <h6 style="margin-top: 20px; margin-bottom: 0px"><strong>Available Discount</strong>&nbsp;&nbsp;
-              <br /><span style="margin-top: 10px; color: #24ab9a; font-size: 18px">%</span>
-              <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="maxDiscount" id="maxDiscount" value="0">
-            </h6>
-          </div>
-          <div id='netPaymentDiv' style="display: none">
-            <h6 style="margin-top: 20px; margin-bottom: 0px"><strong>Total Payment After Discount</strong>&nbsp;&nbsp;
-              <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
-              <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="netPayment" id="netPayment" value="0">
-            </h6>
+          <h6><strong>Payment Details</strong></h6>
+          <div class="row">
+            <div class="col-lg-12">
+              <h6 style="font-size: 13px; margin-top: 20px; margin-bottom: 0px">Total Price&nbsp;&nbsp;
+                <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+                <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="totalPayment" id="totalPayment" value="0">
+              </h6>
+            </div>
+            <div class="col-lg-6" id='maxDiscountDiv' style="display: none;">
+              <h6 style="font-size: 13px; margin-top: 20px; margin-bottom: 0px">Available Discount&nbsp;&nbsp;
+                <br /><span style="margin-top: 10px; color: #24ab9a; font-size: 18px">%</span>
+                <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="maxDiscount" id="maxDiscount" value="0">
+              </h6>
+            </div>
+            <div class="col-lg-6" id='paymentAfterDiscountDiv' style="display: none">
+              <h6 style="font-size: 13px; margin-top: 20px; margin-bottom: 0px">Total Price After Discount&nbsp;&nbsp;
+                <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+                <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="paymentAfterDiscount" id="paymentAfterDiscount" value="0">
+              </h6>
+            </div>
+            <div class="col-lg-6" id="deliveryChargeDiv" style="display: block">
+              <h6 style="font-size: 13px; margin-top: 20px; margin-bottom: 0px">Delivery Charge&nbsp;&nbsp;
+                <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+                <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="deliveryCharge" id="deliveryCharge" value="0">
+              </h6>
+            </div>
+            <div class="col-lg-6" id="netPaymentDiv" style="display: block">
+              <h6 style="font-size: 13px; margin-top: 20px; margin-bottom: 0px">Total Price After Delivery Charge&nbsp;&nbsp;
+                <br />&nbsp;<span style="margin-top: 10px; color: #24ab9a; font-size: 25px">৳</span>
+                <input style="margin-top: 10px; color: black; width: 100px" type="number" disabled name="netPayment" id="netPayment" value="0">
+              </h6>
+            </div>
           </div>
           <div class="container" style="margin-top: 15px; margin-bottom: 12px">
             <div id='notEnoughBalance' class="toast hide" style="z-index: 10000;" data-delay="5000">
