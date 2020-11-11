@@ -7,8 +7,12 @@ from django.conf import settings
 import io
 import info
 import random
+import datetime
 
 def deliveryEmployeeSelection():
+    # TODO search all the delivery guys employed by Zarad and return ID of the one with least total distance
+    # Use Haversine Distance Formula
+    # https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
     return '100000000000001'
 
 def getAdverts(request):
@@ -430,6 +434,7 @@ def myaccount(request, firstPage):
                         data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
+
                 elif formIdentity == 'cartForm':
                     action = request.POST.get('CartBtn').split('+')[0]
                     productID = request.POST.get('CartBtn').split('+')[1]
@@ -499,6 +504,19 @@ def myaccount(request, firstPage):
                             cursor.execute(query, data)
 
                             cursor.execute("commit")
+
+                elif formIdentity == 'alterPurchaseOrder':
+                    orderID = request.POST.get('alterPurchaseOrderButton').split('_')[0]
+                    action = request.POST.get('alterPurchaseOrderButton').split('_')[1]
+
+                    if action == 'cancel':
+                        pass
+                        # TODO change status of purchase order to cancelled
+                        # This cancelled order should no longer appear as pending deliveries for the delivery guy
+                    elif action == 'return':
+                        complaint = request.POST.get('complaint'+str(orderID))
+                        # TODO make a new order which is a return order type
+                        # assign a customer care employee to it ( either random or the employee who has the least work assigned right now )
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -871,9 +889,12 @@ def generateOfferTableHTML(request):
         else:
             for i in range( len(offers) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], offers[i][0], sellerID)
-                endOfferButton = """<button name="delOfferBtn" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
-                                    Delete
-                                    </button>""".format(str(offers[i][0])+"+"+str(sellerID)+"+"+str(offers[i][5]))
+                if offers[i][2] > datetime.datetime.now():
+                    endOfferButton = """<button name="delOfferBtn" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
+                                        Delete
+                                        </button>""".format(str(offers[i][0])+"+"+str(sellerID)+"+"+str(offers[i][5]))
+                else:
+                    endOfferButton = ''
                 result += """<tr>
                                 <th style="background-color: #f2f8f8" scope="row"><a href={}>{}</a></th>
                                 <td style="background-color: #f2f8f8">{}</td>
@@ -920,9 +941,12 @@ def generateAdvertTableHTML(request):
                 imageFile.close()
 
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], adverts[i][0], sellerID)
-                endAdvertButton = """<button name="delAdvertButton" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
-                                    Delete
-                                    </button>""".format(str(adverts[i][0])+"+"+str(adverts[i][5])+"+"+str(adverts[i][6]))
+                if adverts[i][2] > datetime.datetime.now():
+                    endAdvertButton = """<button name="delAdvertButton" type="submit" value="{}" class="btn customDanger" style="margin: 5px">
+                                        Delete
+                                        </button>""".format(str(adverts[i][0])+"+"+str(adverts[i][5])+"+"+str(adverts[i][6]))
+                else:
+                    endAdvertButton = ''
                 result += """<tr>
                                 <th style="background-color: #f2f8f8" scope="row"><a href={}>{}</a></th>
                                 <td style="background-color: #f2f8f8">{}</td>
@@ -1135,11 +1159,13 @@ def generateOrderTableHTML(request):
         else:
             for i in range( len(purchaseOrder) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
-                orderAlterButton = '<button type="button" class="btn customDanger">{}</button>'
+                orderAlterButton = '<button type="submit" name="alterPurchaseOrderButton" class="btn customDanger" value="{}">{}</button>'
                 if( purchaseOrder[i][3] == 'Delivered' ):
-                    orderAlterButton = orderAlterButton.format("Return")
+                    orderAlterButton = orderAlterButton.format(str(purchaseOrder[i][0])+'_return', "Return")
+                    displayType = 'block'
                 elif( purchaseOrder[i][3] == 'Not Delivered' ):
-                    orderAlterButton = orderAlterButton.format("Cancel")
+                    orderAlterButton = orderAlterButton.format(str(purchaseOrder[i][0])+'_cancel', "Cancel")
+                    displayType = 'none'
                 pHTML += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
                                 <td >{}</td>
@@ -1148,9 +1174,12 @@ def generateOrderTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td style="text-align: center; vertical-align: middle">{}</td>
+                                <td style="text-align: center; vertical-align: middle">
+                                    {}
+                                    <input type="text" name="complaint{}" placeholder="Complaint" class="form-control" style="margin-top: 5px; display: {}" onfocus="this.placeholder = '';" onfocusout="this.placeholder='Complaint'">
+                                </td>
                             </tr>
-                         """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton)
+                         """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton, purchaseOrder[i][0], displayType)
 
         query =  """SELECT ORDER_ID, ORDER_DATE, COMPLAINT_DES, APPROVAL_STATUS, RETURN_DATE,
                     PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER JOIN RETURN_ORDER P
