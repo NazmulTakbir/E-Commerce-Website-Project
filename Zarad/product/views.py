@@ -12,8 +12,19 @@ import random
 from datetime import timedelta, date
 import info
 
-def deliveryEmployeeSelection():
-    return '100000000000001'
+def deliveryEmployeeSelection(orderID):
+    # TODO : done!
+    # search all the delivery guys employed by Zarad and return ID of the one with least total distance
+    # Use Haversine Distance Formula
+    # https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
+    query = """SELECT HAVERSINE(ORDER_ID) FROM ORDERED_ITEMS WHERE ORDER_ID = (:orderID)"""
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query, {'orderID':orderID});
+        id = cursor.fetchall()[0][0]
+        print("========================")
+        print(id)
+
+    return id
 
 def accountBalance(email, type):
     with connections['oracle'].cursor() as cursor:
@@ -152,11 +163,7 @@ def item_page(request, product_id, seller_id):
                              'email': request.session['useremail'] }
                     cursor.execute(query, data)
 
-                    query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
-                              TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
-                    data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(),
-                             'pm': paymentMethod }
-                    cursor.execute(query, data)
+
 
                     for i in range( int(quantity) ):
                         inum = itemNumbers[i][0]
@@ -165,6 +172,11 @@ def item_page(request, product_id, seller_id):
                         data = {'pid': product_id, 'sid': seller_id, 'oid': orderID,
                                 'inum': inum}
                         cursor.execute(query, data)
+                    query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
+                              TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
+                    data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(orderID),
+                             'pm': paymentMethod }
+                    cursor.execute(query, data)
 
                     cursor.execute("commit")
 

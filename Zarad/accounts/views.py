@@ -9,11 +9,19 @@ import info
 import random
 import datetime
 
-def deliveryEmployeeSelection():
-    # TODO search all the delivery guys employed by Zarad and return ID of the one with least total distance
+def deliveryEmployeeSelection(orderID):
+    # TODO : done!
+    # search all the delivery guys employed by Zarad and return ID of the one with least total distance
     # Use Haversine Distance Formula
     # https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
-    return '100000000000001'
+    query = """SELECT HAVERSINE(ORDER_ID) FROM ORDERED_ITEMS WHERE ORDER_ID = (:orderID)"""
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query, {'orderID':orderID});
+        id = cursor.fetchall()[0][0]
+        print("========================SS")
+        print(id)
+
+    return id
 
 def getAdverts(request):
     query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
@@ -482,11 +490,7 @@ def myaccount(request, firstPage):
                                      'email': request.session['useremail'] }
                             cursor.execute(query, data)
 
-                            query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
-                                      TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
-                            data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(),
-                                     'pm': paymentMethod }
-                            cursor.execute(query, data)
+
 
                             for i in range( int(quantity) ):
                                 inum = itemNumbers[i][0]
@@ -495,7 +499,11 @@ def myaccount(request, firstPage):
                                 data = {'pid': productID, 'sid': sellerID, 'oid': orderID,
                                         'inum': inum}
                                 cursor.execute(query, data)
-
+                            query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
+                                      TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
+                            data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(orderID),
+                                     'pm': paymentMethod }
+                            cursor.execute(query, data)
                             query = """DELETE FROM CART_ITEM WHERE (PRODUCT_ID = :product_id AND
                                        SELLER_ID = :seller_id AND CUSTOMER_ID = (SELECT CUSTOMER_ID
                                        FROM CUSTOMER WHERE EMAIL_ID = :email) )"""
@@ -510,14 +518,49 @@ def myaccount(request, firstPage):
                     action = request.POST.get('alterPurchaseOrderButton').split('_')[1]
 
                     if action == 'cancel':
-                        pass
-                        # TODO change status of purchase order to cancelled
+                        # TODO : DONE!!
+                        #change status of purchase order to cancelled
                         # This cancelled order should no longer appear as pending deliveries for the delivery guy
+                        with connections['oracle'].cursor() as cursor:
+                            try:
+                                query = """UPDATE PRODUCT_UNIT
+                                SET STATUS = 'Not Sold'
+                                WHERE (PRODUCT_ID , ITEM_NUMBER) =
+                                (SELECT PRODUCT_ID, ITEM_NUMBER FROM ORDERED_ITEMS WHERE ORDER_ID = :orderID)"""
+                                cursor.execute(query, {orderID : 'orderID'});
+                                query = """UPDATE PURCHASE_ORDER
+                                        SET DELIVERY_STATUS = 'Cancelled'
+                                        WHERE ORDER_ID = :orderID"""
+                                cursor.execute(query, {orderID : 'orderID'});
+                            except Exception as e:
+                                print(e)
+                                cursor.execute("ROLLBACK")
+                            else:
+                                cursor.execute("COMMIT")
+
+
                     elif action == 'return':
                         complaint = request.POST.get('complaint'+str(orderID))
-                        # TODO make a new order which is a return order type
+                        # TODO: done!
+                        # make a new order which is a return order type
                         # assign a customer care employee to it ( either random or the employee who has the least work assigned right now )
-
+                        with connections['oracle'].cursor() as cursor:
+                            try:
+                                query = """SELECT CUSTOMER_CARE_EMPLOYEE_ID
+                                        FROM(SELECT CUSTOMER_CARE_EMPLOYEE_ID, COUNT(*) WORK
+                                        FROM RETURN_ORDER
+                                        WHERE ROWNUM <= 1
+                                        GROUP BY CUSTOMER_CARE_EMPLOYEE_ID
+                                        ORDER BY WORK ASC)"""
+                                cursor.execute(query);
+                                empID = cursor.fetchall()
+                                query = """INSERT INTO RETURN_ORDER VALUES( TO_NUMBER(:orderID), :complaint ,TO_NUMBER(:empID), SYSDATE, 'Pending' )"""
+                                cursor.execute(query, {orderID : 'orderID', 'complaint' : complaint, 'empID' : empID});
+                            except Exception as e:
+                                print(e)
+                                cursor.execute("ROLLBACK")
+                            else:
+                                cursor.execute("COMMIT")
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
 
@@ -1130,7 +1173,7 @@ def generateOrderTableHTML(request):
                     JOIN EMPLOYEE E ON ( E.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID )
                     JOIN ORDERED_ITEMS OI USING(ORDER_ID)
                     JOIN PRODUCT PR ON ( PR.PRODUCT_ID = OI.PRODUCT_ID AND PR.SELLER_ID = OI.SELLER_ID )
-                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) AND P.DELIVERY_STATUS = 'Not Delivered'
                     GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, DELIVERED_DATE, PHONE_NUMBER"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
