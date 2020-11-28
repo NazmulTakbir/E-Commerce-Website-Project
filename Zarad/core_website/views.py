@@ -131,6 +131,8 @@ def topCategories(request):
 
 
 def getProductDetails(productIDs):
+    if len(productIDs) <= 0:
+        return []
     with connections['oracle'].cursor() as cursor:
         ids = {}
         for i in range(len(productIDs)):

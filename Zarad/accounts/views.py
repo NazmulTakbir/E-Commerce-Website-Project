@@ -9,11 +9,13 @@ import info
 import random
 import datetime
 
-def deliveryEmployeeSelection():
-    # TODO search all the delivery guys employed by Zarad and return ID of the one with least total distance
-    # Use Haversine Distance Formula
-    # https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
-    return '100000000000001'
+def deliveryEmployeeSelection(orderID):
+    orderID = int(orderID)
+    query = """SELECT HAVERSINE(ORDER_ID) FROM CUSTOMER_ORDER WHERE ORDER_ID = (:orderID)"""
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query, {'orderID':orderID});
+        id = cursor.fetchall()[0][0]
+    return id
 
 def getAdverts(request):
     query = """SELECT PRODUCT_ID, SELLER_ID, ADVERTISEMENT_NUMBER, PICTURE FROM ADVERTISEMENT
@@ -482,9 +484,10 @@ def myaccount(request, firstPage):
                                      'email': request.session['useremail'] }
                             cursor.execute(query, data)
 
+
                             query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
                                       TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
-                            data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(),
+                            data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(orderID),
                                      'pm': paymentMethod }
                             cursor.execute(query, data)
 
@@ -510,13 +513,48 @@ def myaccount(request, firstPage):
                     action = request.POST.get('alterPurchaseOrderButton').split('_')[1]
 
                     if action == 'cancel':
-                        pass
-                        # TODO change status of purchase order to cancelled
-                        # This cancelled order should no longer appear as pending deliveries for the delivery guy
+                        with connections['oracle'].cursor() as cursor:
+                            try:
+                                query = "SELECT PRODUCT_ID, SELLER_ID FROM ORDERED_ITEMS WHERE ORDER_ID = :oid"
+                                cursor.execute(query, {'oid': int(orderID)})
+                                result = cursor.fetchall()
+                                productID, sellerID = int(result[0][0]), int(result[0][1])
+
+                                query = """UPDATE PRODUCT_UNIT
+                                           SET STATUS = 'Not Sold'
+                                           WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid AND
+                                           ITEM_NUMBER IN (SELECT ITEM_NUMBER FROM ORDERED_ITEMS WHERE ORDER_ID = :orderID)"""
+                                cursor.execute(query, {'pid': productID, 'sid': sellerID, 'orderID': int(orderID)});
+
+                                query = """UPDATE PURCHASE_ORDER
+                                           SET DELIVERY_STATUS = 'Cancelled'
+                                           WHERE ORDER_ID = :orderID"""
+                                cursor.execute(query, {'orderID': orderID});
+
+                            except Exception as e:
+                                print(e)
+                                cursor.execute("ROLLBACK")
+                            else:
+                                cursor.execute("COMMIT")
+
                     elif action == 'return':
                         complaint = request.POST.get('complaint'+str(orderID))
-                        # TODO make a new order which is a return order type
-                        # assign a customer care employee to it ( either random or the employee who has the least work assigned right now )
+
+                        with connections['oracle'].cursor() as cursor:
+                            try:
+                                query = """SELECT EMPLOYEE_ID, COUNT(ORDER_ID) NO_TASKS FROM CUSTOMER_CARE_EMPLOYEE
+                                           LEFT OUTER JOIN RETURN_ORDER ON(CUSTOMER_CARE_EMPLOYEE_ID=EMPLOYEE_ID
+                                           AND LOWER(APPROVAL_STATUS)='Not Approved') GROUP BY EMPLOYEE_ID ORDER BY NO_TASKS ASC"""
+                                cursor.execute(query);
+                                empID = int(cursor.fetchall()[0][0])
+                                query = """INSERT INTO RETURN_ORDER VALUES( TO_NUMBER(:orderID), :complaint,
+                                           TO_NUMBER(:empID), SYSDATE, 'Not Approved')"""
+                                cursor.execute(query, {'orderID': orderID, 'complaint': complaint, 'empID' : empID});
+                            except Exception as e:
+                                print(e)
+                                cursor.execute("ROLLBACK")
+                            else:
+                                cursor.execute("COMMIT")
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -843,10 +881,11 @@ def generateProductTableHTML(request):
         else:
             for i in range( len(products) ):
                 productURL = "http://{}/product/item/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], sellerID)
+                editURL = "http://{}/product/editproduct/{}/{}/".format(request.META['HTTP_HOST'], products[i][0], sellerID)
                 editButton = """<a href={}>
                                     <button type="button" class="btn btn-link">Edit</button>
                                 </a>
-                             """.format(productURL)
+                             """.format(editURL)
                 result += """<tr>
                                 <th style="background-color: #f2f8f8" scope="row"><a href={}>{}</a></th>
                                 <td style="background-color: #f2f8f8">{}</td>
@@ -1125,13 +1164,12 @@ def generateCartTableHTML(request):
 def generateOrderTableHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, TO_CHAR(MAX(ORDER_DATE+EXPECTED_TIME_TO_DELIVER), 'MONTH DD, YYYY')
-                    EXPECTED_DELIVERY_DATE, DELIVERED_DATE, PHONE_NUMBER DELIVERY_GUY_NUMBER FROM
-                    CUSTOMER_ORDER C JOIN PURCHASE_ORDER P USING(ORDER_ID)
-                    JOIN EMPLOYEE E ON ( E.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID )
-                    JOIN ORDERED_ITEMS OI USING(ORDER_ID)
-                    JOIN PRODUCT PR ON ( PR.PRODUCT_ID = OI.PRODUCT_ID AND PR.SELLER_ID = OI.SELLER_ID )
-                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)
-                    GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS, DELIVERED_DATE, PHONE_NUMBER"""
+                    EXPECTED_DELIVERY_DATE, DELIVERED_DATE, PHONE_NUMBER DELIVERY_GUY_NUMBER FROM CUSTOMER_ORDER C JOIN
+                    PURCHASE_ORDER P USING(ORDER_ID) JOIN EMPLOYEE E ON ( E.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID )
+                    JOIN ORDERED_ITEMS OI USING(ORDER_ID) JOIN PRODUCT PR ON ( PR.PRODUCT_ID = OI.PRODUCT_ID AND
+                    PR.SELLER_ID = OI.SELLER_ID ) WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) AND
+                    LOWER(P.DELIVERY_STATUS) != 'cancelled' GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS,
+                    DELIVERED_DATE, PHONE_NUMBER"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         purchaseOrder = []
@@ -1516,8 +1554,8 @@ def generatePendingDeliveryHTML(request):
 def generateManagedComplaintsHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT",
-                    PAYMENT_METHOD, "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
-                    (SELECT ORDER_ID, COMPLAINT_DES,ORDER_TOTAL(ORDER_ID)"TOTAL AMOUNT",APPROVAL_STATUS STATUS,
+                    "TOTAL AMOUNT", STATUS, "MANAGED DATE" FROM
+                    (SELECT ORDER_ID, COMPLAINT_DES, ORDER_TOTAL(ORDER_ID) "TOTAL AMOUNT", APPROVAL_STATUS STATUS,
                     RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
                     FROM EMPLOYEE WHERE EMAIL_ID = :email)) JOIN CUSTOMER_ORDER
                     USING(ORDER_ID) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)"CUSTOMER NAME",PHONE_NUMBER
@@ -1530,13 +1568,11 @@ def generateManagedComplaintsHTML(request):
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             complaints.append(temp)
-        complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Approved', 'Oct 15 2019'],
-                       [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000, 'Rejected', 'Oct 15 2019'] ]
+
         result = ""
         if( len(complaints)==0 ):
             result = """<tr>
                             <th scope="row"></th>
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -1550,9 +1586,9 @@ def generateManagedComplaintsHTML(request):
             for i in range( len(complaints) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
                 color = ""
-                if( complaints[i][7] == 'Approved' ):
+                if( complaints[i][6].lower() == 'approved' ):
                     color = '#21c2ae'
-                elif( complaints[i][7] == 'Rejected' ):
+                elif( complaints[i][6].lower() == 'rejected' ):
                     color = "#ff5f40"
                 result += """<tr>
                                 <th scope="row"><a href={}>{}</a></th>
@@ -1561,16 +1597,15 @@ def generateManagedComplaintsHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
                                 <td style="font-weight: bold; color: {}">{}</td>
                                 <td>{}</td>
                             </tr>
-                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], color, complaints[i][7], complaints[i][8])
+                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], color, complaints[i][6], complaints[i][7])
         return result
 
 def generatePendingComplaintsHTML(request):
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT", PAYMENT_METHOD,
+        query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT",
                     "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
                     (SELECT ORDER_ID, COMPLAINT_DES,ORDER_TOTAL(ORDER_ID)"TOTAL AMOUNT",APPROVAL_STATUS STATUS,
                     RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
@@ -1585,12 +1620,11 @@ def generatePendingComplaintsHTML(request):
             for j in range(len(table[i])):
                 temp.append(table[i][j])
             complaints.append(temp)
-        complaints = [ [123451234512345, 'Oct 04 2020', 'Fatima Nawmi', '01722345467', 'Does Not Work', 'Cash', 5000] ]
+
         result = ""
         if( len(complaints)==0 ):
             result = """<tr>
                             <th scope="row"></th>
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -1615,8 +1649,7 @@ def generatePendingComplaintsHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
-                                <td>{}</td>
                                 <td style="text-align: center; vertical-align: middle">{} {}</td>
                             </tr>
-                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], complaints[i][6], approve, reject)
+                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], approve, reject)
         return result

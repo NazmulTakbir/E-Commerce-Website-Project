@@ -12,8 +12,13 @@ import random
 from datetime import timedelta, date
 import info
 
-def deliveryEmployeeSelection():
-    return '100000000000001'
+def deliveryEmployeeSelection(orderID):
+    orderID = int(orderID)
+    query = """SELECT HAVERSINE(ORDER_ID) FROM CUSTOMER_ORDER WHERE ORDER_ID = (:orderID)"""
+    with connections['oracle'].cursor() as cursor:
+        cursor.execute(query, {'orderID':orderID});
+        id = cursor.fetchall()[0][0]
+    return id
 
 def accountBalance(email, type):
     with connections['oracle'].cursor() as cursor:
@@ -119,7 +124,7 @@ def item_page(request, product_id, seller_id):
             iscustomerlogin = True
             acBal = accountBalance(request.session['useremail'], acType)
 
-    if request.method == 'POST'and iscustomerlogin:
+    if request.method == 'POST' and iscustomerlogin:
         formIdentity = request.POST.get('formIdentity')
         if formIdentity == 'orderForm':
             quantity = int( request.POST.get('orderQuantity') )
@@ -154,7 +159,7 @@ def item_page(request, product_id, seller_id):
 
                     query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
                               TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
-                    data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(),
+                    data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(orderID),
                              'pm': paymentMethod }
                     cursor.execute(query, data)
 
@@ -392,6 +397,152 @@ def item_page(request, product_id, seller_id):
 
     return render(request, 'item.html', data)
 
+def edit_product_page(request, product_id, seller_id):
+    isloggedin = False
+    acType = 'none'
+    if request.session.has_key('useremail'):
+        isloggedin = True
+        acType = accountType(request.session['useremail'])
+        if acType != 'seller':
+            return HttpResponseRedirect(reverse('home_page'))
+    else:
+        return HttpResponseRedirect(reverse('home_page'))
+
+    adverts = getAdverts(request)
+
+    with connections['oracle'].cursor() as cursor:
+        query = """SELECT NAME, CATEGORY_ID, DESCRIPTION, EXPECTED_TIME_TO_DELIVER, PRICE FROM PRODUCT
+                   WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid"""
+        data = {'pid': product_id, 'sid': seller_id}
+        cursor.execute(query, data)
+        productInfo = cursor.fetchall()
+
+        name = productInfo[0][0]
+        categoryID = productInfo[0][1]
+        description = productInfo[0][2]
+        deliveryTime = productInfo[0][3]
+        price = productInfo[0][4]
+
+        query = """SELECT CATEGORY_NAME FROM CATEGORY WHERE CATEGORY_ID = :cid"""
+        data = {'cid': int(categoryID)}
+        cursor.execute(query, data)
+        categoryName = cursor.fetchall()[0][0]
+
+        query = """SELECT COUNT(*) FROM PRODUCT_UNIT WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid
+                   AND LOWER(STATUS) = 'not sold'"""
+        cursor.execute(query, {'pid': int(product_id), 'sid': int(seller_id)})
+        stock = cursor.fetchall()[0][0]
+
+        query = """SELECT CATEGORY_NAME FROM CATEGORY"""
+        cursor.execute(query)
+        allCategories = cursor.fetchall()
+        allCategories = [c[0] for c in allCategories]
+
+        query = "SELECT FEATURE_DESCRIPTION FROM PRODUCT_FEATURE WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid"
+        data = {'pid': product_id, 'sid': seller_id}
+        cursor.execute(query, data)
+        features = cursor.fetchall()
+        features = [f[0] for f in features]
+
+        emptySlots = 6 - len(features)
+        for i in range(emptySlots):
+            features.append('')
+
+        featuresHTML = ""
+        for i in range(len(features)):
+            if len(features[i]) > 0:
+                displayStyle = 'block'
+            else:
+                displayStyle = 'none'
+            featuresHTML += """<div style="display: {}" id="feature{}" class="col-lg-12">
+                                 <div class="form-group">
+                                   <input maxlength="100" name="feature{}" class="form-control customInput" type="text" placeholder="feature {}" value="{}">
+                                 </div>
+                               </div>""".format(displayStyle, i+1, i+1, i+1, features[i])
+
+    if request.method == 'POST':
+        new_name = request.POST.get("productName")
+        new_price = int(request.POST.get("productPrice"))
+        new_deliveryTime = request.POST.get("deliveryTime")
+        new_category = request.POST.get("chosenCategory")
+        new_description = request.POST.get("description")
+
+        with connections['oracle'].cursor() as cursor:
+            query = """SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :cname"""
+            cursor.execute(query, {'cname': new_category})
+            new_category = cursor.fetchall()[0][0]
+
+            if price!=new_price:
+                query = """UPDATE PRODUCT SET
+                             NAME = :name,
+                             CATEGORY_ID = :cid,
+                             DESCRIPTION = :description,
+                             EXPECTED_TIME_TO_DELIVER = :new_deliveryTime,
+                             PRICE = :price,
+                             LAST_UPDATE = SYSDATE
+                           WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid"""
+                data = {'name': new_name, 'cid': int(new_category), 'description': new_description,
+                        'new_deliveryTime': new_deliveryTime, 'price': new_price, 'pid': int(product_id),
+                        'sid': int(seller_id)}
+                cursor.execute(query, data)
+
+            elif new_name!=name or categoryID!=new_category or description!=new_description or deliveryTime!=new_deliveryTime:
+                query = """UPDATE PRODUCT SET
+                             NAME = :name,
+                             CATEGORY_ID = :cid,
+                             DESCRIPTION = :description,
+                             EXPECTED_TIME_TO_DELIVER = :new_deliveryTime,
+                             LAST_UPDATE = SYSDATE
+                           WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid"""
+                data = {'name': new_name, 'cid': int(new_category), 'description': new_description,
+                        'new_deliveryTime': new_deliveryTime, 'pid': int(product_id),
+                        'sid': int(seller_id)}
+                cursor.execute(query, data)
+
+        new_quantityInStock = request.POST.get("quantityInStock")
+
+        if new_quantityInStock!=stock:
+            pass
+
+        new_feature1 = request.POST.get("feature1")
+        new_feature2 = request.POST.get("feature2")
+        new_feature3 = request.POST.get("feature3")
+        new_feature4 = request.POST.get("feature4")
+        new_feature5 = request.POST.get("feature5")
+        new_feature6 = request.POST.get("feature6")
+        new_features = (new_feature1, new_feature2, new_feature3, new_feature4, new_feature5, new_feature6)
+
+        featuresChanged = False
+        for i in range(len(features)):
+            if features[i]!=new_features[i]:
+                featuresChanged = True
+                break
+
+        if featuresChanged:
+            with connections['oracle'].cursor() as cursor:
+                query = "DELETE FROM PRODUCT_FEATURE WHERE PRODUCT_ID = :pid AND SELLER_ID = :sid"
+                data = {'pid': int(product_id), 'sid': int(seller_id)}
+                cursor.execute(query, data)
+                for i in range(0, len(new_features)):
+                    if len(new_features[i]) > 0:
+                        query = "INSERT INTO PRODUCT_FEATURE VALUES(:pid, :sid, :fn, :description)"
+                        data = {'pid': int(product_id), 'sid': int(seller_id), 'fn': i+1,
+                                'description': new_features[i]}
+                        cursor.execute(query, data)
+
+        reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+        return HttpResponseRedirect(reverseStr)
+
+    data = {'isloggedin': isloggedin, 'accountType': acType, 'advert1': adverts[0],
+            'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
+            'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
+            'advert8': adverts[7], 'name': name, 'description': description,
+            'deliveryTime': deliveryTime, 'categoryName': categoryName, 'stock': stock,
+            'allCategories': allCategories, 'price': price, 'description': description,
+            'featuresHTML': featuresHTML}
+
+    return render(request, 'editProduct.html', data)
+
 def add_item_page(request):
     isloggedin = False
     acType = 'none'
@@ -428,7 +579,7 @@ def add_item_page(request):
                 id = result[0][0]
 
         query = """INSERT INTO PRODUCT VALUES (TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
-                (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price))"""
+                (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price), SYSDATE)"""
         with connections['oracle'].cursor() as cursor:
             data = {'name' : name,  'email' :request.session['useremail'] ,'id': id , 'category' : category , 'description' : description,
                     'deliveryTime' :deliveryTime, 'price' : price}
@@ -463,6 +614,7 @@ def add_item_page(request):
                         TO_NUMBER(:num) , :pic)"""
                 with connections['oracle'].cursor() as cursor:
                     data = {'email' :request.session['useremail'] ,'id': id, 'num' : i+1, 'pic' : pics[i].getvalue()}
+                    print(data)
                     cursor.execute(query, data)
                     cursor.execute("COMMIT")
 
@@ -528,14 +680,13 @@ def search_result(request, search_string):
         if(check_category(category)):
             query="""SELECT W.PRODUCT_ID, W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE,
                     W.SELLER_NAME,  W.MAX_DISCOUNT
-                    FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
+                    FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(LEAST((Y.END_DATE-SYSDATE)*100000, Y.PERCENTAGE_DISCOUNT)) MAX_DISCOUNT
                     FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
                     FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
                     LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = A.SELLER_ID)
 					WHERE CATEGORY_ID = (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category)
                     GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                     LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                    WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
                     GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
                     LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                     LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
@@ -624,13 +775,12 @@ def search_result(request, search_string):
     query =  """SELECT * FROM
                 (SELECT GREATEST(STRING_SIMILARITY(:words, W.PRODUCT_NAME) , STRING_SIMILARITY(:words, W.SELLER_NAME))AS MAX_SCORE,W.PRODUCT_ID,
                 W.SELLER_ID, W.PRODUCT_NAME,  W.AVG_RATING, PP.PICTURE PIC1, PPP.PICTURE PIC2,W.PRICE, W.SELLER_NAME,  W.MAX_DISCOUNT
-                FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(Y.PERCENTAGE_DISCOUNT) MAX_DISCOUNT
+                FROM (SELECT X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING, MAX(LEAST((Y.END_DATE-SYSDATE)*100000, Y.PERCENTAGE_DISCOUNT)) MAX_DISCOUNT
                 FROM ( SELECT P.PRODUCT_ID, S.SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, P.PRICE, AVG(A.RATING) AVG_RATING
                 FROM PRODUCT P JOIN SELLER S ON (P.SELLER_ID = S.SELLER_ID)
                 LEFT OUTER JOIN REVIEW A ON (P.PRODUCT_ID = A.PRODUCT_ID AND P.SELLER_ID = A.SELLER_ID)
                 GROUP BY P.PRODUCT_ID, S.SELLER_ID, P.NAME, S.NAME, P.PRICE ) X
                 LEFT OUTER JOIN OFFER Y ON(X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                WHERE ( Y.END_DATE >= SYSDATE OR Y.END_DATE IS NULL )
                 GROUP BY X.PRODUCT_ID, X.SELLER_ID, X.PRODUCT_NAME, X.SELLER_NAME, X.PRICE, X.AVG_RATING)W
                 LEFT OUTER JOIN PRODUCT_PICTURE PP ON (W.SELLER_ID = PP.SELLER_ID AND W.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 1)
                 LEFT OUTER JOIN PRODUCT_PICTURE PPP ON (W.SELLER_ID = PPP.SELLER_ID AND W.PRODUCT_ID = PPP.PRODUCT_ID AND PPP.PICTURE_NUMBER = 2)
