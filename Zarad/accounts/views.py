@@ -498,7 +498,11 @@ def myaccount(request, firstPage):
                                 data = {'pid': productID, 'sid': sellerID, 'oid': orderID,
                                         'inum': inum}
                                 cursor.execute(query, data)
-
+                            query = """INSERT INTO PURCHASE_ORDER VALUES(TO_NUMBER(:oid),
+                                      TO_NUMBER(:empID), NULL, 'Not Delivered', :pm)"""
+                            data = { 'oid': orderID, 'empID': deliveryEmployeeSelection(orderID),
+                                     'pm': paymentMethod }
+                            cursor.execute(query, data)
                             query = """DELETE FROM CART_ITEM WHERE (PRODUCT_ID = :product_id AND
                                        SELLER_ID = :seller_id AND CUSTOMER_ID = (SELECT CUSTOMER_ID
                                        FROM CUSTOMER WHERE EMAIL_ID = :email) )"""

@@ -149,21 +149,22 @@ def getProductDetails(productIDs):
                    ON(W.PRODUCT_ID=PP.PRODUCT_ID AND W.SELLER_ID=PP.SELLER_ID AND PP.PICTURE_NUMBER=1) LEFT OUTER JOIN PRODUCT_PICTURE PPP
                    ON(W.PRODUCT_ID=PPP.PRODUCT_ID AND W.SELLER_ID=PPP.SELLER_ID AND PPP.PICTURE_NUMBER=2) ORDER BY W.DISCOUNT DESC""" % placeholders
 
-        cursor.execute(query, ids)
-        result = cursor.fetchall()
-
         productDetails = []
-        for i in range(len(result)):
-            temp = []
-            for j in range(len(result[i])):
-                temp.append(result[i][j])
-            if( temp[5] == None ):
-                temp[5] = 0
-            if( temp[6] == None ):
-                temp[6] = 0
-            if( temp[8] == None ):
-                temp[8] = temp[7]
-            productDetails.append(temp)
+        if(len(productIDs) > 0 ):
+            cursor.execute(query, ids)
+            result = cursor.fetchall()
+            for i in range(len(result)):
+                temp = []
+                for j in range(len(result[i])):
+                    temp.append(result[i][j])
+                if( temp[5] == None ):
+                    temp[5] = 0
+                if( temp[6] == None ):
+                    temp[6] = 0
+                if( temp[8] == None ):
+                    temp[8] = temp[7]
+                productDetails.append(temp)
+
 
         return productDetails
 
