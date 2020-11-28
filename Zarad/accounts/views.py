@@ -1213,7 +1213,7 @@ def generateOrderTableHTML(request):
                                 <td>{}</td>
                                 <td style="text-align: center; vertical-align: middle">
                                     {}
-                                    <input type="text" name="complaint{}" placeholder="Complaint" class="form-control" style="margin-top: 5px; display: {}" onfocus="this.placeholder = '';" onfocusout="this.placeholder='Complaint'">
+                                    <input type="text" name="complaint{}" placeholder="Complaint" class="form-control" style="margin-top: 5px; display: {}" onfocus="this.placeholder = '';" onfocusout="this.placeholder='Complaint'" >
                                 </td>
                             </tr>
                          """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton, purchaseOrder[i][0], displayType)
