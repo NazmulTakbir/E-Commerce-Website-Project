@@ -424,6 +424,21 @@ def myaccount(request, firstPage):
 
         if acType == 'customer':
             # TODO extract the basic info details
+            with connections['oracle'].cursor() as cursor:
+                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM CUSTOMER WHERE EMAIL_ID = :emailID;"
+                cursor.execute(query, {'emailID' :request.session['useremail'] });
+                result = cursor.fetchall()
+                emailID = result[0][0]
+                firstName = result[0][1]
+                lastName = result[0][2]
+                phoneNumber = result[0][3]
+                apartmentNumber = result[0][4]
+                buildingNumber = result[0][5]
+                road =  result[0][6]
+                area =  result[0][7]
+                city =  result[0][8]
+                profile_pic =  result[0][9] #this is a blob object
+                dob = result[0][10]
             if request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'reviewForm':
@@ -549,6 +564,8 @@ def myaccount(request, firstPage):
                                 query = """INSERT INTO RETURN_ORDER VALUES( TO_NUMBER(:orderID), :complaint,
                                            TO_NUMBER(:empID), SYSDATE, 'Not Approved')"""
                                 cursor.execute(query, {'orderID': orderID, 'complaint': complaint, 'empID' : empID});
+                                query = "UPDATE PURCHASE_ORDER SET DELIVERY_STATUS = 'Returned' WHERE ORDER_ID = :orderID"
+                                cursor.execute(query, {'orderID': orderID});
                             except Exception as e:
                                 print(e)
                                 cursor.execute("ROLLBACK")
@@ -577,7 +594,26 @@ def myaccount(request, firstPage):
             return render(request, 'customerAccount.html', data)
 
         elif acType == 'seller':
-            # TODO extract the basic info details
+            with connections['oracle'].cursor() as cursor:
+                query = "SELECT EMAIL_ID, NAME, BUILDING_NUMBER, ROAD, AREA, CITY, LOGO, SELLER_ID FROM SELLER WHERE EMAIL_ID = :emailID"
+                cursor.execute(query, {'emailID' :request.session['useremail'] });
+                result = cursor.fetchall()
+                emailID = result[0][0]
+                name = result[0][1]
+                buildingNumber = result[0][2]
+                road =  result[0][3]
+                area =  result[0][4]
+                city =  result[0][5]
+                profile_pic =  result[0][6] #this is a blob object
+                sellerID = int(result[0][7])
+                query = "SELECT PHONE_NUMBER FROM SELLER_PHONE_NUMBER WHERE SELLER_ID = :sellerID"
+                cursor.execute(query, {'sellerID' : sellerID });
+                result = cursor.fetchall()
+                phoneNumber = []
+                for i in range(len(result)) :
+                    phoneNumber.append(result[i][0])
+
+
             if request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'addOfferForm':
@@ -684,7 +720,22 @@ def myaccount(request, firstPage):
             return render(request, 'sellerAccount.html', data)
 
         elif acType == 'deliveryGuy':
-            # TODO extract the basic info details
+            with connections['oracle'].cursor() as cursor:
+                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM EMPLOYEE WHERE EMAIL_ID = :emailID;"
+                cursor.execute(query, {'emailID' :request.session['useremail'] });
+                result = cursor.fetchall()
+                emailID = result[0][0]
+                firstName = result[0][1]
+                lastName = result[0][2]
+                phoneNumber = result[0][3]
+                apartmentNumber = result[0][4]
+                buildingNumber = result[0][5]
+                road =  result[0][6]
+                area =  result[0][7]
+                city =  result[0][8]
+                profile_pic =  result[0][9] #this is a blob object
+                dob = result[0][10]
+
             if request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'pendingDeliveriesForm':
@@ -738,6 +789,21 @@ def myaccount(request, firstPage):
 
         elif acType == 'customerCare':
             # TODO extract the basic info details
+            with connections['oracle'].cursor() as cursor:
+                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM EMPLOYEE WHERE EMAIL_ID = :emailID;"
+                cursor.execute(query, {'emailID' :request.session['useremail'] });
+                result = cursor.fetchall()
+                emailID = result[0][0]
+                firstName = result[0][1]
+                lastName = result[0][2]
+                phoneNumber = result[0][3]
+                apartmentNumber = result[0][4]
+                buildingNumber = result[0][5]
+                road =  result[0][6]
+                area =  result[0][7]
+                city =  result[0][8]
+                profile_pic =  result[0][9] #this is a blob object
+                dob = result[0][10]
             managedComplaintsHTML = generateManagedComplaintsHTML(request)
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
 
@@ -1167,7 +1233,7 @@ def generateOrderTableHTML(request):
                     PURCHASE_ORDER P USING(ORDER_ID) JOIN EMPLOYEE E ON ( E.EMPLOYEE_ID = P.DELIVERY_EMPLOYEE_ID )
                     JOIN ORDERED_ITEMS OI USING(ORDER_ID) JOIN PRODUCT PR ON ( PR.PRODUCT_ID = OI.PRODUCT_ID AND
                     PR.SELLER_ID = OI.SELLER_ID ) WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) AND
-                    LOWER(P.DELIVERY_STATUS) != 'cancelled' GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS,
+                    (LOWER(P.DELIVERY_STATUS) != 'cancelled' OR LOWER(P.DELIVERY_STATUS) != 'returned' )GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS,
                     DELIVERED_DATE, PHONE_NUMBER"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
