@@ -8,6 +8,8 @@ import io
 import info
 import random
 import datetime
+from django.http import JsonResponse
+import json
 
 def deliveryEmployeeSelection(orderID):
     orderID = int(orderID)
@@ -424,6 +426,7 @@ def myaccount(request, firstPage):
 
         if acType == 'customer':
             # TODO extract the basic info details
+<<<<<<< HEAD
             with connections['oracle'].cursor() as cursor:
                 query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM CUSTOMER WHERE EMAIL_ID = :emailID;"
                 cursor.execute(query, {'emailID' :request.session['useremail'] });
@@ -439,7 +442,30 @@ def myaccount(request, firstPage):
                 city =  result[0][8]
                 profile_pic =  result[0][9] #this is a blob object
                 dob = result[0][10]
-            if request.method == 'POST':
+
+            if request.is_ajax():
+                body_unicode = request.body.decode('utf-8')
+                body = json.loads(body_unicode)
+                orderID = body['orderID']
+
+                with connections['oracle'].cursor() as cursor:
+                    query = """SELECT PRODUCT_ID, O.SELLER_ID, P.NAME PRODUCT_NAME, ORDER_TOTAL(ORDER_ID)
+                               TOTAL_PRICE, S.NAME SELLER_NAME, COUNT(*) QUANTITY FROM CUSTOMER_ORDER O
+                               JOIN SELLER S ON(S.SELLER_ID=O.SELLER_ID) JOIN ORDERED_ITEMS I USING(ORDER_ID)
+                               JOIN PRODUCT P USING(PRODUCT_ID) WHERE ORDER_ID = :oid GROUP BY PRODUCT_ID, O.SELLER_ID,
+                               P.NAME, ORDER_TOTAL(ORDER_ID), S.NAME;"""
+                    cursor.execute(query, {'oid': orderID})
+                    orderDetails = cursor.fetchall()[0]
+
+                    productURL = 'http://'+request.META['HTTP_HOST']+'/product/item/{}/{}'.format(orderDetails[0], orderDetails[1])
+                    data = {'productName': orderDetails[2], 'totalPrice': orderDetails[3],
+                            'sellerName': orderDetails[4], 'quantity': orderDetails[5],
+                            'productURL': productURL}
+
+                return JsonResponse(data, status=200)
+
+            elif request.method == 'POST':
+>>>>>>> 995672c16c96ea11d51847d27c2c1b43a7c0f167
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'reviewForm':
                     productID = request.POST.get('delRevBtn').split('+')[0]
@@ -451,6 +477,9 @@ def myaccount(request, firstPage):
                         data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/reviews'
+                    return HttpResponseRedirect(reverseStr)
 
                 elif formIdentity == 'cartForm':
                     action = request.POST.get('CartBtn').split('+')[0]
@@ -465,6 +494,9 @@ def myaccount(request, firstPage):
                             data = {'product_id' :productID,'seller_id':sellerID, 'email':request.session['useremail']}
                             cursor.execute(query, data)
                             cursor.execute("COMMIT")
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/cart'
+                    return HttpResponseRedirect(reverseStr)
 
                 elif formIdentity == 'orderForm':
                     productID = request.POST.get('productID')
@@ -522,6 +554,9 @@ def myaccount(request, firstPage):
 
                             cursor.execute("commit")
 
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/orders'
+                    return HttpResponseRedirect(reverseStr)
+
                 elif formIdentity == 'alterPurchaseOrder':
                     orderID = request.POST.get('alterPurchaseOrderButton').split('_')[0]
                     action = request.POST.get('alterPurchaseOrderButton').split('_')[1]
@@ -571,6 +606,9 @@ def myaccount(request, firstPage):
                                 cursor.execute("ROLLBACK")
                             else:
                                 cursor.execute("COMMIT")
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/orders'
+                    return HttpResponseRedirect(reverseStr)
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -1261,16 +1299,23 @@ def generateOrderTableHTML(request):
                      """
         else:
             for i in range( len(purchaseOrder) ):
+
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
+
                 orderAlterButton = '<button type="submit" name="alterPurchaseOrderButton" class="btn customDanger" value="{}">{}</button>'
-                if( purchaseOrder[i][3] == 'Delivered' ):
+                orderDetailsButtonStyle = "background: none!important; border: none; padding: 0!important; font-family: arial, sans-serif; color: #007BFF; text-decoration: underline; font-weight: bold; cursor: pointer;"
+                if( purchaseOrder[i][3].lower() == 'delivered' ):
                     orderAlterButton = orderAlterButton.format(str(purchaseOrder[i][0])+'_return', "Return")
                     displayType = 'block'
-                elif( purchaseOrder[i][3] == 'Not Delivered' ):
+                elif( purchaseOrder[i][3].lower() == 'not delivered' ):
                     orderAlterButton = orderAlterButton.format(str(purchaseOrder[i][0])+'_cancel', "Cancel")
                     displayType = 'none'
+                elif( purchaseOrder[i][3].lower() == 'returned' ):
+                    orderAlterButton = ''
+                    displayType = 'none'
+
                 pHTML += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
+                                <th scope="row"><button value='{}' onclick="fetchProductDetails(this)" type='button' style='{}' data-toggle="modal" data-target="#orderDetailsModal">{}</button></th>
                                 <td >{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
@@ -1282,7 +1327,7 @@ def generateOrderTableHTML(request):
                                     <input type="text" name="complaint{}" placeholder="Complaint" class="form-control" style="margin-top: 5px; display: {}" onfocus="this.placeholder = '';" onfocusout="this.placeholder='Complaint'" >
                                 </td>
                             </tr>
-                         """.format( orderURL, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton, purchaseOrder[i][0], displayType)
+                         """.format(str(purchaseOrder[i][0]), orderDetailsButtonStyle, purchaseOrder[i][0], purchaseOrder[i][1], purchaseOrder[i][2], purchaseOrder[i][3], purchaseOrder[i][4], purchaseOrder[i][5], purchaseOrder[i][6], orderAlterButton, purchaseOrder[i][0], displayType)
 
         query =  """SELECT ORDER_ID, ORDER_DATE, COMPLAINT_DES, APPROVAL_STATUS, RETURN_DATE,
                     PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER JOIN RETURN_ORDER P
@@ -1316,12 +1361,13 @@ def generateOrderTableHTML(request):
             for i in range( len(returnOrder) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
                 orderAlterButton = '<button type="button" class="btn customDanger" style="display: {}">Cancel</button>'
+                orderDetailsButtonStyle = "background: none!important; border: none; padding: 0!important; font-family: arial, sans-serif; color: #007BFF; text-decoration: underline; font-weight: bold; cursor: pointer;"
                 if( returnOrder[i][4] == 'Approved' ):
                     orderAlterButton = orderAlterButton.format('none')
                 else:
                     orderAlterButton = orderAlterButton.format('block')
                 rHTML += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
+                                <th scope="row"><button type='button' style='{}' data-toggle="modal" data-target="#orderDetailsModal">{}</button></th>
                                 <td >{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
@@ -1330,7 +1376,7 @@ def generateOrderTableHTML(request):
                                 <td>{}</td>
                                 <td>{}</td>
                             </tr>
-                         """.format( orderURL, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], 'Wallet', returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], orderAlterButton)
+                         """.format( orderDetailsButtonStyle, returnOrder[i][0], returnOrder[i][1], returnOrder[i][2], 'Wallet', returnOrder[i][3], returnOrder[i][4], returnOrder[i][5], orderAlterButton)
 
 
         return [pHTML, rHTML]

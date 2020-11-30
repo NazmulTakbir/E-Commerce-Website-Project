@@ -74,6 +74,15 @@ window.onload=function(){
   if( document.getElementById('firstPage').innerText == 'cart' ) {
     document.getElementById('myCart').click()
   }
+  else if( document.getElementById('firstPage').innerText == 'reviews' ) {
+    document.getElementById('myReviews').click()
+  }
+  else if( document.getElementById('firstPage').innerText == 'orders' ) {
+    document.getElementById('myOrders').click()
+  }
+  else if( document.getElementById('firstPage').innerText == 'wallet' ) {
+    document.getElementById('myWallet').click()
+  }
 
   walletBalance = parseFloat( document.getElementById('walletBalance').innerText )
 
