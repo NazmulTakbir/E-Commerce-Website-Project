@@ -425,23 +425,28 @@ def myaccount(request, firstPage):
         adverts = getAdverts(request)
 
         if acType == 'customer':
-            # TODO extract the basic info details
-<<<<<<< HEAD
+
             with connections['oracle'].cursor() as cursor:
-                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM CUSTOMER WHERE EMAIL_ID = :emailID;"
-                cursor.execute(query, {'emailID' :request.session['useremail'] });
+                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, DOB, PASSWORD, CUSTOMER_ID  FROM CUSTOMER WHERE EMAIL_ID = :emailID;"
+                cursor.execute(query, {'emailID' :request.session['useremail']});
                 result = cursor.fetchall()
                 emailID = result[0][0]
                 firstName = result[0][1]
                 lastName = result[0][2]
                 phoneNumber = result[0][3]
-                apartmentNumber = result[0][4]
-                buildingNumber = result[0][5]
-                road =  result[0][6]
-                area =  result[0][7]
-                city =  result[0][8]
-                profile_pic =  result[0][9] #this is a blob object
-                dob = result[0][10]
+                apartmentNumber = result[0][4] if result[0][4] else ''
+                buildingNumber = result[0][5] if result[0][5] else ''
+                road = result[0][6] if result[0][6] else ''
+                area = result[0][7] if result[0][7] else ''
+                city = result[0][8] if result[0][8] else ''
+                dob = str(result[0][9].date())
+                current_password = result[0][10]
+                customerID = result[0][11]
+
+                basic_info = {'email': emailID, 'firstName': firstName, 'lastName': lastName,
+                              'phoneNumber': phoneNumber, 'apartmentNumber': apartmentNumber,
+                              'buildingNumber': buildingNumber, 'road': road, 'area': area,
+                              'city': city, 'dob': dob}
 
             if request.is_ajax():
                 body_unicode = request.body.decode('utf-8')
@@ -465,9 +470,62 @@ def myaccount(request, firstPage):
                 return JsonResponse(data, status=200)
 
             elif request.method == 'POST':
->>>>>>> 995672c16c96ea11d51847d27c2c1b43a7c0f167
                 formIdentity = request.POST.get('formIdentity')
-                if formIdentity == 'reviewForm':
+                if formIdentity == 'changeBasicInfoForm':
+                    newPassword = request.POST.get('customerNewPassword')
+                    newFirstName = request.POST.get('customerFirstName')
+                    newLastName = request.POST.get('customerLastName')
+                    newPhoneNumber = request.POST.get('customerPhNo')
+                    newApartmentNumber = request.POST.get('customerApartment')
+                    newBuildingNumber = request.POST.get('customerBuilding')
+                    newRoad = request.POST.get('customerRoad')
+                    newArea = request.POST.get('customerArea')
+                    newCity = request.POST.get('customerCity')
+                    newdob = request.POST.get('customerDOB')
+
+                    with connections['oracle'].cursor() as cursor:
+                        if len(newPassword) > 0:
+                            query = """UPDATE CUSTOMER SET
+                                       FIRST_NAME = :fn,
+                                       LAST_NAME = :ln,
+                                       APARTMENT_NUMBER = :an,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PHONE_NUMBER = :pn,
+                                       PASSWORD = :ps,
+                                       DOB = :dob
+                                       WHERE CUSTOMER_ID = :cid"""
+                            data = {'fn': newFirstName, 'ln': newLastName, 'an': newApartmentNumber,
+                                    'pn': newPhoneNumber, 'bn': newBuildingNumber, 'ps': newPassword,
+                                    'r': newRoad, 'a': newArea, 'c': newCity, 'dob': newdob,
+                                    'cid': customerID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+                        else:
+                            query = """UPDATE CUSTOMER SET
+                                       FIRST_NAME = :fn,
+                                       LAST_NAME = :ln,
+                                       APARTMENT_NUMBER = :an,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PHONE_NUMBER = :pn,
+                                       DOB = :dob
+                                       WHERE CUSTOMER_ID = :cid"""
+                            data = {'fn': newFirstName, 'ln': newLastName, 'an': newApartmentNumber,
+                                    'pn': newPhoneNumber, 'bn': newBuildingNumber, 'r': newRoad,
+                                    'a': newArea, 'c': newCity, 'dob': newdob, 'cid': customerID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+                    return HttpResponseRedirect(reverseStr)
+
+                elif formIdentity == 'reviewForm':
                     productID = request.POST.get('delRevBtn').split('+')[0]
                     sellerID = request.POST.get('delRevBtn').split('+')[1]
 
@@ -628,12 +686,13 @@ def myaccount(request, firstPage):
                     'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
                     'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7],
                     'firstPage': firstPage, 'deliveryCharge': info.serviceChargePercentage}
+            data = {**data, **basic_info}
 
             return render(request, 'customerAccount.html', data)
 
         elif acType == 'seller':
             with connections['oracle'].cursor() as cursor:
-                query = "SELECT EMAIL_ID, NAME, BUILDING_NUMBER, ROAD, AREA, CITY, LOGO, SELLER_ID FROM SELLER WHERE EMAIL_ID = :emailID"
+                query = "SELECT EMAIL_ID, NAME, BUILDING_NUMBER, ROAD, AREA, CITY, WEBSITE, SELLER_ID FROM SELLER WHERE EMAIL_ID = :emailID"
                 cursor.execute(query, {'emailID' :request.session['useremail'] });
                 result = cursor.fetchall()
                 emailID = result[0][0]
@@ -642,7 +701,8 @@ def myaccount(request, firstPage):
                 road =  result[0][3]
                 area =  result[0][4]
                 city =  result[0][5]
-                profile_pic =  result[0][6] #this is a blob object
+                website = result[0][6]
+
                 sellerID = int(result[0][7])
                 query = "SELECT PHONE_NUMBER FROM SELLER_PHONE_NUMBER WHERE SELLER_ID = :sellerID"
                 cursor.execute(query, {'sellerID' : sellerID });
@@ -651,10 +711,68 @@ def myaccount(request, firstPage):
                 for i in range(len(result)) :
                     phoneNumber.append(result[i][0])
 
+                for i in range(4-len(phoneNumber)):
+                    phoneNumber.append('')
+
+                basicInfo = {'emailID': emailID, 'companyName': name, 'buildingNumber': buildingNumber,
+                             'road': road, 'area': area, 'city': city, 'website': website,
+                             'phoneNumber1': phoneNumber[0], 'phoneNumber2': phoneNumber[1],
+                             'phoneNumber3': phoneNumber[2], 'phoneNumber4': phoneNumber[3]}
 
             if request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
-                if formIdentity == 'addOfferForm':
+                if formIdentity == 'changeBasicInfoForm':
+                    newPassword = request.POST.get('sellerNewPassword')
+                    companyName = request.POST.get('companyName')
+                    sellerPhoneNumber1 = request.POST.get('sellerPhoneNumber1')
+                    sellerPhoneNumber2 = request.POST.get('sellerPhoneNumber2')
+                    sellerPhoneNumber3 = request.POST.get('sellerPhoneNumber3')
+                    sellerPhoneNumber4 = request.POST.get('sellerPhoneNumber4')
+                    website = request.POST.get('website')
+                    sellerBuilding = request.POST.get('sellerBuilding')
+                    sellerRoad = request.POST.get('sellerRoad')
+                    sellerCity = request.POST.get('sellerCity')
+                    sellerArea = request.POST.get('sellerArea')
+
+                    with connections['oracle'].cursor() as cursor:
+                        query = "DELETE FROM SELLER_PHONE_NUMBER WHERE SELLER_ID = :sid"
+                        cursor.execute(query, {'sid': sellerID})
+                        for pn in [sellerPhoneNumber1, sellerPhoneNumber2, sellerPhoneNumber3, sellerPhoneNumber4]:
+                            if len(pn) > 0:
+                                query = "INSERT INTO SELLER_PHONE_NUMBER VALUES(:sid, :pn)"
+                                cursor.execute(query, {'sid': sellerID, 'pn': pn})
+
+                    with connections['oracle'].cursor() as cursor:
+                        if len(newPassword) > 0:
+                            query = """UPDATE SELLER SET
+                                       NAME = :cn,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PASSWORD = :ps,
+                                       WEBSITE = :w
+                                       WHERE SELLER_ID = :sid"""
+                            data = {'cn': companyName, 'bn': sellerBuilding, 'ps': newPassword,
+                                    'r': sellerRoad, 'a': sellerArea, 'c': sellerCity, 'sid': sellerID,
+                                    'w': website}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+                        else:
+                            query = """UPDATE SELLER SET
+                                       NAME = :cn,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       WEBSITE = :w
+                                       WHERE SELLER_ID = :sid"""
+                            data = {'cn': companyName, 'bn': sellerBuilding, 'r': sellerRoad, 'a': sellerArea,
+                                    'c': sellerCity, 'sid': sellerID, 'w': website}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+
+                elif formIdentity == 'addOfferForm':
                     productID = int(request.POST.get('productID'))
                     startDate = request.POST.get('startDate')
                     endDate = request.POST.get('endDate')
@@ -684,6 +802,9 @@ def myaccount(request, firstPage):
                                     'startDate':startDate , 'endDate':endDate ,'minQuan':minQuan,'discount':discount }
                             cursor.execute(query,data)
                             cursor.execute("COMMIT")
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/offers'
+                    return HttpResponseRedirect(reverseStr)
 
                 elif formIdentity == 'addAdvertForm':
                     productID = int(request.POST.get('productID'))
@@ -717,6 +838,9 @@ def myaccount(request, firstPage):
                             cursor.execute(query,data)
                             cursor.execute("COMMIT")
 
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/advertisements'
+                    return HttpResponseRedirect(reverseStr)
+
                 elif formIdentity == 'delOfferForm':
                     product_id = request.POST.get('delOfferBtn').split('+')[0]
                     seller_id = request.POST.get('delOfferBtn').split('+')[1]
@@ -726,6 +850,9 @@ def myaccount(request, firstPage):
                     with connections['oracle'].cursor() as cursor:
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/offers'
+                    return HttpResponseRedirect(reverseStr)
 
                 elif formIdentity == 'delAdvertForm':
                     product_id = request.POST.get('delAdvertButton').split('+')[0]
@@ -737,6 +864,8 @@ def myaccount(request, firstPage):
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
 
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/advertisements'
+                    return HttpResponseRedirect(reverseStr)
 
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
@@ -753,30 +882,88 @@ def myaccount(request, firstPage):
                     'walletTableHTML': walletTableHTML, 'accountBalance': acBal, 'advertCost': advertCost,
                     'buyAdvert': acBal>=advertCost, 'advert1': adverts[0], 'advert2': adverts[1],
                     'advert3': adverts[2], 'advert4': adverts[3], 'advert5': adverts[4],
-                    'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7]}
+                    'advert6': adverts[5], 'advert7': adverts[6], 'advert8': adverts[7], 'firstPage': firstPage}
+            data = {**data, **basicInfo}
 
             return render(request, 'sellerAccount.html', data)
 
         elif acType == 'deliveryGuy':
             with connections['oracle'].cursor() as cursor:
-                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM EMPLOYEE WHERE EMAIL_ID = :emailID;"
+                query = """SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER,
+                           BUILDING_NUMBER, ROAD, AREA, CITY, DOB, EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :emailID;"""
                 cursor.execute(query, {'emailID' :request.session['useremail'] });
                 result = cursor.fetchall()
                 emailID = result[0][0]
                 firstName = result[0][1]
                 lastName = result[0][2]
                 phoneNumber = result[0][3]
-                apartmentNumber = result[0][4]
-                buildingNumber = result[0][5]
-                road =  result[0][6]
-                area =  result[0][7]
-                city =  result[0][8]
-                profile_pic =  result[0][9] #this is a blob object
-                dob = result[0][10]
+                apartment = result[0][4] if result[0][4] else ''
+                building = result[0][5] if result[0][5] else ''
+                road =  result[0][6] if result[0][6] else ''
+                area =  result[0][7] if result[0][7] else ''
+                city =  result[0][8] if result[0][8] else ''
+                dob = str(result[0][9].date())
+                employeeID = result[0][10]
+
+                basicInfo = {'email': emailID, 'firstName': firstName, 'lastName': lastName,
+                             'phoneNumber': phoneNumber, 'apartment': apartment,
+                             'building': building, 'road': road, 'area': area,
+                             'city': city, 'dob': dob}
+
 
             if request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
-                if formIdentity == 'pendingDeliveriesForm':
+                if formIdentity == 'changeBasicInfoForm':
+                    newPassword = request.POST.get('newPassword')
+                    firstName = request.POST.get('firstName')
+                    lastName = request.POST.get('lastName')
+                    phoneNumber = request.POST.get('phoneNumber')
+                    building = request.POST.get('building')
+                    road = request.POST.get('road')
+                    city = request.POST.get('city')
+                    area = request.POST.get('area')
+                    apartment = request.POST.get('apartment')
+                    dob = request.POST.get('dob')
+
+                    with connections['oracle'].cursor() as cursor:
+                        if len(newPassword) > 0:
+                            query = """UPDATE EMPLOYEE SET
+                                       FIRST_NAME = :fn,
+                                       LAST_NAME = :ln,
+                                       APARTMENT_NUMBER = :an,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PHONE_NUMBER = :pn,
+                                       PASSWORD = :ps,
+                                       DOB = :dob
+                                       WHERE EMPLOYEE_ID = :eid"""
+                            data = {'fn': firstName, 'ln': lastName, 'an': apartment,
+                                    'pn': phoneNumber, 'bn': building, 'ps': newPassword,
+                                    'r': road, 'a': area, 'c': city, 'dob': dob,
+                                    'eid': employeeID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+                        else:
+                            query = """UPDATE EMPLOYEE SET
+                                       FIRST_NAME = :fn,
+                                       LAST_NAME = :ln,
+                                       APARTMENT_NUMBER = :an,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PHONE_NUMBER = :pn,
+                                       DOB = :dob
+                                       WHERE EMPLOYEE_ID = :eid"""
+                            data = {'fn': firstName, 'ln': lastName, 'an': apartment,
+                                    'pn': phoneNumber, 'bn': building, 'r': road, 'a': area,
+                                    'c': city, 'dob': dob, 'eid': employeeID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+
+                elif formIdentity == 'pendingDeliveriesForm':
                     orderID = request.POST.get('deliveredButton')
                     with connections['oracle'].cursor() as cursor:
                         try:
@@ -810,6 +997,9 @@ def myaccount(request, firstPage):
                         else:
                             cursor.execute("COMMIT")
 
+                        reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/pending'
+                        return HttpResponseRedirect(reverseStr)
+
                 reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
                 return HttpResponseRedirect(reverseStr)
 
@@ -821,36 +1011,101 @@ def myaccount(request, firstPage):
                     'pendingDeliveryItemHTML': pendingDeliveryItemHTML, 'advert1': adverts[0],
                     'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
                     'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
-                    'advert8': adverts[7]}
+                    'advert8': adverts[7], 'firstPage': firstPage}
+            data = {**data, **basicInfo}
 
             return render(request, 'deliveryGuy.html', data)
 
         elif acType == 'customerCare':
-            # TODO extract the basic info details
             with connections['oracle'].cursor() as cursor:
-                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, PICTURE, DOB FROM EMPLOYEE WHERE EMAIL_ID = :emailID;"
+                query = "SELECT EMAIL_ID, FIRST_NAME, LAST_NAME, PHONE_NUMBER, APARTMENT_NUMBER, BUILDING_NUMBER, ROAD, AREA, CITY, DOB, EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :emailID;"
                 cursor.execute(query, {'emailID' :request.session['useremail'] });
                 result = cursor.fetchall()
                 emailID = result[0][0]
                 firstName = result[0][1]
                 lastName = result[0][2]
                 phoneNumber = result[0][3]
-                apartmentNumber = result[0][4]
-                buildingNumber = result[0][5]
-                road =  result[0][6]
-                area =  result[0][7]
+                apartment = result[0][4] if result[0][4] else ''
+                building = result[0][5] if result[0][5] else ''
+                road =  result[0][6] if result[0][6] else ''
+                area =  result[0][7] if result[0][7] else ''
                 city =  result[0][8]
-                profile_pic =  result[0][9] #this is a blob object
-                dob = result[0][10]
+                dob = str(result[0][9].date())
+                employeeID = result[0][10]
+
+                basicInfo = {'firstName': firstName, 'lastName': lastName, 'phoneNumber': phoneNumber,
+                             'apartment': apartment, 'building': building, 'road': road,
+                             'area': area, 'city': city, 'dob': dob, 'email': emailID}
+
             managedComplaintsHTML = generateManagedComplaintsHTML(request)
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
+
+            if request.method == 'POST':
+                formIdentity = request.POST.get('formIdentity')
+                if formIdentity == 'changeBasicInfoForm':
+                    newPassword = request.POST.get('newPassword')
+                    firstName = request.POST.get('firstName')
+                    lastName = request.POST.get('lastName')
+                    phoneNumber = request.POST.get('phoneNumber')
+                    building = request.POST.get('building')
+                    road = request.POST.get('road')
+                    city = request.POST.get('city')
+                    area = request.POST.get('area')
+                    apartment = request.POST.get('apartment')
+                    dob = request.POST.get('dob')
+
+                    with connections['oracle'].cursor() as cursor:
+                        if len(newPassword) > 0:
+                            query = """UPDATE EMPLOYEE SET
+                                       FIRST_NAME = :fn,
+                                       LAST_NAME = :ln,
+                                       APARTMENT_NUMBER = :an,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PHONE_NUMBER = :pn,
+                                       PASSWORD = :ps,
+                                       DOB = :dob
+                                       WHERE EMPLOYEE_ID = :eid"""
+                            data = {'fn': firstName, 'ln': lastName, 'an': apartment,
+                                    'pn': phoneNumber, 'bn': building, 'ps': newPassword,
+                                    'r': road, 'a': area, 'c': city, 'dob': dob,
+                                    'eid': employeeID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+                        else:
+                            query = """UPDATE EMPLOYEE SET
+                                       FIRST_NAME = :fn,
+                                       LAST_NAME = :ln,
+                                       APARTMENT_NUMBER = :an,
+                                       BUILDING_NUMBER = :bn,
+                                       ROAD = :r,
+                                       AREA = :a,
+                                       CITY = :c,
+                                       PHONE_NUMBER = :pn,
+                                       DOB = :dob
+                                       WHERE EMPLOYEE_ID = :eid"""
+                            data = {'fn': firstName, 'ln': lastName, 'an': apartment,
+                                    'pn': phoneNumber, 'bn': building, 'r': road, 'a': area,
+                                    'c': city, 'dob': dob, 'eid': employeeID}
+                            cursor.execute(query, data)
+                            cursor.execute("COMMIT")
+
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
+                    return HttpResponseRedirect(reverseStr)
+
+                elif formIdentity == 'decisionForm':
+                    reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/pending'
+                    return HttpResponseRedirect(reverseStr)
 
             data = {'isloggedin': isloggedin, 'accountType': acType,
                     'managedComplaintsHTML': managedComplaintsHTML,
                     'pendingComplaintsHTML': pendingComplaintsHTML, 'advert1': adverts[0],
                     'advert2': adverts[1], 'advert3': adverts[2], 'advert4': adverts[3],
                     'advert5': adverts[4], 'advert6': adverts[5], 'advert7': adverts[6],
-                    'advert8': adverts[7]}
+                    'advert8': adverts[7], 'firstPage': firstPage}
+            data = {**data, **basicInfo}
 
             return render(request, 'customerCare.html', data)
 

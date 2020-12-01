@@ -601,6 +601,9 @@ def add_item_page(request):
             for pic in request.FILES.getlist('productImage'):
                 img = Image.open(pic)
                 squareImg = make_image_square(img)
+                w, h = squareImg.size
+                if w>640:
+                    img = squareImg.resize((640, 640))
                 blob = io.BytesIO()
                 squareImg.save(blob, 'jpeg')
                 blob.seek(0)

@@ -26,67 +26,73 @@ My Account
       <div class="row">
         <div class="container d-flex justify-content-center">
           <div class="col-lg-12 align-justify-center pr-4 pl-0 contact-form">
-
                 <div style="display:none">
+                  <label id="firstPage">{{firstPage}}</label>
                   <label class="col-lg-3 mb-3 font-weight-bold"> <input id="basicInfo" type="radio" name="radioButton" value="basicInfo" checked> Basic Info</label>
                   <label class="col-lg-3 mb-3 font-weight-bold"> <input id="deliveredOrders" type="radio" name="radioButton" value="deliveredOrders"> Delivered Items</label>
                   <label class="col-lg-3 mb-3 font-weight-bold"> <input id="pendingDeliveries" type="radio" name="radioButton" value="pendingDeliveries"> Pending Deliveries</label>
                 </div>
 
-                <form class="mt-3" method="POST" enctype="multipart/form-data">
+                <form method="post" onsubmit="return basicInfoFormValidation()">
                   {% csrf_token %}
+                  <input type="hidden" name="formIdentity" value="changeBasicInfoForm">
                   <div id='basicInfoForm'>
                     <div class="container d-flex justify-content-center">
                       <div class="col-lg-8">
                         <div class="row">
-                          <div class="col-lg-12" style="text-align: center; margin-bottom: 0px">
-                            <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Basic Info </h2>
-                          </div>
+                        <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                          <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Basic Info </h2>
+                        </div>
                         <div class="col-lg-12">
             				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
                 			  </div>
                         <div class="col-lg-6">
                           <div class="form-group">
-                            <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                            <input readonly value='{{email}}' name="email" class="form-control" type="email" placeholder="*Email Address" required="">
                           </div>
                         </div>
-                        <div class="col-lg-6">
+                        <div id='passwordChangeButton' class="col-lg-6">
                           <div class="form-group">
-                            <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
+                            <button onclick="allowPasswordChange()" type="button" class="btn btn-secondary">Set New Password</button>
                           </div>
                         </div>
-                        <div class="col-lg-6">
+                        <div id="keepOldPassowordDiv" style="display: none" class="col-lg-6">
                           <div class="form-group">
-                            <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
+                            <button type="button" onclick="disallowPasswordChange()" class="btn btn-secondary">Keep Old Password</button>
                           </div>
                         </div>
-                        <div class="col-lg-6">
+                        <div id='newPasswordDiv' style="display: none" class="col-lg-6">
                           <div class="form-group">
-                            <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                            <input id="newPassword" onkeyup='checkPassword();' name="newPassword" class="form-control" type="password" placeholder="*New Password">
                           </div>
                         </div>
-                        <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
+                        <div id='password2Div' style="display: none" class="col-lg-6">
+                          <div class="form-group">
+                            <input id="password2" onkeyup='checkPassword();' name="password2" class="form-control" type="password" placeholder="*Confirm Password">
+                          </div>
+                        </div>
+                        <p class="mb-3 font-weight-bold" style="color:red; display: none" id="cPassCheck">Passwords Did Not Match</p>
                         <div class="col-lg-12">
               			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
                   		  </div>
                         <div class="col-lg-6">
                           <div class="form-group">
-                            <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                            <input value="{{firstName}}" name="firstName" class="form-control" type="text" placeholder="*First Name" required="">
                           </div>
                         </div>
                         <div class="col-lg-6">
                   		    <div class="form-group">
-                            <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                            <input value="{{lastName}}" name="lastName" class="form-control" type="text" placeholder="*Last Name" required="">
                           </div>
                   		  </div>
                 			  <div class="col-lg-6">
                           <div class="form-group">
-                            <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                            <input type="date" value="{{dob}}" name="dob" class="form-control" type="text" placeholder="*Date of Birth" required="">
                           </div>
                         </div>
                         <div class="col-lg-6">
                 			    <div class="form-group">
-                            <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                            <input value='{{phoneNumber}}' name="phoneNumber" class="form-control" type="text" placeholder="*Phone Number" required="">
                           </div>
                 			  </div>
                 			  <div class="col-lg-12">
@@ -94,37 +100,39 @@ My Account
                 			  </div>
                         <div class="col-lg-6">
                            <div class="form-group">
-                             <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                             <input value='{{apartment}}' name="apartment" class="form-control" type="text" placeholder="Apartment">
                            </div>
                          </div>
                          <div class="col-lg-6">
                            <div class="form-group">
-                             <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
+                             <input value='{{building}}' name="building" class="form-control" type="text" placeholder="Building">
                            </div>
                          </div>
                          <div class="col-lg-6">
                            <div class="form-group">
-                             <input name="customerRoad" class="form-control" type="text" placeholder="Road">
+                             <input value='{{road}}' name="road" class="form-control" type="text" placeholder="Road">
                            </div>
                          </div>
                          <div class="col-lg-6">
                            <div class="form-group">
-                             <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
+                             <input value={{area}} name="area" class="form-control" type="text" placeholder="*Area" required="">
                            </div>
                          </div>
                          <div class="col-lg-12">
                            <div class="form-group">
-                             <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
+                             <input value={{city}} name="city" class="form-control" type="text" placeholder="*City" required="">
                            </div>
                          </div>
+                         <!-- <div class="col-lg-12">
+                 		      <h6 class="mb-3 font-weight-bold col-lg-12"><i class="fa fa-picture-o" aria-hidden="true"></i>&nbsp; Profile Picture </h6>
+                 			   </div> -->
                          <div class="col-lg-12">
-                 		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-picture-o" aria-hidden="true"></i>&nbsp; Profile Picture </h6>
-                 			   </div>
+                           <button type="submit" class="btn btn-md btn-block bg text-white border-0 customSuccess" enable-gradients><span> Save Changes</span></button>
+                         </div>
                        </div>
                       </div>
                     </div>
                   </div>
-                  <input type="hidden" name="formIdentity" value="basicInfoForm">
                 </form>
 
                 <form class="mt-3" method="POST">

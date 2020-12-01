@@ -156,3 +156,45 @@ var orderFormValidation = function(){
   }
   return true;
 }
+
+var allowPasswordChange = function(){
+  document.getElementById('passwordChangeButton').style.display = 'none'
+  document.getElementById('customerNewPasswordDiv').style.display = 'block'
+  document.getElementById('customerPassword2Div').style.display = 'block'
+  document.getElementById('customerNewPassword').required = true
+  document.getElementById('customerPassword2').required = true
+  document.getElementById('keepOldPassowordDiv').style.display = 'block'
+}
+
+var disallowPasswordChange = function(){
+  document.getElementById('passwordChangeButton').style.display = 'block'
+  document.getElementById('customerNewPasswordDiv').style.display = 'none'
+  document.getElementById('customerPassword2Div').style.display = 'none'
+  document.getElementById('customerNewPassword').required = false
+  document.getElementById('customerPassword2').required = false
+  document.getElementById('customerNewPassword').value = ''
+  document.getElementById('customerPassword2').value = ''
+  document.getElementById('keepOldPassowordDiv').style.display = 'none'
+}
+
+var checkPassword = function() {
+  if (document.getElementById('customerNewPassword').value ==
+    document.getElementById('customerPassword2').value ||
+    document.getElementById('customerPassword2').value === '') {
+    document.getElementById('cPassCheck').style.display = 'none';
+  } else {
+    document.getElementById('cPassCheck').style.display = 'block';;
+  }
+}
+
+var basicInfoFormValidation = function() {
+  var ok = false
+  if( document.getElementById('customerNewPassword').value ==
+    document.getElementById('customerPassword2').value ) {
+      ok = true
+  }
+  if( ok===false ) {
+    $('html, body').animate({ scrollTop: 0 }, 'fast');
+  }
+  return ok
+}

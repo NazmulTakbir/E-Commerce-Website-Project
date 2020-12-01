@@ -16,7 +16,7 @@ window.onload=function(){
       document.getElementById("searchIcon").click();
     }
   });
-  
+
   basicInfoForm.style.display = 'block'
   productsForm.style.display = 'none'
   offersForm.style.display = 'none'
@@ -66,6 +66,19 @@ window.onload=function(){
     advertForm.style.display = 'none'
     walletForm.style.display = 'block'
   })
+
+  if( document.getElementById('firstPage').innerText == 'products' ) {
+    document.getElementById('myProducts').click()
+  }
+  else if( document.getElementById('firstPage').innerText == 'offers' ) {
+    document.getElementById('myOffers').click()
+  }
+  else if( document.getElementById('firstPage').innerText == 'advertisements' ) {
+    document.getElementById('myAdverts').click()
+  }
+  else if( document.getElementById('firstPage').innerText == 'transactions' ) {
+    document.getElementById('myWallet').click()
+  }
 }
 
 function uploadPicture(event) {
@@ -82,4 +95,46 @@ function uploadPicture(event) {
 		image.src = "#"
 		document.getElementById('advertImage').style.display = 'none'
 	}
+}
+
+var allowPasswordChange = function(){
+  document.getElementById('passwordChangeButton').style.display = 'none'
+  document.getElementById('sellerNewPasswordDiv').style.display = 'block'
+  document.getElementById('sellerPassword2Div').style.display = 'block'
+  document.getElementById('sellerNewPassword').required = true
+  document.getElementById('sellerPassword2').required = true
+  document.getElementById('keepOldPassowordDiv').style.display = 'block'
+}
+
+var disallowPasswordChange = function(){
+  document.getElementById('passwordChangeButton').style.display = 'block'
+  document.getElementById('sellerNewPasswordDiv').style.display = 'none'
+  document.getElementById('sellerPassword2Div').style.display = 'none'
+  document.getElementById('sellerNewPassword').required = false
+  document.getElementById('sellerPassword2').required = false
+  document.getElementById('sellerNewPassword').value = ''
+  document.getElementById('sellerPassword2').value = ''
+  document.getElementById('keepOldPassowordDiv').style.display = 'none'
+}
+
+var checkPassword = function() {
+  if (document.getElementById('sellerNewPassword').value ==
+    document.getElementById('sellerPassword2').value ||
+    document.getElementById('sellerPassword2').value === '') {
+    document.getElementById('cPassCheck').style.display = 'none';
+  } else {
+    document.getElementById('cPassCheck').style.display = 'block';;
+  }
+}
+
+var basicInfoFormValidation = function() {
+  var ok = false
+  if( document.getElementById('sellerNewPassword').value ==
+    document.getElementById('sellerPassword2').value ) {
+      ok = true
+  }
+  if( ok===false ) {
+    $('html, body').animate({ scrollTop: 0 }, 'fast');
+  }
+  return ok
 }

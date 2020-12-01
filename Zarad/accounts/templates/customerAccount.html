@@ -38,95 +38,108 @@ My Account
                 <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myWallet" type="radio" name="radioButton" value="myWallet"> Wallet</label>
                 <label class="col-lg-2 mb-3 font-weight-bold"> <input id="myReviews" type="radio" name="radioButton" value="myReviews"> Reviews</label>
             </div>
-            <div id='basicInfoForm'>
-              <div class="container d-flex justify-content-center">
-                <div class="col-lg-8">
-                  <div class="row">
-                  <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
-                    <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Basic Info </h2>
-                  </div>
-                  <div class="col-lg-12">
-      				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
-          			  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+            
+            <form method="post" onsubmit="return basicInfoFormValidation()">
+              {% csrf_token %}
+              <input type="hidden" name="formIdentity" value="changeBasicInfoForm">
+              <div id='basicInfoForm'>
+                <div class="container d-flex justify-content-center">
+                  <div class="col-lg-8">
+                    <div class="row">
+                    <div class="col-lg-12" style="text-align: center; margin-bottom: 20px">
+                      <h2 style="font-family: 'Vollkorn', serif; font-weight: 600; color: black" class="mb-3 font-weight-bold col-lg-12">Basic Info </h2>
                     </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerCurrentPassword" class="form-control" type="text" placeholder="*Current Password" required="" value='1234' readonly>
+                    <div class="col-lg-12">
+        				      <h6 class="mb-3 font-weight-bold"><i class="fa fa-key" aria-hidden="true"></i>&nbsp; Log In Details </h6>
+            			  </div>
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <input readonly value='{{email}}' name="customerEmail" class="form-control" type="email" placeholder="*Email Address" required="">
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password" required="">
+                    <div id='passwordChangeButton' class="col-lg-6">
+                      <div class="form-group">
+                        <button onclick="allowPasswordChange()" type="button" class="btn btn-secondary">Set New Password</button>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password" required="">
+                    <div id="keepOldPassowordDiv" style="display: none" class="col-lg-6">
+                      <div class="form-group">
+                        <button type="button" onclick="disallowPasswordChange()" class="btn btn-secondary">Keep Old Password</button>
+                      </div>
                     </div>
-                  </div>
-                  <p class="mb-3 font-weight-bold" style="color:red" id="cPassCheck">Passwords Did Not Match</p>
-                  <div class="col-lg-12">
-        			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
-            		  </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                    <div id='customerNewPasswordDiv' style="display: none" class="col-lg-6">
+                      <div class="form-group">
+                        <input id="customerNewPassword" onkeyup='checkPassword();' name="customerNewPassword" class="form-control" type="password" placeholder="*New Password">
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-lg-6">
-            		    <div class="form-group">
-                      <input name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                    <div id='customerPassword2Div' style="display: none" class="col-lg-6">
+                      <div class="form-group">
+                        <input id="customerPassword2" onkeyup='checkPassword();' name="customerPassword2" class="form-control" type="password" placeholder="*Confirm Password">
+                      </div>
                     </div>
-            		  </div>
-          			  <div class="col-lg-6">
-                    <div class="form-group">
-                      <input name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                    <p class="mb-3 font-weight-bold" style="color:red; display: none" id="cPassCheck">Passwords Did Not Match</p>
+                    <div class="col-lg-12">
+          			     <h6 class="mb-3 font-weight-bold"><i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; Personal </h6>
+              		  </div>
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <input value="{{firstName}}" name="customerFirstName" class="form-control" type="text" placeholder="*First Name" required="">
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-lg-6">
-          			    <div class="form-group">
-                      <input name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                    <div class="col-lg-6">
+              		    <div class="form-group">
+                        <input value="{{lastName}}" name="customerLastName" class="form-control" type="text" placeholder="*Last Name" required="">
+                      </div>
+              		  </div>
+            			  <div class="col-lg-6">
+                      <div class="form-group">
+                        <input type="date" value="{{dob}}" name="customerDOB" class="form-control" type="text" placeholder="*Date of Birth" required="">
+                      </div>
                     </div>
-          			  </div>
-          			  <div class="col-lg-12">
-          		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
-          			  </div>
-                  <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                    <div class="col-lg-6">
+            			    <div class="form-group">
+                        <input value='{{phoneNumber}}' name="customerPhNo" class="form-control" type="text" placeholder="*Phone Number" required="">
+                      </div>
+            			  </div>
+            			  <div class="col-lg-12">
+            		      <h6 class="mb-3 font-weight-bold"><i class="fa fa-address-card-o" aria-hidden="true"></i>&nbsp; Address </h6>
+            			  </div>
+                    <div class="col-lg-6">
+                       <div class="form-group">
+                         <input value={{apartmentNumber}} name="customerApartment" class="form-control" type="text" placeholder="Apartment">
+                       </div>
+                     </div>
+                     <div class="col-lg-6">
+                       <div class="form-group">
+                         <input value={{buildingNumber}} name="customerBuilding" class="form-control" type="text" placeholder="Building">
+                       </div>
+                     </div>
+                     <div class="col-lg-6">
+                       <div class="form-group">
+                         <input value={{road}} name="customerRoad" class="form-control" type="text" placeholder="Road">
+                       </div>
+                     </div>
+                     <div class="col-lg-6">
+                       <div class="form-group">
+                         <input value={{area}} name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
+                       </div>
+                     </div>
+                     <div class="col-lg-12">
+                       <div class="form-group">
+                         <input value={{city}} name="customerCity" class="form-control" type="text" placeholder="*City" required="">
+                       </div>
+                     </div>
+                     <!-- <div class="col-lg-12">
+             		      <h6 class="mb-3 font-weight-bold col-lg-12"><i class="fa fa-picture-o" aria-hidden="true"></i>&nbsp; Profile Picture </h6>
+             			   </div> -->
+                     <div class="col-lg-12">
+                       <button type="submit" class="btn btn-md btn-block bg text-white border-0 customSuccess" enable-gradients><span> Save Changes</span></button>
                      </div>
                    </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerBuilding" class="form-control" type="text" placeholder="Building">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerRoad" class="form-control" type="text" placeholder="Road">
-                     </div>
-                   </div>
-                   <div class="col-lg-6">
-                     <div class="form-group">
-                       <input name="customerArea" class="form-control" type="text" placeholder="*Area" required="">
-                     </div>
-                   </div>
-                   <div class="col-lg-12">
-                     <div class="form-group">
-                       <input name="customerCity" class="form-control" type="text" placeholder="*City" required="">
-                     </div>
-                   </div>
-                   <div class="col-lg-12">
-           		      <h6 class="mb-3 font-weight-bold col-lg-12"><i class="fa fa-picture-o" aria-hidden="true"></i>&nbsp; Profile Picture </h6>
-           			   </div>
-                 </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </form>
 
             <form method="post">
               {% csrf_token %}
