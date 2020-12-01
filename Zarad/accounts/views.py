@@ -1565,7 +1565,7 @@ def generateOrderTableHTML(request):
                 elif( purchaseOrder[i][3].lower() == 'not delivered' ):
                     orderAlterButton = orderAlterButton.format(str(purchaseOrder[i][0])+'_cancel', "Cancel")
                     displayType = 'none'
-                elif( purchaseOrder[i][3].lower() == 'returned' ):
+                elif( purchaseOrder[i][3].lower() == 'returned' or purchaseOrder[i][3].lower() == 'cancelled' ):
                     orderAlterButton = ''
                     displayType = 'none'
 

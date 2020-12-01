@@ -228,7 +228,7 @@ Item
           {% csrf_token %}
           <div class="modal-body">
             <label for="orderQuantity"><strong>No. of Units &nbsp;</strong></label>
-            <input style="width: 120px;" type="number" id="orderQuantity" name="orderQuantity" min="1" max="{{inStock}}" oninput="validity.valid||(value='');" required="">
+            <input onchange="fetchData()" style="width: 120px;" type="number" id="orderQuantity" name="orderQuantity" min="1" max="{{inStock}}" oninput="validity.valid||(value='');" required="">
             <br />
             <h6 style="margin-top: 20px"><strong>Payment Method</strong>
               <div style="margin-left: 30px; margin-right: 40px" class="custom-control custom-radio custom-control-inline">
