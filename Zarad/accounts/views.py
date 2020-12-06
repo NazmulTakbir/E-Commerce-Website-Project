@@ -10,6 +10,23 @@ import random
 import datetime
 from django.http import JsonResponse
 import json
+import hashlib
+import os
+import binascii
+
+def hashPassword(password, salt=''):
+
+    if salt=='':
+        salt = os.urandom(32)
+        salt = binascii.b2a_hex(salt)
+    else:
+        salt = salt.encode('utf-8')
+
+    key = hashlib.pbkdf2_hmac ( 'sha256', password.encode('utf-8'), salt, 100000 )
+    key = binascii.b2a_hex(key)
+
+    return key.decode('utf-8'), salt.decode('utf-8')
+
 
 def deliveryEmployeeSelection(orderID):
     orderID = int(orderID)
@@ -73,28 +90,29 @@ def email_taken(email):
 
 def email_pass_match(email , password):
     with connections['oracle'].cursor() as cursor:
-        cursor.execute("SELECT PASSWORD FROM SELLER WHERE EMAIL_ID = :email", {"email": email})
+        cursor.execute("SELECT PASSWORD, SALT FROM SELLER WHERE EMAIL_ID = :email", {"email": email})
         results = cursor.fetchall()
         if(len(results) == 0):
-            cursor.execute("SELECT PASSWORD FROM CUSTOMER WHERE EMAIL_ID = :email", {"email": email})
+            cursor.execute("SELECT PASSWORD, SALT FROM CUSTOMER WHERE EMAIL_ID = :email", {"email": email})
             results = cursor.fetchall()
             if(len(results) == 0):
-                cursor.execute("SELECT PASSWORD FROM EMPLOYEE WHERE EMAIL_ID = :email", {"email": email})
+                cursor.execute("SELECT PASSWORD, SALT FROM EMPLOYEE WHERE EMAIL_ID = :email", {"email": email})
                 results = cursor.fetchall()
                 if( len(results) == 0 ):
                     return False
                 else:
-                    if( results[0][0] == password ):
+                    print(results[0][0], '\n', hashPassword(password, results[0][1])[0])
+                    if( results[0][0] == hashPassword(password, results[0][1])[0] ):
                         return True
                     else:
                         return False
             else:
-                if( results[0][0]  == password):
+                if( results[0][0] == hashPassword(password, results[0][1])[0] ):
                     return True
                 else:
                     return False
         else:
-            if( results[0][0]  == password ):
+            if( results[0][0] == hashPassword(password, results[0][1])[0] ):
                 return True
             else:
                 return False
@@ -168,6 +186,8 @@ def signup_page(request):
         if request.POST.get("radioButton", "empty") == 'Customer':
             email = request.POST.get("customerEmail")
             password = request.POST.get("customerPassword")
+            password, salt = hashPassword(password)
+
             fname = request.POST.get("customerFirstName")
             lname = request.POST.get("customerLastName")
             dob = request.POST.get("customerDOB")
@@ -199,24 +219,24 @@ def signup_page(request):
 
                     query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME, LAST_NAME, APARTMENT_NUMBER,
                                 BUILDING_NUMBER, ROAD, AREA, CITY, PHONE_NUMBER, DOB, EMAIL_ID , PASSWORD,
-                                LOCATION, PICTURE) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
+                                LOCATION, PICTURE, SALT) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
                                 :building, :road, :area, :city, :phno, TO_DATE(:dob, 'YYYY-MM-DD'), :email, :password, :location,
-                                :picture)"""
+                                :picture, :salt)"""
                     with connections['oracle'].cursor() as cursor:
-                        data = { 'email': email, 'password': password, 'fname': fname, 'lname': lname, 'dob': dob,
+                        data = {'email': email, 'password': password, 'fname': fname, 'lname': lname, 'dob': dob,
                                  'phno': phno, 'apart': apart, 'area': area, 'building': building, 'road': road,
-                                 'city': city, 'location': location, 'picture': blob.getvalue() }
+                                 'city': city, 'location': location, 'picture': blob.getvalue(), 'salt': salt}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
                 else:
                     query = """INSERT INTO CUSTOMER(CUSTOMER_ID, FIRST_NAME, LAST_NAME, APARTMENT_NUMBER,
                                BUILDING_NUMBER, ROAD, AREA, CITY, PHONE_NUMBER, DOB, EMAIL_ID , PASSWORD,
-                               LOCATION) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
-                               :building, :road, :area, :city, :phno, TO_DATE(:dob, 'YYYY-MM-DD'), :email, :password, :location)"""
+                               LOCATION, SALT) VALUES(CUSTOMER_ID_SEQ.NEXTVAL, :fname, :lname, :apart,
+                               :building, :road, :area, :city, :phno, TO_DATE(:dob, 'YYYY-MM-DD'), :email, :password, :location, :salt)"""
                     with connections['oracle'].cursor() as cursor:
                         data = { 'email': email, 'password': password, 'fname': fname, 'lname': lname, 'dob': dob,
                                  'phno': phno, 'apart': apart, 'area': area, 'building': building, 'road': road,
-                                 'city': city, 'location': location}
+                                 'city': city, 'location': location, 'salt': salt}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
                 return HttpResponseRedirect(reverse('accounts:login'))
@@ -224,6 +244,8 @@ def signup_page(request):
         elif request.POST.get("radioButton", "empty") == 'Employee':
             email = request.POST.get("employeeEmail")
             password = request.POST.get("employeePassword")
+            password, salt = hashPassword(password)
+
             fname = request.POST.get("employeeFirstName")
             lname = request.POST.get("employeeLastName")
             dob = request.POST.get("employeeDOB")
@@ -253,12 +275,12 @@ def signup_page(request):
             else:
                 query = """INSERT INTO EMPLOYEE(EMPLOYEE_ID, FIRST_NAME ,LAST_NAME ,APARTMENT_NUMBER ,
                            BUILDING_NUMBER ,ROAD, AREA , CITY , PHONE_NUMBER , DOB, EMAIL_ID , PASSWORD,
-                           SALARY, PICTURE) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, :fname, :lname ,:apart, :building, :road, :area, :city ,:phno,
-                           TO_DATE(:dob, 'YYYY-MM-DD'), :email ,:password ,TO_NUMBER(:salary), :picture )"""
+                           SALARY, PICTURE, SALT) VALUES(EMPLOYEE_ID_SEQ.NEXTVAL, :fname, :lname ,:apart, :building, :road, :area, :city ,:phno,
+                           TO_DATE(:dob, 'YYYY-MM-DD'), :email ,:password ,TO_NUMBER(:salary), :picture, :salt)"""
 
                 with connections['oracle'].cursor() as cursor:
                     data = {'fname' : fname, 'lname': lname, 'apart': apart, 'building':building ,'road' : road , 'area' :area , 'city':city,
-                            'phno' :phno , 'email' :email , 'password':password , 'dob' :dob, 'salary':salary, 'picture':blob.getvalue()}
+                            'phno' :phno , 'email' :email , 'password':password , 'dob' :dob, 'salary':salary, 'picture':blob.getvalue(), 'salt': salt}
                     cursor.execute(query, data)
                     cursor.execute("COMMIT")
                 if employeeType == 'customerCare':
@@ -276,6 +298,8 @@ def signup_page(request):
         elif request.POST.get("radioButton", "empty") == 'Seller':
             email = request.POST.get("sellerEmail")
             password = request.POST.get("sellerPassword")
+            password, salt = hashPassword(password)
+
             name = request.POST.get("sellerName")
             website = request.POST.get("sellerWebsite")
             phno1 = request.POST.get("sellerPhNo")
@@ -314,11 +338,11 @@ def signup_page(request):
                     blob.seek(0)
 
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                               PASSWORD, WEBSITE, LOCATION, LOGO ) VALUES( SELLER_ID_SEQ.NEXTVAL, :name, :building,
-                               :road, :area, :city, :email, :password, :website , :location , :imgBLOB)"""
+                               PASSWORD, WEBSITE, LOCATION, LOGO, SALT) VALUES( SELLER_ID_SEQ.NEXTVAL, :name, :building,
+                               :road, :area, :city, :email, :password, :website , :location , :imgBLOB, :salt)"""
                     with connections['oracle'].cursor() as cursor:
                         data = {'name' : name, 'building':building ,'road' : road , 'area' :area , 'city':city,
-                        'email' :email , 'password':password ,'imgBLOB':blob.getvalue(), 'location' :location , 'website':website}
+                        'email' :email , 'password':password ,'imgBLOB':blob.getvalue(), 'location' :location , 'website':website, 'salt': salt}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
                     for i in range(len(phno)):
@@ -328,11 +352,11 @@ def signup_page(request):
                             cursor.execute("COMMIT")
                 else:
                     query = """INSERT INTO SELLER(SELLER_ID, NAME , BUILDING_NUMBER , ROAD, AREA , CITY , EMAIL_ID ,
-                               PASSWORD, WEBSITE, LOCATION ) VALUES(SELLER_ID_SEQ.NEXTVAL, :name, :building,
-                               :road, :area, :city, :email, :password, :website , :location )"""
+                               PASSWORD, WEBSITE, LOCATION, SALT) VALUES(SELLER_ID_SEQ.NEXTVAL, :name, :building,
+                               :road, :area, :city, :email, :password, :website , :location, :salt)"""
                     with connections['oracle'].cursor() as cursor:
                         data = {'name' : name, 'building':building ,'road' : road , 'area' :area , 'city':city,
-                        'email' :email , 'password':password, 'location' :location , 'website':website}
+                        'email' :email , 'password':password, 'location' :location , 'website':website, 'salt': salt}
                         cursor.execute(query, data)
                         cursor.execute("COMMIT")
                     for i in range(len(phno)):
@@ -651,11 +675,11 @@ def myaccount(request, firstPage):
                             try:
                                 query = """SELECT EMPLOYEE_ID, COUNT(ORDER_ID) NO_TASKS FROM CUSTOMER_CARE_EMPLOYEE
                                            LEFT OUTER JOIN RETURN_ORDER ON(CUSTOMER_CARE_EMPLOYEE_ID=EMPLOYEE_ID
-                                           AND LOWER(APPROVAL_STATUS)='Not Approved') GROUP BY EMPLOYEE_ID ORDER BY NO_TASKS ASC"""
+                                           AND LOWER(APPROVAL_STATUS)='pending') GROUP BY EMPLOYEE_ID ORDER BY NO_TASKS ASC"""
                                 cursor.execute(query);
                                 empID = int(cursor.fetchall()[0][0])
                                 query = """INSERT INTO RETURN_ORDER VALUES( TO_NUMBER(:orderID), :complaint,
-                                           TO_NUMBER(:empID), SYSDATE, 'Not Approved')"""
+                                           TO_NUMBER(:empID), SYSDATE, 'Pending')"""
                                 cursor.execute(query, {'orderID': orderID, 'complaint': complaint, 'empID' : empID});
                                 query = "UPDATE PURCHASE_ORDER SET DELIVERY_STATUS = 'Returned' WHERE ORDER_ID = :orderID"
                                 cursor.execute(query, {'orderID': orderID});
@@ -1040,7 +1064,28 @@ def myaccount(request, firstPage):
             managedComplaintsHTML = generateManagedComplaintsHTML(request)
             pendingComplaintsHTML = generatePendingComplaintsHTML(request)
 
-            if request.method == 'POST':
+            if request.is_ajax():
+                body_unicode = request.body.decode('utf-8')
+                body = json.loads(body_unicode)
+                orderID = body['orderID']
+
+                with connections['oracle'].cursor() as cursor:
+                    query = """SELECT PRODUCT_ID, O.SELLER_ID, P.NAME PRODUCT_NAME, ORDER_TOTAL(ORDER_ID)
+                               TOTAL_PRICE, S.NAME SELLER_NAME, COUNT(*) QUANTITY FROM CUSTOMER_ORDER O
+                               JOIN SELLER S ON(S.SELLER_ID=O.SELLER_ID) JOIN ORDERED_ITEMS I USING(ORDER_ID)
+                               JOIN PRODUCT P USING(PRODUCT_ID) WHERE ORDER_ID = :oid GROUP BY PRODUCT_ID, O.SELLER_ID,
+                               P.NAME, ORDER_TOTAL(ORDER_ID), S.NAME;"""
+                    cursor.execute(query, {'oid': orderID})
+                    orderDetails = cursor.fetchall()[0]
+
+                    productURL = 'http://'+request.META['HTTP_HOST']+'/product/item/{}/{}'.format(orderDetails[0], orderDetails[1])
+                    data = {'productName': orderDetails[2], 'totalPrice': orderDetails[3],
+                            'sellerName': orderDetails[4], 'quantity': orderDetails[5],
+                            'productURL': productURL}
+
+                return JsonResponse(data, status=200)
+
+            elif request.method == 'POST':
                 formIdentity = request.POST.get('formIdentity')
                 if formIdentity == 'changeBasicInfoForm':
                     newPassword = request.POST.get('newPassword')
@@ -1096,6 +1141,18 @@ def myaccount(request, firstPage):
                     return HttpResponseRedirect(reverseStr)
 
                 elif formIdentity == 'decisionForm':
+                    if request.POST.get('approveButton') != None:
+                        orderID = int(request.POST.get('approveButton'))
+                        query = "UPDATE RETURN_ORDER SET APPROVAL_STATUS = 'Approved' WHERE ORDER_ID = :oid"
+                        with connections['oracle'].cursor() as cursor:
+                            cursor.execute(query, {'oid': orderID})
+
+                    elif request.POST.get('rejectButton') != None:
+                        orderID = int(request.POST.get('rejectButton'))
+                        query = "UPDATE RETURN_ORDER SET APPROVAL_STATUS = 'Rejected' WHERE ORDER_ID = :oid"
+                        with connections['oracle'].cursor() as cursor:
+                            cursor.execute(query, {'oid': orderID})
+
                     reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/pending'
                     return HttpResponseRedirect(reverseStr)
 
@@ -1565,7 +1622,7 @@ def generateOrderTableHTML(request):
                 elif( purchaseOrder[i][3].lower() == 'not delivered' ):
                     orderAlterButton = orderAlterButton.format(str(purchaseOrder[i][0])+'_cancel', "Cancel")
                     displayType = 'none'
-                elif( purchaseOrder[i][3].lower() == 'returned' ):
+                elif( purchaseOrder[i][3].lower() == 'returned' or purchaseOrder[i][3].lower() == 'cancelled'  ):
                     orderAlterButton = ''
                     displayType = 'none'
 
@@ -1920,12 +1977,12 @@ def generatePendingDeliveryHTML(request):
 def generateManagedComplaintsHTML(request):
     with connections['oracle'].cursor() as cursor:
         query =  """SELECT ORDER_ID, ORDER_DATE, "CUSTOMER NAME","CUSTOMER PHONE",COMPLAINT_DES "COMPLAINT",
-                    "TOTAL AMOUNT", STATUS, "MANAGED DATE" FROM
-                    (SELECT ORDER_ID, COMPLAINT_DES, ORDER_TOTAL(ORDER_ID) "TOTAL AMOUNT", APPROVAL_STATUS STATUS,
-                    RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
-                    FROM EMPLOYEE WHERE EMAIL_ID = :email)) JOIN CUSTOMER_ORDER
-                    USING(ORDER_ID) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)"CUSTOMER NAME",PHONE_NUMBER
-                    "CUSTOMER PHONE",CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID)"""
+                    "TOTAL AMOUNT", STATUS, "MANAGED DATE" FROM (SELECT ORDER_ID, COMPLAINT_DES,
+                    ORDER_TOTAL(ORDER_ID) "TOTAL AMOUNT", APPROVAL_STATUS STATUS, RETURN_DATE
+                    "MANAGED DATE" FROM RETURN_ORDER WHERE LOWER(APPROVAL_STATUS) != 'pending' AND
+                    CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email))
+                    JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
+                    "CUSTOMER NAME",PHONE_NUMBER "CUSTOMER PHONE",CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID)"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         complaints = []
@@ -1950,15 +2007,15 @@ def generateManagedComplaintsHTML(request):
                      """
         else:
             for i in range( len(complaints) ):
-                orderURL = "http://{}".format(request.META['HTTP_HOST'])
                 color = ""
                 if( complaints[i][6].lower() == 'approved' ):
                     color = '#21c2ae'
                 elif( complaints[i][6].lower() == 'rejected' ):
                     color = "#ff5f40"
+                orderDetailsButtonStyle = "background: none!important; border: none; padding: 0!important; font-family: arial, sans-serif; color: #007BFF; text-decoration: underline; font-weight: bold; cursor: pointer;"
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
-                                <td >{}</td>
+                                <th scope="row"><button value='{}' onclick="fetchProductDetails(this)" type='button' style='{}' data-toggle="modal" data-target="#orderDetailsModal">{}</button></th>
+                                <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
@@ -1966,7 +2023,7 @@ def generateManagedComplaintsHTML(request):
                                 <td style="font-weight: bold; color: {}">{}</td>
                                 <td>{}</td>
                             </tr>
-                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], color, complaints[i][6], complaints[i][7])
+                         """.format( complaints[i][0], orderDetailsButtonStyle, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], color, complaints[i][6], complaints[i][7])
         return result
 
 def generatePendingComplaintsHTML(request):
@@ -1975,7 +2032,7 @@ def generatePendingComplaintsHTML(request):
                     "TOTAL AMOUNT", STATUS,"MANAGED DATE" FROM
                     (SELECT ORDER_ID, COMPLAINT_DES,ORDER_TOTAL(ORDER_ID)"TOTAL AMOUNT",APPROVAL_STATUS STATUS,
                     RETURN_DATE "MANAGED DATE" FROM RETURN_ORDER WHERE CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID
-                    FROM EMPLOYEE WHERE EMAIL_ID = :email) AND LOWER(APPROVAL_STATUS) = 'not approved') JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN
+                    FROM EMPLOYEE WHERE EMAIL_ID = :email) AND LOWER(APPROVAL_STATUS) = 'pending') JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN
                     (SELECT (FIRST_NAME||' '||LAST_NAME)"CUSTOMER NAME",PHONE_NUMBER "CUSTOMER PHONE",
                     CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID);"""
         cursor.execute(query, {'email':request.session['useremail']})
@@ -2002,14 +2059,15 @@ def generatePendingComplaintsHTML(request):
         else:
             for i in range( len(complaints) ):
                 orderURL = "http://{}".format(request.META['HTTP_HOST'])
-                approve = """<a href={}>
+                orderDetailsButtonStyle = "background: none!important; border: none; padding: 0!important; font-family: arial, sans-serif; color: #007BFF; text-decoration: underline; font-weight: bold; cursor: pointer;"
+                approve = """<button value='{}' name="approveButton" type="submit" style='{}'>
                                 <i style="color: #21c2ae; margin-right: 10px; margin-left: 5px" class="fa fa-check-square fa-2x" aria-hidden="true"></i>
-                             </a>""".format(orderURL)
-                reject = """<a href={}>
+                             </button>""".format(complaints[i][0], orderDetailsButtonStyle)
+                reject = """<button value='{}' name="rejectButton" type="submit" style='{}'>
                                 <i style="color: #ff5f40" class="fa fa-window-close fa-2x" aria-hidden="true"></i>
-                            </a>""".format(orderURL)
+                            </button>""".format(complaints[i][0], orderDetailsButtonStyle)
                 result += """<tr>
-                                <th scope="row"><a href={}>{}</a></th>
+                                <th scope="row"><button value='{}' onclick="fetchProductDetails(this)" type='button' style='{}' data-toggle="modal" data-target="#orderDetailsModal">{}</button></th>
                                 <td >{}</td>
                                 <td>{}</td>
                                 <td>{}</td>
@@ -2017,5 +2075,5 @@ def generatePendingComplaintsHTML(request):
                                 <td>{}</td>
                                 <td style="text-align: center; vertical-align: middle">{} {}</td>
                             </tr>
-                         """.format( orderURL, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], approve, reject)
+                         """.format( complaints[i][0], orderDetailsButtonStyle, complaints[i][0], complaints[i][1], complaints[i][2], complaints[i][3], complaints[i][4], complaints[i][5], approve, reject)
         return result
