@@ -18,6 +18,7 @@ My Account
     <div class="list-group" style="margin-top: 55px;">
       <button onclick="rechargeRadio.click()" id="basicInfoSideButton" class="btn sideBarButton" data-toggle="list"><i class="fa fa-university" aria-hidden="true"></i> &nbsp;Recharge</button>
       <button onclick="withdrawRadio.click()" class="btn sideBarButton" data-toggle="list"><i class="fa fa-money" aria-hidden="true"></i> &nbsp;Withdraw</button>
+      <button onclick="location.href = '{% url 'accounts:signup' %}';" class="btn sideBarButton" data-toggle="list"><i class="fa fa-address-card-o" aria-hidden="true"></i> &nbsp;Registration Page</button>
     </div>
   </div>
   <div class="col-lg-10" style="margin-top: 0px; padding-top: 0px">
