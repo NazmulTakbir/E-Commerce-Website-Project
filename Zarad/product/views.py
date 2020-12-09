@@ -558,44 +558,20 @@ def add_item_page(request):
 
     if request.method == 'POST':
         id = request.POST.get("productID")
+        id = int(id) if len(id)>0 else -1
         name = request.POST.get("productName")
-        price = request.POST.get("productPrice")
-        deliveryTime = request.POST.get("deliveryTime")
+        price = float(request.POST.get("productPrice"))
+        deliveryTime = int(request.POST.get("deliveryTime"))
         category = request.POST.get("chosenCategory")
         description = request.POST.get("description")
-        quantityInStock = request.POST.get("quantityInStock")
+        quantityInStock = int(request.POST.get("quantityInStock"))
         feature1 = request.POST.get("feature1")
         feature2 = request.POST.get("feature2")
         feature3 = request.POST.get("feature3")
         feature4 = request.POST.get("feature4")
         feature5 = request.POST.get("feature5")
         feature6 = request.POST.get("feature6")
-        features = [feature1, feature2, feature3, feature4, feature5, feature6]
 
-        if(check_productID(id) == False):
-            with connections['oracle'].cursor() as cursor:
-                cursor.execute("SELECT PRODUCT_ID_SEQ.NEXTVAL FROM DUAL")
-                result = cursor.fetchall()
-                id = result[0][0]
-
-        query = """INSERT INTO PRODUCT VALUES (TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email) , :name ,
-                (SELECT CATEGORY_ID FROM CATEGORY WHERE CATEGORY_NAME = :category), :description , :deliveryTime, TO_NUMBER(:price), SYSDATE)"""
-        with connections['oracle'].cursor() as cursor:
-            data = {'name' : name,  'email' :request.session['useremail'] ,'id': id , 'category' : category , 'description' : description,
-                    'deliveryTime' :deliveryTime, 'price' : price}
-            cursor.execute(query, data)
-            cursor.execute("COMMIT")
-
-        num = 0
-        for i in range(len(features)):
-            if(features[i] != ""):
-                num = num + 1
-                query = """INSERT INTO PRODUCT_FEATURE VALUES(TO_NUMBER(:id) , (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
-                        TO_NUMBER(:num), :des)"""
-                with connections['oracle'].cursor() as cursor:
-                    data = {'email' :request.session['useremail'] , 'des' :features[i],'id': id, 'num' : num}
-                    cursor.execute(query, data)
-                    cursor.execute("COMMIT")
         pics = []
         if 'productImage' in request.FILES:
             for pic in request.FILES.getlist('productImage'):
@@ -607,30 +583,29 @@ def add_item_page(request):
                 blob = io.BytesIO()
                 squareImg.save(blob, 'jpeg')
                 blob.seek(0)
-                pics.append(blob)
+                pics.append(blob.getvalue())
 
-            if len(pics)>4:
-                pics = pics[:4]
-
-            for i in range(len(pics)):
-                query = """INSERT INTO PRODUCT_PICTURE VALUES(TO_NUMBER(:id), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
-                        TO_NUMBER(:num) , :pic)"""
-                with connections['oracle'].cursor() as cursor:
-                    data = {'email' :request.session['useremail'] ,'id': id, 'num' : i+1, 'pic' : pics[i].getvalue()}
-                    print(data)
-                    cursor.execute(query, data)
-                    cursor.execute("COMMIT")
-
-        quantityInStock = int(quantityInStock)
-        if quantityInStock > 0:
-            quantityInStock = min(quantityInStock, 1000000)
-            for i in range(int(quantityInStock)):
-                query = """INSERT INTO PRODUCT_UNIT VALUES(TO_NUMBER(:id), (SELECT SELLER_ID FROM SELLER WHERE EMAIL_ID = :email),
-                           TO_NUMBER(:num),:status )"""
-
-                with connections['oracle'].cursor() as cursor:
-                    cursor.execute(query, {'id':id, 'email':request.session['useremail'], 'num':i+1, 'status':'Not Sold'})
-                    cursor.execute("COMMIT")
+        with connections['oracle'].cursor() as cursor:
+            if len(pics) == 1:
+                cursor.callproc("ADD_ITEM", [request.session['useremail'], id, name, price,
+                                             deliveryTime, category, description, quantityInStock,
+                                             feature1, feature2, feature3, feature4, feature5,
+                                             feature6, pics[0]])
+            elif len(pics) == 2:
+                cursor.callproc("ADD_ITEM", [request.session['useremail'], id, name, price,
+                                             deliveryTime, category, description, quantityInStock,
+                                             feature1, feature2, feature3, feature4, feature5,
+                                             feature6, pics[0], pics[1]])
+            elif len(pics) == 3:
+                cursor.callproc("ADD_ITEM", [request.session['useremail'], id, name, price,
+                                             deliveryTime, category, description, quantityInStock,
+                                             feature1, feature2, feature3, feature4, feature5,
+                                             feature6, pics[0], pics[1], pics[2]])
+            elif len(pics) == 4:
+                cursor.callproc("ADD_ITEM", [request.session['useremail'], id, name, price,
+                                             deliveryTime, category, description, quantityInStock,
+                                             feature1, feature2, feature3, feature4, feature5,
+                                             feature6, pics[0], pics[1], pics[2], pics[3]])
 
         reverseStr = 'http://'+request.META['HTTP_HOST']+'/accounts/myaccount/basic'
         return HttpResponseRedirect(reverseStr)
