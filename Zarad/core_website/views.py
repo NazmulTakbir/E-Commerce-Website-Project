@@ -81,16 +81,16 @@ def home_page(request):
 
 def topProducts(request):
 
-    query = """SELECT DISTINCT PRODUCT_ID FROM (SELECT O.PRODUCT_ID ,COUNT(O.PRODUCT_ID) NUM
+    query = """SELECT DISTINCT PRODUCT_ID, SELLER_ID FROM (SELECT O.PRODUCT_ID, O.SELLER_ID, COUNT(O.PRODUCT_ID) NUM
                FROM CUSTOMER_ORDER C, ORDERED_ITEMS  O, PURCHASE_ORDER P WHERE C.ORDER_ID = O.ORDER_ID
-               AND O.ORDER_ID = P.ORDER_ID AND C.ORDER_DATE > (SYSDATE - 30 ) GROUP BY O.PRODUCT_ID
+               AND O.ORDER_ID = P.ORDER_ID AND C.ORDER_DATE > (SYSDATE - 30 ) GROUP BY O.PRODUCT_ID, O.SELLER_ID
                ORDER BY NUM DESC) WHERE ROWNUM<=12"""
 
     with connections['oracle'].cursor() as cursor:
         cursor.execute(query)
-        productIDs = cursor.fetchall()
+        IDs = cursor.fetchall()
 
-    productDetails = getProductDetails(productIDs)
+    productDetails = getProductDetails(IDs)
 
     topHTML = loadProductData(request, productDetails)
 
@@ -99,14 +99,14 @@ def topProducts(request):
 
 def topOffers(request):
 
-    query = """SELECT * FROM (SELECT PRODUCT_ID FROM PRODUCT JOIN OFFER USING(PRODUCT_ID, SELLER_ID) WHERE END_DATE > SYSDATE
+    query = """SELECT * FROM (SELECT PRODUCT_ID, SELLER_ID FROM PRODUCT JOIN OFFER USING(PRODUCT_ID, SELLER_ID) WHERE END_DATE > SYSDATE
                ORDER BY PERCENTAGE_DISCOUNT DESC) WHERE ROWNUM<= 6"""
 
     with connections['oracle'].cursor() as cursor:
         cursor.execute(query)
-        productIDs = cursor.fetchall()
+        IDs = cursor.fetchall()
 
-    productDetails = getProductDetails(productIDs)
+    productDetails = getProductDetails(IDs)
 
     offersHTML = loadProductData(request, productDetails)
 
@@ -129,24 +129,30 @@ def topCategories(request):
     return loadCategoryData(request, categoryData)
 
 
-def getProductDetails(productIDs):
-    if len(productIDs) <= 0:
+def getProductDetails(IDs):
+    if len(IDs) <= 0:
         return []
     with connections['oracle'].cursor() as cursor:
-        ids = {}
-        for i in range(len(productIDs)):
-            ids['p'+str(i)] = productIDs[i][0]
+        pids = {}
+        sids = {}
+        for i in range(len(IDs)):
+            pids['p'+str(i)] = IDs[i][0]
+            sids['s'+str(i)] = IDs[i][1]
 
-        placeholders = ':' + ', :'.join(ids.keys())
+        pid_placeholders = ':' + ', :'.join(pids.keys())
+        sid_placeholders = ':' + ', :'.join(sids.keys())
 
-        query = """SELECT PR.PRODUCT_ID,PR.NAME PRODUCT_NAME,PR.SELLER_ID, S.NAME SELLER_NAME,PR.PRICE,MAX_DISCOUNT(PR.PRODUCT_ID, PR.SELLER_ID),
-                   AVG_RATING(PR.PRODUCT_ID, PR.SELLER_ID) AVG_RATE, P.PICTURE PIC1 , PP.PICTURE PIC2
-                   FROM PRODUCT PR LEFT OUTER JOIN PRODUCT_PICTURE P ON (PR.SELLER_ID = P.SELLER_ID AND PR.PRODUCT_ID = P.PRODUCT_ID AND P.PICTURE_NUMBER = 1)
-                   LEFT OUTER JOIN PRODUCT_PICTURE PP ON (PR.SELLER_ID = PP.SELLER_ID AND PR.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 2)
-                   JOIN SELLER S ON (PR.SELLER_ID = S.SELLER_ID) WHERE PR.PRODUCT_ID IN (%s) ORDER BY MAX_DISCOUNT(PR.PRODUCT_ID, PR.SELLER_ID) DESC""" % placeholders
+        query = """SELECT PR.PRODUCT_ID,PR.NAME PRODUCT_NAME,PR.SELLER_ID, S.NAME SELLER_NAME,PR.PRICE, MAX_DISCOUNT(PR.PRODUCT_ID, 
+				   PR.SELLER_ID), AVG_RATING(PR.PRODUCT_ID, PR.SELLER_ID) AVG_RATE, P.PICTURE PIC1 , PP.PICTURE PIC2
+                   FROM PRODUCT PR LEFT OUTER JOIN PRODUCT_PICTURE P ON (PR.SELLER_ID = P.SELLER_ID AND PR.PRODUCT_ID = P.PRODUCT_ID 
+				   AND P.PICTURE_NUMBER = 1) LEFT OUTER JOIN PRODUCT_PICTURE PP ON (PR.SELLER_ID = PP.SELLER_ID AND 
+				   PR.PRODUCT_ID = PP.PRODUCT_ID AND PP.PICTURE_NUMBER = 2) JOIN SELLER S ON (PR.SELLER_ID = S.SELLER_ID) WHERE 
+				   PR.PRODUCT_ID IN (%s) AND PR.SELLER_ID IN (%s) ORDER BY MAX_DISCOUNT(PR.PRODUCT_ID, PR.SELLER_ID) 
+				   DESC""" % (pid_placeholders, sid_placeholders)
 
         productDetails = []
-        if(len(productIDs) > 0 ):
+        if(len(IDs) > 0 ):
+            ids = {**pids, **sids}
             cursor.execute(query, ids)
             result = cursor.fetchall()
             for i in range(len(result)):
