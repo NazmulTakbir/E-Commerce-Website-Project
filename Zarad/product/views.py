@@ -221,13 +221,17 @@ def item_page(request, product_id, seller_id):
             return HttpResponseRedirect("http://{}/product/item/{}/{}".format(request.META['HTTP_HOST'],product_id, seller_id))
 
     with connections['oracle'].cursor() as cursor:
-        query =  """SELECT P.NAME PRODUCT_NAME, P.DESCRIPTION, C.CATEGORY_NAME, P.EXPECTED_TIME_TO_DELIVER,S.NAME SELLER_NAME ,COUNT(PU.ITEM_NUMBER) IN_STOCK, AVG(R.RATING) RATING, P.PRICE FROM
-                    PRODUCT P JOIN CATEGORY C USING(CATEGORY_ID) JOIN SELLER S USING(SELLER_ID) JOIN PRODUCT_UNIT PU USING(PRODUCT_ID,SELLER_ID) LEFT OUTER JOIN REVIEW R USING(PRODUCT_ID,SELLER_ID)
-                    WHERE (PRODUCT_ID = :product_id AND SELLER_ID = :seller_id AND PU.STATUS = 'Not Sold')
+        query =  """SELECT P.NAME PRODUCT_NAME, P.DESCRIPTION, C.CATEGORY_NAME, P.EXPECTED_TIME_TO_DELIVER, S.NAME SELLER_NAME, COUNT(PU.ITEM_NUMBER) IN_STOCK, AVG(R.RATING) RATING, P.PRICE FROM
+                    PRODUCT P JOIN CATEGORY C USING(CATEGORY_ID) JOIN SELLER S ON(S.SELLER_ID=P.SELLER_ID) LEFT OUTER JOIN PRODUCT_UNIT PU
+                    ON ( PU.PRODUCT_ID=P.PRODUCT_ID AND PU.SELLER_ID=P.SELLER_ID AND LOWER(PU.STATUS)='not sold' ) LEFT OUTER JOIN REVIEW R
+                    ON(R.SELLER_ID=P.SELLER_ID AND R.PRODUCT_ID=P.PRODUCT_ID )
+                    WHERE (P.PRODUCT_ID =:product_id AND P.SELLER_ID = :seller_id )
                     GROUP BY P.NAME, P.DESCRIPTION, CATEGORY_NAME, EXPECTED_TIME_TO_DELIVER,S.NAME, P.PRICE"""
         data = {'product_id' :product_id,'seller_id':seller_id}
+        print(data)
         cursor.execute(query, data)
         result = cursor.fetchall()
+        print(result)
         productName = result[0][0]
         productDescription = result[0][1]
         productCategory = result[0][2]
