@@ -1,10 +1,12 @@
 # E-Commerce Website 
 
-### This project is for our CSE 216 Database course. This course teaches the Oracle DBMS.
+### This project was completed for our CSE 216 Database course.
 
-##### The project uses Oracle database and Python's Django framework to create a E-Commerce website similar to Daraz.
+* We used Oracle database and Python's Django framework to create an E-Commerce website similar to Daraz. 
+* As per the project requirements, we wrote raw SQL queries instead of using Django's ORM
 
-##### Collaborators :
+### Presentation : https://youtu.be/O7sfdfkzFvY
+### Collaborators :
 
 | Name          | Email                    |
 | ------------- | ------------------------ |
