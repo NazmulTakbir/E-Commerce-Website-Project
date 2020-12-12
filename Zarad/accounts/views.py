@@ -507,8 +507,10 @@ def myaccount(request, firstPage):
                     newCity = request.POST.get('customerCity')
                     newdob = request.POST.get('customerDOB')
 
+
                     with connections['oracle'].cursor() as cursor:
                         if len(newPassword) > 0:
+                            newPassword, salt = hashPassword(newPassword)
                             query = """UPDATE CUSTOMER SET
                                        FIRST_NAME = :fn,
                                        LAST_NAME = :ln,
@@ -519,11 +521,12 @@ def myaccount(request, firstPage):
                                        CITY = :c,
                                        PHONE_NUMBER = :pn,
                                        PASSWORD = :ps,
-                                       DOB = :dob
+                                       DOB = :dob,
+                                       SALT = :salt
                                        WHERE CUSTOMER_ID = :cid"""
                             data = {'fn': newFirstName, 'ln': newLastName, 'an': newApartmentNumber,
                                     'pn': newPhoneNumber, 'bn': newBuildingNumber, 'ps': newPassword,
-                                    'r': newRoad, 'a': newArea, 'c': newCity, 'dob': newdob,
+                                    'r': newRoad, 'a': newArea, 'c': newCity, 'dob': newdob, 'salt' : salt,
                                     'cid': customerID}
                             cursor.execute(query, data)
                             cursor.execute("COMMIT")
@@ -768,6 +771,7 @@ def myaccount(request, firstPage):
 
                     with connections['oracle'].cursor() as cursor:
                         if len(newPassword) > 0:
+                            newPassword, salt = hashPassword(newPassword)
                             query = """UPDATE SELLER SET
                                        NAME = :cn,
                                        BUILDING_NUMBER = :bn,
@@ -775,11 +779,12 @@ def myaccount(request, firstPage):
                                        AREA = :a,
                                        CITY = :c,
                                        PASSWORD = :ps,
-                                       WEBSITE = :w
+                                       WEBSITE = :w,
+                                       SALT = :salt
                                        WHERE SELLER_ID = :sid"""
                             data = {'cn': companyName, 'bn': sellerBuilding, 'ps': newPassword,
                                     'r': sellerRoad, 'a': sellerArea, 'c': sellerCity, 'sid': sellerID,
-                                    'w': website}
+                                    'w': website, 'salt' :salt}
                             cursor.execute(query, data)
                             cursor.execute("COMMIT")
                         else:
@@ -951,6 +956,7 @@ def myaccount(request, firstPage):
 
                     with connections['oracle'].cursor() as cursor:
                         if len(newPassword) > 0:
+                            newPassword, salt = hashPassword(newPassword)
                             query = """UPDATE EMPLOYEE SET
                                        FIRST_NAME = :fn,
                                        LAST_NAME = :ln,
@@ -961,10 +967,11 @@ def myaccount(request, firstPage):
                                        CITY = :c,
                                        PHONE_NUMBER = :pn,
                                        PASSWORD = :ps,
-                                       DOB = :dob
+                                       DOB = :dob,
+                                       SALT = :salt
                                        WHERE EMPLOYEE_ID = :eid"""
                             data = {'fn': firstName, 'ln': lastName, 'an': apartment,
-                                    'pn': phoneNumber, 'bn': building, 'ps': newPassword,
+                                    'pn': phoneNumber, 'bn': building, 'ps': newPassword, 'salt' : salt,
                                     'r': road, 'a': area, 'c': city, 'dob': dob,
                                     'eid': employeeID}
                             cursor.execute(query, data)
@@ -1101,6 +1108,7 @@ def myaccount(request, firstPage):
 
                     with connections['oracle'].cursor() as cursor:
                         if len(newPassword) > 0:
+                            newPassword, salt = hashPassword(newPassword)
                             query = """UPDATE EMPLOYEE SET
                                        FIRST_NAME = :fn,
                                        LAST_NAME = :ln,
@@ -1111,11 +1119,12 @@ def myaccount(request, firstPage):
                                        CITY = :c,
                                        PHONE_NUMBER = :pn,
                                        PASSWORD = :ps,
-                                       DOB = :dob
+                                       DOB = :dob,
+                                       SALT = :salt
                                        WHERE EMPLOYEE_ID = :eid"""
                             data = {'fn': firstName, 'ln': lastName, 'an': apartment,
                                     'pn': phoneNumber, 'bn': building, 'ps': newPassword,
-                                    'r': road, 'a': area, 'c': city, 'dob': dob,
+                                    'r': road, 'a': area, 'c': city, 'dob': dob,'salt':salt,
                                     'eid': employeeID}
                             cursor.execute(query, data)
                             cursor.execute("COMMIT")
@@ -1525,9 +1534,7 @@ def generateCartTableHTML(request):
                     LEFT OUTER JOIN
                     (SELECT PRODUCT_ID, SELLER_ID, PERCENTAGE_DISCOUNT, MINIMUM_QUANTITY_PURCHASED,
                     END_DATE FROM OFFER) Y
-                    ON (X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID)
-                    WHERE ( QUANTITY>=MINIMUM_QUANTITY_PURCHASED AND END_DATE>SYSDATE ) OR
-                    ( MINIMUM_QUANTITY_PURCHASED IS NULL AND END_DATE IS NULL )
+                    ON (X.PRODUCT_ID=Y.PRODUCT_ID AND X.SELLER_ID=Y.SELLER_ID AND QUANTITY>=MINIMUM_QUANTITY_PURCHASED AND END_DATE>=SYSDATE)
                     GROUP BY X.PRODUCT_ID, X.SELLER_ID, QUANTITY ) Q
                     JOIN PRODUCT P ON ( P.PRODUCT_ID=Q.PRODUCT_ID AND P.SELLER_ID=Q.SELLER_ID )
                     JOIN SELLER S ON ( S.SELLER_ID=Q.SELLER_ID );"""
@@ -1584,7 +1591,7 @@ def generateOrderTableHTML(request):
                     JOIN ORDERED_ITEMS OI USING(ORDER_ID) JOIN PRODUCT PR ON ( PR.PRODUCT_ID = OI.PRODUCT_ID AND
                     PR.SELLER_ID = OI.SELLER_ID ) WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) AND
                     (LOWER(P.DELIVERY_STATUS) != 'cancelled' OR LOWER(P.DELIVERY_STATUS) != 'returned' )GROUP BY ORDER_ID, ORDER_DATE, PAYMENT_METHOD, DELIVERY_STATUS,
-                    DELIVERED_DATE, PHONE_NUMBER"""
+                    DELIVERED_DATE, PHONE_NUMBER ORDER BY ORDER_DATE DESC"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         purchaseOrder = []
@@ -1645,7 +1652,7 @@ def generateOrderTableHTML(request):
                     PHONE_NUMBER CUSTOMER_CARE_NUMBER FROM CUSTOMER_ORDER JOIN RETURN_ORDER P
                     USING(ORDER_ID) JOIN (SELECT PHONE_NUMBER, EMPLOYEE_ID FROM EMPLOYEE ) PH ON
                     (PH.EMPLOYEE_ID = P.CUSTOMER_CARE_EMPLOYEE_ID) WHERE
-                    CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+                    CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) ORDER BY RETURN_DATE DESC"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         returnOrder = []
@@ -1772,7 +1779,7 @@ def generateReviewTableHTML(request):
         query =  """SELECT PRODUCT_ID, SELLER_ID, P.NAME PRODUCT_NAME, S.NAME SELLER_NAME, REVIEW_DATE, RATING,
                     DESCRIPTION FROM REVIEW JOIN (SELECT PRODUCT_ID, SELLER_ID, NAME FROM PRODUCT) P
                     USING (PRODUCT_ID, SELLER_ID) JOIN (SELECT SELLER_ID, NAME FROM SELLER) S USING (SELLER_ID)
-                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email)"""
+                    WHERE CUSTOMER_ID = (SELECT CUSTOMER_ID FROM CUSTOMER WHERE EMAIL_ID = :email) ORDER BY REVIEW_DATE DESC"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         reviews = []
@@ -1823,7 +1830,7 @@ def generateDeliveredItemHTML(request):
                     ||BUILDING_NUMBER||', Road : '||ROAD||', '||AREA||', '||CITY) "CUSTOMER ADDRESS",
                     CUSTOMER_ID FROM CUSTOMER) USING (CUSTOMER_ID) JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS)
                     USING(ORDER_ID) JOIN (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
-                    GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD"""
+                    GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD ORDER BY DELIVERED_DATE DESC"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         orderedItems = []
@@ -1902,7 +1909,7 @@ def generatePendingDeliveryHTML(request):
                     ||BUILDING_NUMBER||', Road : '||ROAD||', '||AREA||', '||CITY) "CUSTOMER ADDRESS",
                     CUSTOMER_ID FROM CUSTOMER) USING (CUSTOMER_ID) JOIN (SELECT ORDER_ID, PRODUCT_ID FROM ORDERED_ITEMS)
                     USING(ORDER_ID) JOIN (SELECT PRODUCT_ID, EXPECTED_TIME_TO_DELIVER FROM PRODUCT) USING(PRODUCT_ID)
-                    GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD"""
+                    GROUP BY ORDER_ID, CUSTOMER_NAME, "CUSTOMER PHONE", "CUSTOMER ADDRESS", DELIVERED_DATE, PAYMENT_METHOD ,ORDER_DATE ORDER BY ORDER_DATE DESC"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         orderedItems = []
@@ -1982,7 +1989,7 @@ def generateManagedComplaintsHTML(request):
                     "MANAGED DATE" FROM RETURN_ORDER WHERE LOWER(APPROVAL_STATUS) != 'pending' AND
                     CUSTOMER_CARE_EMPLOYEE_ID = (SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE EMAIL_ID = :email))
                     JOIN CUSTOMER_ORDER USING(ORDER_ID) JOIN (SELECT (FIRST_NAME||' '||LAST_NAME)
-                    "CUSTOMER NAME",PHONE_NUMBER "CUSTOMER PHONE",CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID)"""
+                    "CUSTOMER NAME",PHONE_NUMBER "CUSTOMER PHONE",CUSTOMER_ID FROM CUSTOMER ) USING (CUSTOMER_ID) ORDER BY "MANAGED DATE" DESC"""
         cursor.execute(query, {'email':request.session['useremail']})
         table = cursor.fetchall()
         complaints = []
