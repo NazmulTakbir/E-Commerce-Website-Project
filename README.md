@@ -10,7 +10,7 @@
 
 | Name          | Email                    |
 | ------------- | ------------------------ |
-| Nazmul Takbir | takbir.nazmul@gmail.com  |
-| Fatima Nawmi  | fatimanawmi@gmail.com    |
+| [Nazmul Takbir](https://nazmultakbir.github.io/) | takbir.nazmul@gmail.com  |
+| [Fatima Nawmi](https://sites.google.com/view/fatimanawmi/)  | fatimanawmi@gmail.com    |
 
  
