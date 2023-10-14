@@ -5,12 +5,12 @@
 * We used Oracle database and Python's Django framework to create an E-Commerce website similar to Daraz. 
 * As per the project requirements, we wrote raw SQL queries instead of using Django's ORM
 
-### Presentation : https://youtu.be/O7sfdfkzFvY
+### Presentation : [https://youtu.be/9_X6ZbJuMkg](https://youtu.be/9_X6ZbJuMkg)
 ### Collaborators :
 
 | Name          | Email                    |
 | ------------- | ------------------------ |
-| Nazmul Takbir | nazmultakbir98@gmail.com |
+| Nazmul Takbir | takbir.nazmul@gmail.com  |
 | Fatima Nawmi  | fatimanawmi@gmail.com    |
 
  
